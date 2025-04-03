@@ -532,7 +532,9 @@ import {
   Paper,
   Chip,
   Avatar,
-  InputAdornment
+  InputAdornment,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -543,6 +545,8 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SecurityIcon from '@mui/icons-material/Security';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import InfoIcon from '@mui/icons-material/Info';
+
 
 const UserDataTable = () => {
   const [users, setUsers] = useState([]);
@@ -564,6 +568,8 @@ const UserDataTable = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
+  const [generatedOTP, setGeneratedOTP] = useState("");
+  const [otpAlertOpen, setOtpAlertOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -623,13 +629,12 @@ const UserDataTable = () => {
     });
     setPasswordError("");
     setOtpSent(false);
+    setGeneratedOTP("");
   };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
-    // Clear password error when either password field changes
     if (name === 'userPassword' || name === 'confirmPassword') {
       setPasswordError("");
     }
@@ -643,8 +648,11 @@ const UserDataTable = () => {
     return true;
   };
 
+  const generateRandomOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
   const handleSendOTP = async () => {
-    // Validate email and mobile before sending OTP
     if (!formData.userEmail || !formData.userMobile) {
       alert("Email and mobile number are required to send OTP");
       return;
@@ -652,41 +660,36 @@ const UserDataTable = () => {
     
     setFormLoading(true);
     try {
-      // This would be your actual API call to send OTP
-      // const response = await axios.post("https://parkmywheelsapi.onrender.com/sendotp", {
-      //   email: formData.userEmail,
-      //   mobile: formData.userMobile
-      // });
-      
-      // For demonstration, simulating OTP sent
+      const otp = generateRandomOTP();
+      setGeneratedOTP(otp);
       setTimeout(() => {
         setOtpSent(true);
         setFormLoading(false);
-        alert("OTP sent successfully to your mobile and email");
+        setOtpAlertOpen(true);
       }, 1000);
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to send OTP");
+      alert("Failed to generate OTP");
       setFormLoading(false);
     }
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate passwords match
     if (!validatePasswords()) {
       return;
-    }
-    
-    // Validate OTP field is filled
+    } 
     if (!formData.otp) {
-      alert("Please enter the OTP sent to your email/mobile");
+      alert("Please enter the OTP");
+      return;
+    }
+    if (formData.otp !== generatedOTP) {
+      alert("Invalid OTP. Please enter the correct OTP.");
       return;
     }
     
     setFormLoading(true);
     try {
-      // Remove confirmPassword from data sent to API
+
       const { confirmPassword, ...submissionData } = formData;
       
       const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", submissionData);
@@ -702,6 +705,10 @@ const UserDataTable = () => {
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
+  };
+
+  const handleOtpAlertClose = () => {
+    setOtpAlertOpen(false);
   };
 
   const formatDate = (dateString) => {
@@ -784,8 +791,6 @@ const UserDataTable = () => {
           />
         </div>
       </CardContent>
-      
-      {/* Enhanced User Details Dialog */}
       <Dialog 
         open={open} 
         onClose={handleClose}
@@ -799,9 +804,9 @@ const UserDataTable = () => {
                 <Typography variant="h5">
                   Customer ID #{selectedUser.id}
                 </Typography>
-                <Button variant="outlined" color="error" sx={{ borderRadius: '4px' }}>
+                {/* <Button variant="outlined" color="error" sx={{ borderRadius: '4px' }}>
                   Delete Customer
-                </Button>
+                </Button> */}
               </div>
               <Typography variant="body2" color="text.secondary">
                 {formatDate(selectedUser.createdAt)}
@@ -1002,8 +1007,6 @@ const UserDataTable = () => {
           <Button onClick={handleClose} color="primary">Close</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Customer Add Form Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -1113,7 +1116,32 @@ const UserDataTable = () => {
             </form>
           </CardContent>
         </Card>
-      </Drawer>
+      </Drawer>     <Snackbar 
+  open={otpAlertOpen} 
+  autoHideDuration={10000} 
+  onClose={handleOtpAlertClose}
+  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+>
+  <Alert 
+    onClose={handleOtpAlertClose} 
+    severity="info" 
+    sx={{ width: '100%', boxShadow: 3, backgroundColor: '#329a73', color: 'white' }}
+    iconMapping={{
+      info: <InfoIcon sx={{ color: 'red' }} />,
+    }}
+  >
+    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
+      Verification Code
+    </Typography>
+    <Typography sx={{ color: 'white' }}>
+      Your OTP is: <strong>{generatedOTP}</strong>
+    </Typography>
+    <Typography variant="body2" sx={{ mt: 1, color: 'white' }}>
+      Please use this code to complete your registration.
+    </Typography>
+  </Alert>
+</Snackbar>
+
     </Card>
   );
 };
