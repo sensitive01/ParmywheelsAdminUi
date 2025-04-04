@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import OrderDetails from '@views/apps/ecommerce/orders/details'
 
+// Add a blank line between import groups (external and internal)
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 const OrderDetailsPage = async ({ params }) => {
@@ -10,6 +12,7 @@ const OrderDetailsPage = async ({ params }) => {
 
   if (!id) {
     console.log('⚠️ No ID found, redirecting to /not-found')
+
     redirect('/not-found')
   }
 
@@ -26,6 +29,7 @@ const OrderDetailsPage = async ({ params }) => {
 
     if (!response.ok) {
       console.log(`🚨 API call failed with status: ${response.status}, redirecting to /not-found`)
+
       redirect('/not-found')
     }
 
@@ -36,12 +40,14 @@ const OrderDetailsPage = async ({ params }) => {
 
     if (!orderData) {
       console.log('⚠️ No timeline data found, redirecting to /not-found')
+
       redirect('/not-found')
     }
 
     return <OrderDetails orderData={orderData} order={id} /> 
   } catch (error) {
     console.error('🚨 Error fetching order details:', error)
+    
     redirect('/not-found')
   }
 }
