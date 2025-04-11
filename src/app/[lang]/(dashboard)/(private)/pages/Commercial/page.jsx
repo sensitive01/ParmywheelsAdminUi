@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import axios from 'axios'
 import { 
   Box, 
@@ -20,6 +22,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 const CommercialServicesForm = () => {
   const router = useRouter()
+
   const [formData, setFormData] = useState({
     businessName: '',
     contactPerson: '',
@@ -42,11 +45,13 @@ const CommercialServicesForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleLocationChange = (e) => {
     const { name, value } = e.target
+
     setFormData(prev => ({
       ...prev,
       location: { ...prev.location, [name]: value }
@@ -55,6 +60,7 @@ const CommercialServicesForm = () => {
 
   const handleContactChange = (index, value) => {
     const newContacts = [...formData.contactNumbers]
+
     newContacts[index] = value
     setFormData(prev => ({ ...prev, contactNumbers: newContacts }))
   }
@@ -65,11 +71,13 @@ const CommercialServicesForm = () => {
 
   const removeContactField = (index) => {
     const newContacts = formData.contactNumbers.filter((_, i) => i !== index)
+
     setFormData(prev => ({ ...prev, contactNumbers: newContacts.length ? newContacts : [''] }))
   }
 
   const handleParkingChange = (index, field, value) => {
     const newParkingTypes = [...formData.parkingTypes]
+
     newParkingTypes[index][field] = value
     setFormData(prev => ({ ...prev, parkingTypes: newParkingTypes }))
   }
@@ -80,6 +88,7 @@ const CommercialServicesForm = () => {
 
   const removeParkingField = (index) => {
     const newParkingTypes = formData.parkingTypes.filter((_, i) => i !== index)
+
     setFormData(prev => ({ ...prev, parkingTypes: newParkingTypes.length ? newParkingTypes : [{ type: 'Car', space: '' }] }))
   }
 

@@ -68,8 +68,10 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
+
+import axios from "axios";
 import { TextField, Button, Card, CardContent, Typography } from "@mui/material";
 
 const SignupForm = () => {
@@ -79,6 +81,7 @@ const SignupForm = () => {
     userMobile: "",
     userPassword: ""
   });
+
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -89,8 +92,10 @@ const SignupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", formData);
+
       alert(response.data.message);
       router.push("/en/apps/ecommerce/customers/list");
     } catch (error) {

@@ -445,12 +445,17 @@
 // export default OrderListTable
 
 'use client'
+
 // React Imports
 import { useState, useEffect, useMemo } from 'react'
-import { useSession } from 'next-auth/react'
-// Next Imports
+
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+
+import { useParams , useRouter } from 'next/navigation'
+
+import { useSession } from 'next-auth/react'
+
+// Next Imports
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -463,6 +468,7 @@ import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
+
 // Third-party Imports
 import classnames from 'classnames'
 import { rankItem } from '@tanstack/match-sorter-utils'
@@ -479,14 +485,19 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 import AddIcon from '@mui/icons-material/Add';
+
+
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
+
 // Util Imports
 import { getInitials } from '@/utils/getInitials'
 import { getLocalizedUrl } from '@/utils/i18n'
-import { useRouter } from 'next/navigation'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
@@ -509,14 +520,17 @@ export const placeTypeIcons = {
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
+
   addMeta({
     itemRank
   })
-  return itemRank.passed
+  
+return itemRank.passed
 }
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   const [value, setValue] = useState(initialValue)
+
   useEffect(() => {
     setValue(initialValue)
   }, [initialValue])
@@ -524,9 +538,12 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
     const timeout = setTimeout(() => {
       onChange(value)
     }, debounce)
-    return () => clearTimeout(timeout)
+
+    
+return () => clearTimeout(timeout)
   }, [value])
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
+  
+return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
 const columnHelper = createColumnHelper()
@@ -600,7 +617,8 @@ const VendorListTable = () => {
       return true;
     } catch (error) {
       console.error('Error updating vendor status:', error);
-      return false;
+      
+return false;
     }
   };
 
@@ -703,6 +721,7 @@ const VendorListTable = () => {
             setIsLoading(true);
             
             const success = await updateVendorStatus(vendorId, 'approved');
+
             if (success) {
               setCurrentStatus('approved');
             }
@@ -745,6 +764,7 @@ const VendorListTable = () => {
         cell: ({ row }) => {
           const isSubscribed = row.original.subscription === "true";
           const daysLeft = row.original.subscriptionleft || "0";
+
           const endDate = row.original.subscriptionenddate 
             ? new Date(row.original.subscriptionenddate).toLocaleDateString() 
             : 'N/A';

@@ -511,7 +511,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+
 import { useRouter } from 'next/navigation';
+
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import { 
@@ -556,6 +558,7 @@ const UserDataTable = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     userName: "",
     userEmail: "",
@@ -564,6 +567,7 @@ const UserDataTable = () => {
     confirmPassword: "",
     otp: ""
   });
+
   const [passwordError, setPasswordError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -600,6 +604,7 @@ const UserDataTable = () => {
       user.walletstatus?.toLowerCase().includes(search.toLowerCase()) ||
       user.vehicleNo?.toLowerCase().includes(search.toLowerCase())
     );
+
     setFilteredUsers(filtered);
   };
 
@@ -634,7 +639,9 @@ const UserDataTable = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
+
     setFormData({ ...formData, [name]: value });
+
     if (name === 'userPassword' || name === 'confirmPassword') {
       setPasswordError("");
     }
@@ -643,9 +650,12 @@ const UserDataTable = () => {
   const validatePasswords = () => {
     if (formData.userPassword !== formData.confirmPassword) {
       setPasswordError("Passwords do not match");
-      return false;
+      
+return false;
     }
-    return true;
+
+    
+return true;
   };
 
   const generateRandomOTP = () => {
@@ -655,12 +665,15 @@ const UserDataTable = () => {
   const handleSendOTP = async () => {
     if (!formData.userEmail || !formData.userMobile) {
       alert("Email and mobile number are required to send OTP");
-      return;
+      
+return;
     }
     
     setFormLoading(true);
+
     try {
       const otp = generateRandomOTP();
+
       setGeneratedOTP(otp);
       setTimeout(() => {
         setOtpSent(true);
@@ -675,24 +688,31 @@ const UserDataTable = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+
     if (!validatePasswords()) {
       return;
-    } 
+    }
+ 
     if (!formData.otp) {
       alert("Please enter the OTP");
-      return;
+      
+return;
     }
+
     if (formData.otp !== generatedOTP) {
       alert("Invalid OTP. Please enter the correct OTP.");
-      return;
+      
+return;
     }
     
     setFormLoading(true);
+
     try {
 
       const { confirmPassword, ...submissionData } = formData;
       
       const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", submissionData);
+
       alert(response.data.message);
       handleDrawerClose();
       fetchUsers();
@@ -714,7 +734,9 @@ const UserDataTable = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
+
+    
+return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric',

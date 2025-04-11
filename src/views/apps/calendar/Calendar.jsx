@@ -146,6 +146,8 @@
 // export default Calendar
 // React Imports
 import { useEffect, useRef } from 'react'
+
+
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
 import 'bootstrap-icons/font/bootstrap-icons.css'
@@ -154,9 +156,12 @@ import listPlugin from '@fullcalendar/list'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+
 // Redux Imports
 import { useSelector, useDispatch } from 'react-redux'
+
 import { filterEvents, selectedEvent, updateEvent } from '@/redux-store/slices/calendar'
+
 const blankEvent = {
   title: '',
   start: '',
@@ -169,27 +174,35 @@ const blankEvent = {
     description: ''
   }
 }
+
 const Calendar = props => {
   // Props
   const { setCalendarApi, calendarsColor, handleAddEventSidebarToggle, handleLeftSidebarToggle } = props
+
   // Refs
   const calendarRef = useRef()
+
   // Hooks
   const theme = useTheme()
   const dispatch = useDispatch()
+
   // Get Events from Redux Store
   const calendarStore = useSelector(state => state.calendarReducer)
   const { events } = calendarStore
+
   useEffect(() => {
     if (!events.length) {
       console.warn("No events fetched yet. Check API response.");
     } else {
       console.log("Fetched Events:", events); // ✅ Debugging
     }
+
     if (calendarRef.current && !calendarRef.current.getApi()) {
       setCalendarApi(calendarRef.current.getApi())
     }
   }, [events])
+
+
   // FullCalendar Options
   const calendarOptions = {
     events: events,
@@ -209,9 +222,11 @@ const Calendar = props => {
     dragScroll: true,
     dayMaxEvents: 2,
     navLinks: true,
+
     // ✅ Show full details only in list & day views
     eventContent: function (arg) {
       const { event, view } = arg
+
       if (view.type === 'dayGridMonth') {
         // ✅ Show only title in Month View
         return { html: `<strong>${event.title}</strong>` }
@@ -234,7 +249,9 @@ const Calendar = props => {
     },
     eventClassNames({ event: calendarEvent }) {
       const colorName = calendarsColor[calendarEvent.extendedProps.calendar]
-      return [`event-bg-${colorName}`]
+
+      
+return [`event-bg-${colorName}`]
     },
     eventClick({ event: clickedEvent, jsEvent }) {
       jsEvent.preventDefault()
@@ -256,6 +273,7 @@ const Calendar = props => {
         end: info.dateStr,   // ✅ Ensure the end date is also set
         allDay: true
       }
+
       console.log("Clicked Date:", info.dateStr) // ✅ Debugging
       dispatch(selectedEvent(ev))
       handleAddEventSidebarToggle()
@@ -271,6 +289,9 @@ const Calendar = props => {
     ref: calendarRef,
     direction: theme.direction
   }
-  return <FullCalendar {...calendarOptions} />
+
+  
+return <FullCalendar {...calendarOptions} />
 }
+
 export default Calendar

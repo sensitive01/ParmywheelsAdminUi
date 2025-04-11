@@ -465,6 +465,7 @@
 
 'use client'
 import { useState, useEffect } from 'react'
+
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 
@@ -509,6 +510,8 @@ import {
   Assignment
 } from '@mui/icons-material'
 import { styled } from '@mui/material/styles'
+
+
 // Component Imports
 import StepperWrapper from '@core/styles/stepper'
 import StepperCustomDot from '@components/stepper-dot'
@@ -603,6 +606,7 @@ export default function ParkingBooking() {
   useEffect(() => {
     const fetchVendors = async () => {
       setVendorLoading(true)
+
       try {
         // Update the URL to your local API endpoint
         const response = await axios.get('https://parkmywheelsapi.onrender.com/vendor/fetch-all-vendor-data')
@@ -628,6 +632,7 @@ export default function ParkingBooking() {
   useEffect(() => {
     if (sts === 'Instant') {
       const now = new Date().toISOString().slice(0, 16)
+
       setParkingDate(now.split('T')[0])
       setParkingTime(now.split('T')[1])
     }
@@ -635,6 +640,7 @@ export default function ParkingBooking() {
 
   const validate = () => {
     const newErrors = {}
+
     switch (activeStep) {
       case 0:
         if (!vehicleType) newErrors.vehicleType = 'Please select a vehicle type'
@@ -642,20 +648,26 @@ export default function ParkingBooking() {
         break
       case 1:
         if (!vehicleNumber) newErrors.vehicleNumber = 'Vehicle number is required'
+
         if (sts === 'Subscription' && !subscriptionType) {
           newErrors.subscriptionType = 'Please select a subscription type'
         }
+
         break
       case 2:
         if (!personName) newErrors.personName = 'Name is required'
         if (!mobileNumber) newErrors.mobileNumber = 'Mobile number is required'
+
         if (mobileNumber && !/^\d{10}$/.test(mobileNumber)) {
           newErrors.mobileNumber = 'Enter a valid 10-digit number'
         }
+
         break
     }
+
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    
+return Object.keys(newErrors).length === 0
   }
 
   const handleNext = () => {
@@ -674,6 +686,7 @@ export default function ParkingBooking() {
 
   const handleSubmit = async () => {
     setLoading(true)
+
     try {
       const payload = {
         vendorId: selectedVendor, // Use selected vendor ID
@@ -689,12 +702,15 @@ export default function ParkingBooking() {
         status: 'Pending',
         sts
       }
+
       const response = await axios.post('https://parkmywheelsapi.onrender.com/vendor/createbooking', payload)
+
       setAlert({
         show: true,
         message: 'Booking created successfully!',
         type: 'success'
       })
+
       // Reset form after successful submission
       setTimeout(() => {
         setActiveStep(0)

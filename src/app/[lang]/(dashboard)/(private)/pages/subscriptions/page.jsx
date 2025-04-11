@@ -632,7 +632,9 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import axios from 'axios'
 import {
   Box,
@@ -652,6 +654,7 @@ import {
 
 const SubscriptionForm = () => {
   const router = useRouter()
+
   const [subscriptionDetails, setSubscriptionDetails] = useState({
     userId: '',
     planId: '',
@@ -673,6 +676,7 @@ const SubscriptionForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+
     setSubscriptionDetails(prev => ({
       ...prev,
       [name]: value
@@ -689,7 +693,8 @@ const SubscriptionForm = () => {
         message: 'Please fill all required fields',
         severity: 'error'
       })
-      return
+      
+return
     }
 
     try {

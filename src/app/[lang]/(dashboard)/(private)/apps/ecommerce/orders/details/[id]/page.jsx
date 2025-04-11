@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+
 import OrderDetails from '@views/apps/ecommerce/orders/details'
 
 // Add a blank line between import groups (external and internal)
@@ -25,7 +26,7 @@ const OrderDetailsPage = async ({ params }) => {
       cache: 'no-store' // ✅ Prevent caching issues
     })
 
-    console.log(`🔄 API Response Status: ${response.status}`) 
+    console.log(`🔄 API Response Status: ${response.status}`)
 
     if (!response.ok) {
       console.log(`🚨 API call failed with status: ${response.status}, redirecting to /not-found`)
@@ -34,7 +35,8 @@ const OrderDetailsPage = async ({ params }) => {
     }
 
     const data = await response.json()
-    console.log('✅ API Data:', data) 
+
+    console.log('✅ API Data:', data)
 
     const orderData = data?.timeline
 
@@ -44,10 +46,10 @@ const OrderDetailsPage = async ({ params }) => {
       redirect('/not-found')
     }
 
-    return <OrderDetails orderData={orderData} order={id} /> 
+    return <OrderDetails orderData={orderData} order={id} />
   } catch (error) {
     console.error('🚨 Error fetching order details:', error)
-    
+
     redirect('/not-found')
   }
 }

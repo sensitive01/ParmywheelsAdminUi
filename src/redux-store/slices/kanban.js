@@ -270,16 +270,19 @@ export const kanbanSlice = createSlice({
   reducers: {
     addColumn: (state, action) => {
       const maxId = state.columns.length > 0 ? Math.max(...state.columns.map(column => column.id)) : 0
+
       const newColumn = {
         id: maxId + 1,
         title: action.payload,
         taskIds: []
       }
+
       state.columns.push(newColumn)
     },
     editColumn: (state, action) => {
       const { id, title } = action.payload
       const column = state.columns.find(column => column.id === id)
+
       if (column) {
         column.title = title
       }
@@ -287,7 +290,9 @@ export const kanbanSlice = createSlice({
     deleteColumn: (state, action) => {
       const { columnId } = action.payload
       const column = state.columns.find(column => column.id === columnId)
+
       state.columns = state.columns.filter(column => column.id !== columnId)
+
       if (column) {
         state.tasks = state.tasks.filter(task => !column.taskIds.includes(task.id))
       }
@@ -297,28 +302,36 @@ export const kanbanSlice = createSlice({
     },
     updateColumnTaskIds: (state, action) => {
       const { id, tasksList } = action.payload
+
       state.columns = state.columns.map(column => {
         if (column.id === id) {
           return { ...column, taskIds: tasksList.map(task => task.id) }
         }
-        return column
+
+        
+return column
       })
     },
     addTask: (state, action) => {
       const { columnId, title } = action.payload
+
       const newTask = {
         id: state.tasks.length > 0 ? state.tasks[state.tasks.length - 1].id + 1 : 1,
         title
       }
+
       const column = state.columns.find(column => column.id === columnId)
+
       if (column) {
         column.taskIds.push(newTask.id)
       }
+
       state.tasks.push(newTask)
     },
     editTask: (state, action) => {
       const { id, badgeText, dueDate, category } = action.payload
       const task = state.tasks.find(task => task.id === id)
+
       if (task) {
         // Only update fields except title
         task.badgeText = badgeText || task.badgeText
@@ -333,11 +346,13 @@ export const kanbanSlice = createSlice({
           dueDate: dueDate || null,
           category: category || ''
         }
+
         state.tasks.push(newTask)
       }
     },
     deleteTask: (state, action) => {
       const taskId = action.payload
+
       state.tasks = state.tasks.filter(task => task.id !== taskId)
       state.columns = state.columns.map(column => ({
         ...column,

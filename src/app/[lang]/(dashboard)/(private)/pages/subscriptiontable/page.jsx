@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import axios from 'axios'
 import { DataGrid } from '@mui/x-data-grid'
 import { Box, Typography, Snackbar, Alert, Button } from '@mui/material'
@@ -59,7 +61,9 @@ const SubscriptionTable = () => {
           const { cardNumber, cardHolderName } = params.row.paymentDetails || {}
       
           const maskedCard = cardNumber ? `**** **** **** ${cardNumber.slice(-4)}` : 'No Card'
-          return `${maskedCard} - ${cardHolderName || 'Unknown'}`
+
+          
+return `${maskedCard} - ${cardHolderName || 'Unknown'}`
         }
       }
       

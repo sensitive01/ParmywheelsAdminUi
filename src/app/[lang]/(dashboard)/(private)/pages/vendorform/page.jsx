@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
+
+import axios from "axios";
 import { TextField, Button, Card, CardContent, Typography } from "@mui/material";
 
 const VendorSignupForm = () => {
@@ -16,6 +18,7 @@ const VendorSignupForm = () => {
     parkingEntries: "[]", // JSON string
     image: null,
   });
+
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -33,6 +36,7 @@ const VendorSignupForm = () => {
 
     try {
       const formDataToSend = new FormData();
+
       formDataToSend.append("vendorName", formData.vendorName);
       formDataToSend.append("spaceid", formData.spaceid);
       formDataToSend.append("latitude", formData.latitude);
@@ -40,6 +44,7 @@ const VendorSignupForm = () => {
       formDataToSend.append("address", formData.address);
       formDataToSend.append("password", formData.password);
       formDataToSend.append("parkingEntries", formData.parkingEntries);
+
       if (formData.image) {
         formDataToSend.append("image", formData.image);
       }
@@ -47,6 +52,7 @@ const VendorSignupForm = () => {
       const response = await axios.post("https://parkmywheelsapi.onrender.com/vendor/signup", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       alert(response.data.message);
       router.push("/en/apps/ecommerce/customers/list");
     } catch (error) {

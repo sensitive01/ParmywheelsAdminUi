@@ -1131,7 +1131,9 @@
 // export default PlanCreationForm
 'use client'
 import React, { useState, useEffect } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { 
@@ -1171,6 +1173,7 @@ const PlanManagementTable = () => {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [selectedPlans, setSelectedPlans] = useState([])
   const [selectAll, setSelectAll] = useState(false)
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -1265,8 +1268,10 @@ const PlanManagementTable = () => {
     } else {
       setSelectedPlans(plans.map(plan => plan._id))
     }
+
     setSelectAll(!selectAll)
   }
+
   if (loading) {
     return (
       <Box sx={{ 
@@ -1279,6 +1284,7 @@ const PlanManagementTable = () => {
       </Box>
     )
   }
+
   if (plans.length === 0) {
     return (
       <Box sx={{ 
@@ -1377,6 +1383,7 @@ const PlanManagementTable = () => {
               </TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>S.No</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Plan Name</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Role</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Validity</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Amount</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Features</TableCell>
@@ -1396,6 +1403,7 @@ const PlanManagementTable = () => {
                 </TableCell>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{plan.planName}</TableCell>
+                <TableCell>{plan.role}</TableCell>
                 <TableCell>{plan.validity} days</TableCell>
                 <TableCell>₹{plan.amount}</TableCell>
                 <TableCell>
@@ -1438,13 +1446,13 @@ const PlanManagementTable = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <IconButton 
+                  {/* <IconButton 
                     color="primary" 
                     onClick={() => handleViewPlan(plan)}
                     title="View Details"
                   >
                     <VisibilityIcon />
-                  </IconButton>
+                  </IconButton> */}
                   <IconButton 
                     color="secondary" 
                     onClick={() => handleEditPlan(plan)}
@@ -1512,6 +1520,7 @@ PlanManagementTable.propTypes = {
   plans: PropTypes.arrayOf(PropTypes.shape({
     _id: PropTypes.string.isRequired,
     planName: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired,
     validity: PropTypes.number.isRequired,
     amount: PropTypes.number.isRequired,
     status: PropTypes.oneOf(['enable', 'disable']).isRequired,

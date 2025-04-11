@@ -192,7 +192,8 @@ const UserProfileRight = props => {
   // If no user is selected, return null
   if (!activeUser || Object.keys(activeUser).length === 0) {
     console.log('No active user selected.')
-    return null
+    
+return null
   }
 
   return (

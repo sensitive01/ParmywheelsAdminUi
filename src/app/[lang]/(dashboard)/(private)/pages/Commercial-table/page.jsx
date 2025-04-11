@@ -1,12 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
+
 import axios from 'axios';
 import { Box, Typography, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useRouter } from 'next/navigation';
 
 const CommercialServicesTable = () => {
   const [data, setData] = useState([]);
@@ -19,6 +21,7 @@ const CommercialServicesTable = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/getallCommercial`);
+
         setData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -26,6 +29,7 @@ const CommercialServicesTable = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 

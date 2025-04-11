@@ -90,7 +90,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+
 import { useSession } from 'next-auth/react'
+
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
@@ -127,6 +129,7 @@ const ActivityTimeline = () => {
     if (user?.address && GOOGLE_MAPS_API_KEY) {
       if (!window.google || !window.google.maps) {
         const script = document.createElement('script')
+
       script.src = `https://maps.gomaps.pro/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`
 script.async = true
         script.onload = () => setMapLoaded(true)
@@ -145,6 +148,7 @@ script.async = true
 
   const initMap = address => {
     const geocoder = new window.google.maps.Geocoder()
+
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 15,
       center: { lat: 0, lng: 0 }
@@ -153,6 +157,7 @@ script.async = true
     geocoder.geocode({ address }, (results, status) => {
       if (status === 'OK' && results[0]?.geometry?.location) {
         const location = results[0].geometry.location
+
         map.setCenter(location)
 
         if (markerRef.current) {

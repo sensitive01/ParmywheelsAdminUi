@@ -245,7 +245,9 @@
 // export default SidebarLeft
 // React Imports
 import { useEffect, useState } from 'react'
+
 import { useDispatch, useSelector } from 'react-redux'
+
 // MUI Imports
 import Avatar from '@mui/material/Avatar'
 import TextField from '@mui/material/TextField'
@@ -255,31 +257,43 @@ import Chip from '@mui/material/Chip'
 import Autocomplete from '@mui/material/Autocomplete'
 import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
+
 // Third-party Imports
 import classnames from 'classnames'
 import PerfectScrollbar from 'react-perfect-scrollbar'
+
+
 // Slice Imports
 import { addNewChat, getActiveUserData, fetchVendors } from '@/redux-store/slices/chat'
+
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import UserProfileLeft from './UserProfileLeft'
 import AvatarWithBadge from './AvatarWithBadge'
+
 // Util Imports
 import { getInitials } from '@/utils/getInitials'
 import { formatDateToMonthShort } from './utils'
+
 export const statusObj = {
   busy: 'error',
   away: 'warning',
   online: 'success',
   offline: 'secondary'
 }
+
+
 // Render chat list
 const renderChat = props => {
   const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props
-  return chatStore.chats.map(chat => {
+
+  
+return chatStore.chats.map(chat => {
     const contact = chatStore.contacts.find(contact => contact.id === chat.userId) || chatStore.contacts[0]
     const isChatActive = chatStore.activeUser?.id === contact.id
-    return (
+
+    
+return (
       <li
         key={chat.id}
         className={classnames('flex items-start gap-4 pli-3 plb-2 cursor-pointer rounded-lg mbe-1', {
@@ -327,6 +341,8 @@ const renderChat = props => {
     )
   })
 }
+
+
 // Scroll wrapper for chat list
 const ScrollWrapper = ({ children, isBelowLgScreen }) => {
   if (isBelowLgScreen) {
@@ -335,6 +351,7 @@ const ScrollWrapper = ({ children, isBelowLgScreen }) => {
     return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
   }
 }
+
 const SidebarLeft = props => {
   // Props
   const {
@@ -350,13 +367,18 @@ const SidebarLeft = props => {
     isBelowSmScreen,
     messageInputRef
   } = props
+
+
   // States
   const [userSidebar, setUserSidebar] = useState(false)
   const [searchValue, setSearchValue] = useState()
+
+
   // Fetch vendors on mount
   useEffect(() => {
     dispatch(fetchVendors())
   }, [dispatch])
+
   const handleChange = (event, newValue) => {
     setSearchValue(newValue)
     dispatch(addNewChat({ id: chatStore.contacts.find(contact => contact.fullName === newValue)?.id }))
@@ -366,7 +388,9 @@ const SidebarLeft = props => {
     setSearchValue(null)
     messageInputRef.current?.focus()
   }
-  return (
+
+  
+return (
     <>
       <Drawer
         open={sidebarOpen}
@@ -451,4 +475,5 @@ const SidebarLeft = props => {
     </>
   )
 }
+
 export default SidebarLeft
