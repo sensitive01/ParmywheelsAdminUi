@@ -539,12 +539,21 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
       onChange(value)
     }, debounce)
 
-    
+     // Add a newline before the return statement
 return () => clearTimeout(timeout)
-  }, [value])
+  }, [value, debounce, onChange])
   
-return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+    // Add a blank line before the return statement
+
+  return (
+    <TextField
+      {...props}
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      size="small"
+    />
+  );
+};
 
 const columnHelper = createColumnHelper()
 
@@ -557,6 +566,9 @@ const VendorListTable = () => {
   const { lang: locale } = useParams()
   const { data: session } = useSession()
   const router = useRouter()
+  const [vendorLoading, setVendorLoading] = useState({});
+const [vendorStatusMap, setVendorStatusMap] = useState({});
+
 
   const fetchVendors = async () => {
     try {
@@ -583,44 +595,77 @@ const VendorListTable = () => {
   }, [])
 
   // Function to update vendor status
-  const updateVendorStatus = async (vendorId, newStatus) => {
-    try {
-      const endpoint = newStatus === 'approved' 
-        ? `${API_URL}/vendor/approve/${vendorId}` 
-        : `${API_URL}/vendor/updateStatus/${vendorId}`;
-      
-      const response = await fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to update vendor status');
-      }
-
-      // Update the data state with the new status
-      setData(prevData => 
-        prevData.map(vendor => 
-          vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
-        )
-      );
+//   const updateVendorStatus = async (vendorId, newStatus) => {
+//     try {
+//       const endpoint = newStatus === 'approved' 
+//         ? `${API_URL}/vendor/approve/${vendorId}` 
+//         : `${API_URL}/vendor/updateStatus/${vendorId}`;
       
-      setFilteredData(prevData => 
-        prevData.map(vendor => 
-          vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
-        )
-      );
+//       const response = await fetch(endpoint, {
+//         method: 'PUT',
+//         headers: {
+//           'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify({ status: newStatus })
+//       });
 
-      return true;
-    } catch (error) {
-      console.error('Error updating vendor status:', error);
+//       if (!response.ok) {
+//         throw new Error('Failed to update vendor status');
+//       }
+
+//       // Update the data state with the new status
+//       setData(prevData => 
+//         prevData.map(vendor => 
+//           vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
+//         )
+//       );
       
-return false;
-    }
-  };
+//       setFilteredData(prevData => 
+//         prevData.map(vendor => 
+//           vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
+//         )
+//       );
+
+//       return true;
+//     } catch (error) {
+//       console.error('Error updating vendor status:', error);
+      
+// return false;
+//     }
+//   };
+
+// Function to update vendor status
+const updateVendorStatus = async (vendorId, newStatus) => {
+  setVendorLoading(prev => ({ ...prev, [vendorId]: true }));
+
+  try {
+    const endpoint = newStatus === 'approved' 
+      ? `${API_URL}/vendor/approve/${vendorId}` 
+      : `${API_URL}/vendor/updateStatus/${vendorId}`;
+
+    const response = await fetch(endpoint, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    if (!response.ok) throw new Error('Failed to update vendor status');
+
+    setVendorStatusMap(prev => ({ ...prev, [vendorId]: newStatus }));
+
+    return true;
+  } catch (error) {
+    console.error('Error updating vendor status:', error);
+
+    return false;
+  } finally {
+      // Add a blank line before the comment
+    setVendorLoading(prev => ({ ...prev, [vendorId]: false }));
+  }
+};
 
   const columns = useMemo(
     () => [
@@ -706,42 +751,35 @@ return false;
           );
         }
       }),
+ 
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
           const vendorId = row.original._id;
-          const [isLoading, setIsLoading] = useState(false);
-          const [currentStatus, setCurrentStatus] = useState(row.original.status || 'pending');
-          
-          // Toggle status only from pending to approved
+          const isLoading = vendorLoading[vendorId] || false;
+          const currentStatus = vendorStatusMap[vendorId] || row.original.status || 'pending';
+      
           const toggleStatus = async () => {
-            // Only allow updates if current status is pending
             if (isLoading || currentStatus !== 'pending') return;
-            
-            setIsLoading(true);
-            
+      
             const success = await updateVendorStatus(vendorId, 'approved');
-
-            if (success) {
-              setCurrentStatus('approved');
+      
+            if (!success) {
+              // Optional: rollback or show toast
             }
-            
-            setIsLoading(false);
           };
-          
-          // Define color styles - only make pending hover/clickable
+      
           const chipStyles = {
             backgroundColor: currentStatus === 'pending' ? '#ff4d4f' : '#52c41a',
             color: 'white',
             cursor: currentStatus === 'pending' ? 'pointer' : 'default',
             opacity: isLoading ? 0.7 : 1,
             '&:hover': currentStatus === 'pending' ? { 
-              backgroundColor: '#ff7875', // Lighter red on hover for pending
-              boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+              backgroundColor: '#ff7875', 
+              boxShadow: '0 2px 5px rgba(0,0,0,0.2)' 
             } : {}
           };
-          
-          // Only show tooltip for pending status
+      
           const chip = (
             <Chip
               label={isLoading ? '...' : (currentStatus || 'Pending')}
@@ -751,14 +789,13 @@ return false;
               onClick={currentStatus === 'pending' ? toggleStatus : undefined}
             />
           );
-          
+      
           return currentStatus === 'pending' ? (
-            <Tooltip title="Click to approve">
-              {chip}
-            </Tooltip>
+            <Tooltip title="Click to approve">{chip}</Tooltip>
           ) : chip;
         }
-      }), 
+      }),
+      
       columnHelper.accessor('subscription', {
         header: 'Subscription',
         cell: ({ row }) => {

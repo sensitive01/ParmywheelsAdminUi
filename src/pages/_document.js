@@ -8,9 +8,10 @@ class MyDocument extends Document {
       <Html>
         <Head>
           {/* Add GoMaps CDN Script here */}
-          <script src="https://cdn.gomaps.pro/js/gomaps.js"
-           strategy="beforeInteractive"
-            />
+          <Script
+            src="https://cdn.gomaps.pro/js/gomaps.js"
+            strategy="beforeInteractive"
+          />
         </Head>
         <body>
           <Main />

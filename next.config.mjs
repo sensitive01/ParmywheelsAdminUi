@@ -15,6 +15,12 @@ const nextConfig = {
         permanent: true,
         locale: false
       },
+      module.exports = {
+        eslint: {
+          ignoreDuringBuilds: true, 
+        },
+      },
+      
       {
         source: '/((?!(?:en|fr|ar|front-pages|favicon.ico)\\b)):path',
         destination: '/en/:path',

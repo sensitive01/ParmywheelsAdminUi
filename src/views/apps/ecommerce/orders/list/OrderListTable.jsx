@@ -23,6 +23,8 @@ import TablePagination from '@mui/material/TablePagination'
 import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
+import Alert from '@mui/material/Alert';
+
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -59,7 +61,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-import { Alert } from '@mui/material/Alert';
 
 export const stsChipColor = {
   instant: { color: '#ff4d49', text: 'Instant' },       // Blue

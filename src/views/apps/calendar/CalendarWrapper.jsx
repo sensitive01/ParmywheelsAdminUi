@@ -12,7 +12,7 @@ import { useMediaQuery } from '@mui/material'
 // Redux Imports
 import { useDispatch, useSelector } from 'react-redux'
 
-import { setFetchedEvents, filterEventsUsingCheckbox, filterCalendarLabel, filterAllCalendarLabels } from '@/redux-store/slices/calendar'
+import { setFetchedEvents,  filterCalendarLabel, filterAllCalendarLabels } from '@/redux-store/slices/calendar'
 
 // Component Imports
 import Calendar from './Calendar'

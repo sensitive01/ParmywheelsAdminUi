@@ -496,7 +496,7 @@
 // //   const [savedData, setSavedData] = useState(null)
 // //   const [isEditMode, setIsEditMode] = useState(false)
 // //   const [isLoading, setIsLoading] = useState(true)
-  
+
 // //   const { data: session } = useSession()
 // //   const vendorId = session?.user?.id
 
@@ -593,13 +593,13 @@
 // //       const url = isEditMode
 // //         ? `${API_URL}/vendor/updateamenitiesdata/${vendorId}`
 // //         : `${API_URL}/vendor/amenities`
-      
+
 // //       const response = await fetch(url, {
 // //         method: isEditMode ? 'PUT' : 'POST',
 // //         headers: { 'Content-Type': 'application/json' },
 // //         body: JSON.stringify(payload)
 // //       })
-      
+
 // //       const data = await response.json()
 // //       if (data?.AmenitiesData) {
 // //         setSavedData(data.AmenitiesData)
@@ -900,7 +900,7 @@
 //     formData.append('planName', planDetails.planName)
 //     formData.append('validity', planDetails.validity)
 //     formData.append('amount', planDetails.amount)
-    
+
 //     // Append features
 //     planDetails.features.forEach((feature, index) => {
 //       if (feature.trim()) {
@@ -1136,16 +1136,16 @@ import { useRouter } from 'next/navigation'
 
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  IconButton, 
-  Typography, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Typography,
   Box,
   Dialog,
   DialogTitle,
@@ -1189,14 +1189,14 @@ const PlanManagementTable = () => {
       setLoading(true)
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/getallplan`)
 
-      const plansData = (Array.isArray(response.data) 
-        ? response.data 
-        : response.data.plans 
-        || response.data.data 
+      const plansData = (Array.isArray(response.data)
+        ? response.data
+        : response.data.plans
+        || response.data.data
         || []).map(plan => ({
           ...plan,
-          features: Array.isArray(plan.features) 
-            ? plan.features 
+          features: Array.isArray(plan.features)
+            ? plan.features
             : (plan.features ? plan.features.split(',').map(f => f.trim()) : [])
         }))
 
@@ -1218,7 +1218,7 @@ const PlanManagementTable = () => {
 
     try {
       await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/deleteplan/${selectedPlan._id}`)
-      
+
       setPlans(plans.filter(plan => plan._id !== selectedPlan._id))
 
       setDeleteDialogOpen(false)
@@ -1255,8 +1255,8 @@ const PlanManagementTable = () => {
   }
 
   const handleSelectPlan = (planId) => {
-    setSelectedPlans(prev => 
-      prev.includes(planId) 
+    setSelectedPlans(prev =>
+      prev.includes(planId)
         ? prev.filter(id => id !== planId)
         : [...prev, planId]
     )
@@ -1274,11 +1274,11 @@ const PlanManagementTable = () => {
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh'
       }}>
         <CircularProgress />
       </Box>
@@ -1287,18 +1287,18 @@ const PlanManagementTable = () => {
 
   if (plans.length === 0) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         flexDirection: 'column'
       }}>
         <Typography variant="h6" sx={{ color: '#329a73', mb: 2 }}>
           No plans found
         </Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           sx={{ backgroundColor: '#329a73' }}
           onClick={() => router.push('/en/pages/planform')}
         >
@@ -1309,28 +1309,28 @@ const PlanManagementTable = () => {
   }
 
   return (
-    <Box sx={{ 
-      backgroundColor: '#f4f4f4', 
-      minHeight: '100vh', 
-      p: 3 
+    <Box sx={{
+      backgroundColor: '#f4f4f4',
+      minHeight: '100vh',
+      p: 3
     }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 3 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3
       }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          sx={{ 
-            textAlign: 'center', 
-            color: '#329a73' 
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            textAlign: 'center',
+            color: '#329a73'
           }}
         >
           Plan Management
         </Typography>
-        
+
         <Button
           variant='contained'
           onClick={() => router.push('/en/pages/planform')}
@@ -1343,9 +1343,9 @@ const PlanManagementTable = () => {
       </Box>
 
       {selectedPlans.length > 0 && (
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
           mb: 2,
           backgroundColor: '#e6f3ef',
           p: 2,
@@ -1354,9 +1354,9 @@ const PlanManagementTable = () => {
           <Typography variant="body1" sx={{ mr: 2 }}>
             {selectedPlans.length} plan(s) selected
           </Typography>
-          <Button 
-            variant="contained" 
-            color="error" 
+          <Button
+            variant="contained"
+            color="error"
             size="small"
             startIcon={<DeleteIcon />}
           >
@@ -1373,7 +1373,7 @@ const PlanManagementTable = () => {
                 <Checkbox
                   checked={selectAll}
                   onChange={handleSelectAll}
-                  sx={{ 
+                  sx={{
                     color: 'white',
                     '&.Mui-checked': {
                       color: 'white'
@@ -1409,11 +1409,11 @@ const PlanManagementTable = () => {
                 <TableCell>
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                     {plan.features && plan.features.map((feature, index) => (
-                      <Chip 
-                        key={index} 
-                        label={feature} 
-                        size="small" 
-                        color="primary" 
+                      <Chip
+                        key={index}
+                        label={feature}
+                        size="small"
+                        color="primary"
                         variant="outlined"
                         sx={{ mb: 0.5 }}
                       />
@@ -1422,22 +1422,22 @@ const PlanManagementTable = () => {
                 </TableCell>
                 <TableCell>
                   {plan.image && (
-                    <Avatar 
+                    <Avatar
                       variant="rounded"
-                      src={plan.image} 
+                      src={plan.image}
                       alt={`${plan.planName} image`}
-                      sx={{ 
-                        width: 70, 
-                        height: 70, 
-                        objectFit: 'cover' 
-                      }} 
+                      sx={{
+                        width: 70,
+                        height: 70,
+                        objectFit: 'cover'
+                      }}
                     />
                   )}
                 </TableCell>
                 <TableCell>
-                  <Typography 
+                  <Typography
                     variant="body2"
-                    sx={{ 
+                    sx={{
                       color: plan.status === 'enable' ? 'green' : 'red',
                       fontWeight: 'bold'
                     }}
@@ -1453,15 +1453,15 @@ const PlanManagementTable = () => {
                   >
                     <VisibilityIcon />
                   </IconButton> */}
-                  <IconButton 
-                    color="secondary" 
+                  <IconButton
+                    color="secondary"
                     onClick={() => handleEditPlan(plan)}
                     title="Edit Plan"
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    color="error" 
+                  <IconButton
+                    color="error"
                     onClick={() => openDeleteDialog(plan)}
                     title="Delete Plan"
                   >
@@ -1479,10 +1479,15 @@ const PlanManagementTable = () => {
       >
         <DialogTitle>Delete Plan</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          {/* <DialogContentText>
             Are you sure you want to delete the plan "{selectedPlan?.planName}"? 
             This action cannot be undone.
+          </DialogContentText> */}
+          <DialogContentText>
+            Are you sure you want to delete the plan &quot;{selectedPlan?.planName}&quot;?
+            This action cannot be undone.
           </DialogContentText>
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
@@ -1500,7 +1505,7 @@ const PlanManagementTable = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
+        <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
