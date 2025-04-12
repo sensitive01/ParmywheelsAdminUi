@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-// // import { useEffect } from 'react'
+import { useEffect } from 'react'
 
 // Hook Imports
 import { useCookie, useMedia } from 'react-use'
