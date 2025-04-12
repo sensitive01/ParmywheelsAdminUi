@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: process.env.BASEPATH,
-  redirects: async () => {
+  eslint: {
+    ignoreDuringBuilds: true, 
+  },
+  async redirects() {
     return [
       {
         source: '/',
@@ -15,12 +18,6 @@ const nextConfig = {
         permanent: true,
         locale: false
       },
-      module.exports = {
-        eslint: {
-          ignoreDuringBuilds: true, 
-        },
-      },
-      
       {
         source: '/((?!(?:en|fr|ar|front-pages|favicon.ico)\\b)):path',
         destination: '/en/:path',
