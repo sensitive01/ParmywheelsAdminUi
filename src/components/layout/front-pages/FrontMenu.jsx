@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useEffect } from 'react'
+// import { useEffect } from 'react'
 
 // Next Imports
 import { usePathname } from 'next/navigation'

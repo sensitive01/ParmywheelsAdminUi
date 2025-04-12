@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useEffect } from 'react'
+// import { useEffect } from 'react'
 
 // Component Imports
 import PricingSection from '@views/front-pages/pricing/PricingSection'
