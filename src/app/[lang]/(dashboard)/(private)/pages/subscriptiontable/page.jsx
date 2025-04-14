@@ -27,7 +27,7 @@ const SubscriptionTable = () => {
         ...item,
         id: item._id, // Map `_id` to `id`
       }))
-      
+
       setSubscriptions(formattedData)
     } catch (error) {
       setSnackbar({
@@ -50,32 +50,32 @@ const SubscriptionTable = () => {
       valueGetter: (params) => (params.row?.autoRenew ? 'Yes' : 'No')
     },
     { field: 'expiresAt', headerName: 'Expires At', width: 150 },
-  
-    {
-        field: 'paymentDetails',
-        headerName: 'Payment Details',
-        width: 250,
-        valueGetter: (params) => {
-          if (!params || !params.row || !params.row.paymentDetails) return 'N/A'
-      
-          const { cardNumber, cardHolderName } = params.row.paymentDetails || {}
-      
-          const maskedCard = cardNumber ? `**** **** **** ${cardNumber.slice(-4)}` : 'No Card'
 
-          
-return `${maskedCard} - ${cardHolderName || 'Unknown'}`
-        }
+    {
+      field: 'paymentDetails',
+      headerName: 'Payment Details',
+      width: 250,
+      valueGetter: (params) => {
+        if (!params || !params.row || !params.row.paymentDetails) return 'N/A'
+
+        const { cardNumber, cardHolderName } = params.row.paymentDetails || {}
+
+        const maskedCard = cardNumber ? `**** **** **** ${cardNumber.slice(-4)}` : 'No Card'
+
+
+        return `${maskedCard} - ${cardHolderName || 'Unknown'}`
       }
-      
+    }
+
   ]
-  
+
 
   return (
     <Box sx={{ height: 400, width: '100%', padding: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5">Subscriptions</Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           sx={{ backgroundColor: '#329a73' }}
           startIcon={<AddIcon />}
           onClick={() => router.push('/en/pages/subscriptions')}
@@ -83,21 +83,21 @@ return `${maskedCard} - ${cardHolderName || 'Unknown'}`
           Add Subscription
         </Button>
       </Box>
-      <DataGrid 
-        rows={subscriptions} 
-        columns={columns} 
-        pageSize={5} 
-        checkboxSelection 
+      <DataGrid
+        rows={subscriptions}
+        columns={columns}
+        pageSize={5}
+        checkboxSelection
       />
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
           {snackbar.message}

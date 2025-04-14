@@ -150,8 +150,8 @@ const KanbanDrawer = props => {
     setBadgeText(task.badgeText || [])
     setDate(task.dueDate)
   }, [task, reset])
-  
-return (
+
+  return (
     <div>
       <Drawer
         open={drawerOpen}

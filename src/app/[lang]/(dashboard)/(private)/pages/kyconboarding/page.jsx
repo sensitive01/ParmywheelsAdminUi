@@ -109,21 +109,21 @@ const KycDataTable = () => {
           size="small"
         />
       </Box>
-      <DataGrid 
-        rows={filteredData} 
-        columns={columns} 
-        pageSize={5} 
-        checkboxSelection 
+      <DataGrid
+        rows={filteredData}
+        columns={columns}
+        pageSize={5}
+        checkboxSelection
       />
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
           {snackbar.message}

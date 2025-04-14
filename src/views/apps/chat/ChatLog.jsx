@@ -748,8 +748,8 @@ const formatChatData = (chats, profileUser) => {
 
     if (index === chats.length - 1) formattedChatData.push(msgGroup)
   })
-  
-return formattedChatData
+
+  return formattedChatData
 }
 
 const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
@@ -830,8 +830,8 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
           formatChatData(messages, profileUser).map((msgGroup, index) => {
             const isSender = msgGroup.senderId === profileUser.id
 
-            
-return (
+
+            return (
               <div key={index} className={classnames('flex gap-4 p-5', { 'flex-row-reverse': isSender })}>
                 {!isSender ? (
                   contacts.find(contact => contact.id === msgGroup.senderId)?.avatar ? (

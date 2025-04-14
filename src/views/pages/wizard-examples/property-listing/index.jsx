@@ -580,7 +580,7 @@ const steps = [
 export default function ParkingBooking() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL
   const { data: session } = useSession()
-  
+
   // New state for vendor selection
   const [vendors, setVendors] = useState([])
   const [selectedVendor, setSelectedVendor] = useState('')
@@ -610,13 +610,13 @@ export default function ParkingBooking() {
       try {
         // Update the URL to your local API endpoint
         const response = await axios.get('https://parkmywheelsapi.onrender.com/vendor/fetch-all-vendor-data')
-        
+
         // Extract vendor names from the response
         const vendorNames = response.data.data.map(vendor => ({
           id: vendor.vendorId,
           name: vendor.vendorName
         }))
-        
+
         setVendors(vendorNames)
         setVendorLoading(false)
       } catch (error) {
@@ -666,8 +666,8 @@ export default function ParkingBooking() {
     }
 
     setErrors(newErrors)
-    
-return Object.keys(newErrors).length === 0
+
+    return Object.keys(newErrors).length === 0
   }
 
   const handleNext = () => {
@@ -737,7 +737,7 @@ return Object.keys(newErrors).length === 0
       <Typography variant="h6" gutterBottom style={{ marginTop: '20px', marginBottom: '20px' }}>
         Vehicle Type
       </Typography>
-      
+
       {/* New Vendor Selection Field */}
       <Grid item xs={12} style={{ marginBottom: '20px' }}>
         <FormControl fullWidth error={!!errors.selectedVendor}>

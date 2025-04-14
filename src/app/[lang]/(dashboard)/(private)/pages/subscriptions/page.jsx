@@ -40,9 +40,9 @@
 //   const [couponApplied, setCouponApplied] = useState(false)
 //   const [couponLoading, setCouponLoading] = useState(false)
 //   const [autoRenew, setAutoRenew] = useState(true)
-  
+
 //   const steps = ['Select Plan', 'Payment Details', 'Confirmation'];
-  
+
 //   // Card validation states
 //   const [cardInfo, setCardInfo] = useState({
 //     number: '',
@@ -50,7 +50,7 @@
 //     expiry: '',
 //     cvv: ''
 //   })
-  
+
 //   const [errors, setErrors] = useState({
 //     number: '',
 //     name: '',
@@ -149,7 +149,7 @@
 
 //   const handleApplyCoupon = () => {
 //     if (!couponCode) return;
-    
+
 //     setCouponLoading(true);
 //     // Simulate API call
 //     setTimeout(() => {
@@ -164,7 +164,7 @@
 //       ...cardInfo,
 //       [name]: value
 //     });
-    
+
 //     // Basic validation
 //     if (name === 'number' && !/^\d*$/.test(value)) {
 //       setErrors({...errors, number: 'Card number must contain only digits'});
@@ -254,7 +254,7 @@
 //         <Typography variant="h6" component="h3" sx={{ mb: 2, fontWeight: 'bold', pl: 2 }}>
 //           {getSelectedPlan().subtitle} Plan Features:
 //         </Typography>
-        
+
 //         <Box sx={{ mb: 2, pl: 2 }}>
 //           {getSelectedPlan().features.map((feature, index) => (
 //             <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -387,7 +387,7 @@
 //              couponApplied ? 'Applied' : 'Apply'}
 //           </Button>
 //         </Box>
-        
+
 //         {couponApplied && (
 //           <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
 //             Coupon successfully applied! You've received 10% off.
@@ -444,7 +444,7 @@
 //                 {getSelectedPlan().title} ({getSelectedPlan().subtitle})
 //               </Typography>
 //             </Grid>
-            
+
 //             <Grid item xs={6}>
 //               <Typography variant="body2" color="text.secondary">
 //                 Price
@@ -455,7 +455,7 @@
 //                 {getSelectedPlan().price}
 //               </Typography>
 //             </Grid>
-            
+
 //             {couponApplied && (
 //               <>
 //                 <Grid item xs={6}>
@@ -474,7 +474,7 @@
 //         </Box>
 
 //         <Divider sx={{ my: 2 }} />
-        
+
 //         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
 //           <Typography variant="h6">Total</Typography>
 //           <Typography variant="h6" color="#329a73" fontWeight="bold">
@@ -483,7 +483,7 @@
 //               : getSelectedPlan().price}
 //           </Typography>
 //         </Box>
-        
+
 //         <Typography variant="body2" color="text.secondary">
 //           {autoRenew 
 //             ? `Your subscription will automatically renew every ${getSelectedPlan().title.toLowerCase()} until canceled.` 
@@ -685,16 +685,16 @@ const SubscriptionForm = () => {
 
   const handleCreateSubscription = async () => {
     if (!subscriptionDetails.userId || !subscriptionDetails.planId || !subscriptionDetails.planTitle ||
-        !subscriptionDetails.price || !subscriptionDetails.expiresAt ||
-        !subscriptionDetails.cardNumber || !subscriptionDetails.cardHolderName ||
-        !subscriptionDetails.expiry || !subscriptionDetails.cvv) {
+      !subscriptionDetails.price || !subscriptionDetails.expiresAt ||
+      !subscriptionDetails.cardNumber || !subscriptionDetails.cardHolderName ||
+      !subscriptionDetails.expiry || !subscriptionDetails.cvv) {
       setSnackbar({
         open: true,
         message: 'Please fill all required fields',
         severity: 'error'
       })
-      
-return
+
+      return
     }
 
     try {
