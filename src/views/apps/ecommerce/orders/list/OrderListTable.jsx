@@ -119,29 +119,39 @@ const OrderListTable = ({ orderData }) => {
   const vendorId = session?.user?.id
 
   useEffect(() => {
-    if (!vendorId) return
-
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${vendorId}`)
-        const result = await response.json()
-
-        if (result && result.bookings) {
-          setData(result.bookings) // ✅ Set full data
-          setFilteredData(result.bookings) // ✅ Set initial filtered data to full data
+        setLoading(true);
+        // Using the /vendor/bookings endpoint instead of the vendor-specific one
+        const response = await fetch(`${API_URL}/vendor/bookings`);
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Fetched bookings:', result);
+  
+        if (result && Array.isArray(result)) {
+          setData(result); // Set full data
+          setFilteredData(result); // Set initial filtered data to full data
+        } else if (result && result.bookings && Array.isArray(result.bookings)) {
+          setData(result.bookings);
+          setFilteredData(result.bookings);
         } else {
-          setData([])
-          setFilteredData([])
+          console.warn('Unexpected response format:', result);
+          setData([]);
+          setFilteredData([]);
         }
       } catch (error) {
-        console.error('Error fetching vendor data:', error)
+        console.error('Error fetching booking data:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
-    fetchData()
-  }, [vendorId])
+    };
+  
+    fetchData();
+  }, []); // No need for vendorId dependency if fetching all bookings
 
   const columns = useMemo(
     () => [
