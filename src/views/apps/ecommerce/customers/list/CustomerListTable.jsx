@@ -57,7 +57,7 @@
 
 //   const fetchUsers = () => {
 //     setLoading(true);
-//     axios.get('https://parkmywheelsapi.onrender.com/allusers')
+//     axios.get('http://13.48.42.169:4000/allusers')
 //       .then(response => {
 //         setUsers(response.data.users);
 //         setFilteredUsers(response.data.users);
@@ -114,7 +114,7 @@
 //     e.preventDefault();
 //     setFormLoading(true);
 //     try {
-//       const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", formData);
+//       const response = await axios.post("http://13.48.42.169:4000/signup", formData);
 //       alert(response.data.message);
 //       handleDrawerClose();
 //       fetchUsers();
@@ -209,7 +209,7 @@
 //           />
 //         </div>
 //       </CardContent>
-      
+
 //       {/* Enhanced User Details Dialog */}
 //       <Dialog 
 //         open={open} 
@@ -257,7 +257,7 @@
 //                           Customer ID #{selectedUser.id}
 //                         </Typography>
 //                       </Box>
-                      
+
 //                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
 //                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
 //                           <ShoppingCartIcon sx={{ color: '#329a73', mr: 1 }} />
@@ -267,7 +267,7 @@
 //                           {selectedUser.orders || '157'}
 //                         </Typography>
 //                       </Box>
-                      
+
 //                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 //                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
 //                           <AccountBalanceWalletIcon sx={{ color: '#329a73', mr: 1 }} />
@@ -279,7 +279,7 @@
 //                       </Box>
 //                     </Paper>
 //                   </Grid>
-                  
+
 //                   <Grid item xs={12} md={8}>
 //                     <Grid container spacing={3}>
 //                       <Grid item xs={12} md={6}>
@@ -301,7 +301,7 @@
 //                           </Typography>
 //                         </Paper>
 //                       </Grid>
-                      
+
 //                       <Grid item xs={12} md={6}>
 //                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
 //                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -323,7 +323,7 @@
 //                           </Typography>
 //                         </Paper>
 //                       </Grid>
-                      
+
 //                       <Grid item xs={12} md={6}>
 //                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
 //                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -337,7 +337,7 @@
 //                           </Typography>
 //                         </Paper>
 //                       </Grid>
-                      
+
 //                       <Grid item xs={12} md={6}>
 //                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
 //                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -353,7 +353,7 @@
 //                       </Grid>
 //                     </Grid>
 //                   </Grid>
-                  
+
 //                   <Grid item xs={12}>
 //                     <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
 //                       <Typography variant="h6" sx={{ mb: 2 }}>Details</Typography>
@@ -516,12 +516,12 @@ import { useRouter } from 'next/navigation';
 
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  TextField, 
-  Button, 
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
   Dialog,
   DialogContent,
   DialogActions,
@@ -582,7 +582,7 @@ const UserDataTable = () => {
 
   const fetchUsers = () => {
     setLoading(true);
-    axios.get('https://parkmywheelsapi.onrender.com/allusers')
+    axios.get('http://13.48.42.169:4000/allusers')
       .then(response => {
         setUsers(response.data.users);
         setFilteredUsers(response.data.users);
@@ -595,7 +595,7 @@ const UserDataTable = () => {
   };
 
   const handleSearch = () => {
-    const filtered = users.filter(user => 
+    const filtered = users.filter(user =>
       user.userName?.toLowerCase().includes(search.toLowerCase()) ||
       user.userEmail?.toLowerCase().includes(search.toLowerCase()) ||
       user.userMobile?.includes(search) ||
@@ -650,12 +650,12 @@ const UserDataTable = () => {
   const validatePasswords = () => {
     if (formData.userPassword !== formData.confirmPassword) {
       setPasswordError("Passwords do not match");
-      
-return false;
+
+      return false;
     }
 
-    
-return true;
+
+    return true;
   };
 
   const generateRandomOTP = () => {
@@ -665,10 +665,10 @@ return true;
   const handleSendOTP = async () => {
     if (!formData.userEmail || !formData.userMobile) {
       alert("Email and mobile number are required to send OTP");
-      
-return;
+
+      return;
     }
-    
+
     setFormLoading(true);
 
     try {
@@ -692,26 +692,26 @@ return;
     if (!validatePasswords()) {
       return;
     }
- 
+
     if (!formData.otp) {
       alert("Please enter the OTP");
-      
-return;
+
+      return;
     }
 
     if (formData.otp !== generatedOTP) {
       alert("Invalid OTP. Please enter the correct OTP.");
-      
-return;
+
+      return;
     }
-    
+
     setFormLoading(true);
 
     try {
 
       const { confirmPassword, ...submissionData } = formData;
-      
-      const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", submissionData);
+
+      const response = await axios.post("http://13.48.42.169:4000/signup", submissionData);
 
       alert(response.data.message);
       handleDrawerClose();
@@ -735,10 +735,10 @@ return;
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
 
-    
-return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -755,19 +755,19 @@ return date.toLocaleDateString('en-US', {
     { field: 'walletamount', headerName: 'Wallet Amount', width: 150 },
     { field: 'walletstatus', headerName: 'Wallet Status', width: 150 },
     { field: 'vehicleNo', headerName: 'Vehicle No', width: 150 },
-    { 
-      field: 'image', 
-      headerName: 'Profile Image', 
-      width: 150, 
+    {
+      field: 'image',
+      headerName: 'Profile Image',
+      width: 150,
       renderCell: (params) => (
         params.value ? <img src={params.value} alt='Profile' style={{ width: 50, height: 50, borderRadius: '50%' }} /> : null
       )
     },
     { field: 'createdAt', headerName: 'Created At', width: 200 },
-    { 
-      field: 'view', 
-      headerName: 'View', 
-      width: 100, 
+    {
+      field: 'view',
+      headerName: 'View',
+      width: 100,
       renderCell: (params) => (
         <IconButton onClick={() => handleView(params.row)}>
           <VisibilityIcon color='primary' />
@@ -813,8 +813,8 @@ return date.toLocaleDateString('en-US', {
           />
         </div>
       </CardContent>
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
         maxWidth="lg"
         fullWidth
@@ -837,7 +837,7 @@ return date.toLocaleDateString('en-US', {
 
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
               <Tabs value={currentTab} onChange={handleTabChange} aria-label="customer details tabs">
-                <Tab icon={<Avatar sx={{ bgcolor: '#329a73', width: 24, height: 24 }}><i className="ri-user-line" style={{ fontSize: '14px', color: 'white' }}/></Avatar>} iconPosition="start" label="Profile" />
+                <Tab icon={<Avatar sx={{ bgcolor: '#329a73', width: 24, height: 24 }}><i className="ri-user-line" style={{ fontSize: '14px', color: 'white' }} /></Avatar>} iconPosition="start" label="Profile" />
                 <Tab icon={<SecurityIcon fontSize="small" />} iconPosition="start" label="My Space" />
                 <Tab icon={<LocationOnIcon fontSize="small" />} iconPosition="start" label="My space bookings" />
                 <Tab icon={<NotificationsIcon fontSize="small" />} iconPosition="start" label="Notifications" />
@@ -859,7 +859,7 @@ return date.toLocaleDateString('en-US', {
                           Customer ID #{selectedUser.id}
                         </Typography>
                       </Box>
-                      
+
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <ShoppingCartIcon sx={{ color: '#329a73', mr: 1 }} />
@@ -869,7 +869,7 @@ return date.toLocaleDateString('en-US', {
                           {selectedUser.orders || '157'}
                         </Typography>
                       </Box>
-                      
+
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <AccountBalanceWalletIcon sx={{ color: '#329a73', mr: 1 }} />
@@ -881,7 +881,7 @@ return date.toLocaleDateString('en-US', {
                       </Box>
                     </Paper>
                   </Grid>
-                  
+
                   <Grid item xs={12} md={8}>
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
@@ -903,7 +903,7 @@ return date.toLocaleDateString('en-US', {
                           </Typography>
                         </Paper>
                       </Grid>
-                      
+
                       <Grid item xs={12} md={6}>
                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -912,20 +912,20 @@ return date.toLocaleDateString('en-US', {
                             </Avatar>
                             <Typography variant="h6">Loyalty Program</Typography>
                           </Box>
-                          <Chip 
-                            label="Platinum member" 
-                            sx={{ 
-                              bgcolor: '#e8f5e9', 
-                              color: '#4caf50', 
-                              mb: 1 
-                            }} 
+                          <Chip
+                            label="Platinum member"
+                            sx={{
+                              bgcolor: '#e8f5e9',
+                              color: '#4caf50',
+                              mb: 1
+                            }}
                           />
                           <Typography variant="body2" color="text.secondary">
                             3000 points to next tier
                           </Typography>
                         </Paper>
                       </Grid>
-                      
+
                       <Grid item xs={12} md={6}>
                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -939,7 +939,7 @@ return date.toLocaleDateString('en-US', {
                           </Typography>
                         </Paper>
                       </Grid>
-                      
+
                       <Grid item xs={12} md={6}>
                         <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0', height: '100%' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -955,7 +955,7 @@ return date.toLocaleDateString('en-US', {
                       </Grid>
                     </Grid>
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
                       <Typography variant="h6" sx={{ mb: 2 }}>Details</Typography>
@@ -974,12 +974,12 @@ return date.toLocaleDateString('en-US', {
                         </Grid>
                         <Grid item xs={12} md={4}>
                           <Typography variant="body2" color="text.secondary">Status</Typography>
-                          <Chip 
-                            label={selectedUser.status || 'Active'} 
-                            sx={{ 
-                              bgcolor: selectedUser.status?.toLowerCase() === 'active' ? '#e8f5e9' : '#ffebee', 
-                              color: selectedUser.status?.toLowerCase() === 'active' ? '#4caf50' : '#f44336' 
-                            }} 
+                          <Chip
+                            label={selectedUser.status || 'Active'}
+                            sx={{
+                              bgcolor: selectedUser.status?.toLowerCase() === 'active' ? '#e8f5e9' : '#ffebee',
+                              color: selectedUser.status?.toLowerCase() === 'active' ? '#4caf50' : '#f44336'
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} md={4}>
@@ -1100,7 +1100,7 @@ return date.toLocaleDateString('en-US', {
                 error={!!passwordError}
                 helperText={passwordError}
               />
-              
+
               <Box sx={{ display: 'flex', gap: 1, mt: 2, mb: 1 }}>
                 <TextField
                   label='OTP'
@@ -1115,7 +1115,7 @@ return date.toLocaleDateString('en-US', {
                     startAdornment: <InputAdornment position="start"><SecurityIcon fontSize="small" /></InputAdornment>,
                   }}
                 />
-                <Button 
+                <Button
                   variant='outlined'
                   onClick={handleSendOTP}
                   disabled={formLoading || otpSent}
@@ -1124,12 +1124,12 @@ return date.toLocaleDateString('en-US', {
                   {otpSent ? "OTP Sent" : "Send OTP"}
                 </Button>
               </Box>
-              
-              <Button 
-                type='submit' 
-                variant='contained' 
-                color='primary' 
-                disabled={formLoading || !otpSent} 
+
+              <Button
+                type='submit'
+                variant='contained'
+                color='primary'
+                disabled={formLoading || !otpSent}
                 sx={{ marginTop: 2, backgroundColor: '#329a73' }}
                 fullWidth
               >
@@ -1138,31 +1138,31 @@ return date.toLocaleDateString('en-US', {
             </form>
           </CardContent>
         </Card>
-      </Drawer>     <Snackbar 
-  open={otpAlertOpen} 
-  autoHideDuration={10000} 
-  onClose={handleOtpAlertClose}
-  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
->
-  <Alert 
-    onClose={handleOtpAlertClose} 
-    severity="info" 
-    sx={{ width: '100%', boxShadow: 3, backgroundColor: '#329a73', color: 'white' }}
-    iconMapping={{
-      info: <InfoIcon sx={{ color: 'red' }} />,
-    }}
-  >
-    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
-      Verification Code
-    </Typography>
-    <Typography sx={{ color: 'white' }}>
-      Your OTP is: <strong>{generatedOTP}</strong>
-    </Typography>
-    <Typography variant="body2" sx={{ mt: 1, color: 'white' }}>
-      Please use this code to complete your registration.
-    </Typography>
-  </Alert>
-</Snackbar>
+      </Drawer>     <Snackbar
+        open={otpAlertOpen}
+        autoHideDuration={10000}
+        onClose={handleOtpAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleOtpAlertClose}
+          severity="info"
+          sx={{ width: '100%', boxShadow: 3, backgroundColor: '#329a73', color: 'white' }}
+          iconMapping={{
+            info: <InfoIcon sx={{ color: 'red' }} />,
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
+            Verification Code
+          </Typography>
+          <Typography sx={{ color: 'white' }}>
+            Your OTP is: <strong>{generatedOTP}</strong>
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1, color: 'white' }}>
+            Please use this code to complete your registration.
+          </Typography>
+        </Alert>
+      </Snackbar>
 
     </Card>
   );

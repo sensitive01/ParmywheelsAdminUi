@@ -49,7 +49,7 @@ const VendorSignupForm = () => {
         formDataToSend.append("image", formData.image);
       }
 
-      const response = await axios.post("https://parkmywheelsapi.onrender.com/vendor/signup", formDataToSend, {
+      const response = await axios.post("http://13.48.42.169:4000/vendor/signup", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

@@ -28,8 +28,8 @@
 //       Object.keys(formData).forEach(key => {
 //         formDataToSend.append(key, formData[key]);
 //       });
-      
-//       await axios.post('https://parkmywheelsapi.onrender.com/signup', formDataToSend, {
+
+//       await axios.post('http://13.48.42.169:4000/signup', formDataToSend, {
 //         headers: { 'Content-Type': 'multipart/form-data' }
 //       });
 //       alert('User registered successfully!');
@@ -94,7 +94,7 @@ const SignupForm = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("https://parkmywheelsapi.onrender.com/signup", formData);
+      const response = await axios.post("http://13.48.42.169:4000/signup", formData);
 
       alert(response.data.message);
       router.push("/en/apps/ecommerce/customers/list");

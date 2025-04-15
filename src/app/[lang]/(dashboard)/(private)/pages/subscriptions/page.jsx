@@ -698,7 +698,7 @@ const SubscriptionForm = () => {
     }
 
     try {
-      const response = await axios.post('https://parkmywheelsapi.onrender.com/admin/subscription', {
+      const response = await axios.post('http://13.48.42.169:4000/admin/subscription', {
         userId: subscriptionDetails.userId,
         planId: subscriptionDetails.planId,
         planTitle: subscriptionDetails.planTitle,

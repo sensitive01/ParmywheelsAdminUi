@@ -912,7 +912,7 @@
 //     formData.append('image', planDetails.image)
 
 //     try {
-//       // const response = await axios.post('https://parkmywheelsapi.onrender.com/admin/createplan', formData, {
+//       // const response = await axios.post('http://13.48.42.169:4000/admin/createplan', formData, {
 //         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/createplan`, formData, {
 //         headers: {
 //           'Content-Type': 'multipart/form-data'
