@@ -403,7 +403,7 @@ const PlanCreationForm = () => {
               mb: 2, 
               backgroundColor: '#329a73',
               '&:hover': {
-                backgroundColor: '#3d8b40'
+                backgroundColor: '#3d8b40'    
               }
             }}
           >
