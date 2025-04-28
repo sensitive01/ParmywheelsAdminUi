@@ -186,7 +186,7 @@
 //         status: 'Pending',
 //         sts
 //       }
-//       const response = await axios.post('http://13.48.42.169:4000/vendor/createbooking', payload)
+//       const response = await axios.post('https://pmwapis.parkmywheels.com/vendor/createbooking', payload)
 //       setAlert({
 //         show: true,
 //         message: 'Booking created successfully!',
@@ -609,7 +609,7 @@ export default function ParkingBooking() {
 
       try {
         // Update the URL to your local API endpoint
-        const response = await axios.get('http://13.48.42.169:4000/vendor/fetch-all-vendor-data')
+        const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/fetch-all-vendor-data')
 
         // Extract vendor names from the response
         const vendorNames = response.data.data.map(vendor => ({
@@ -703,7 +703,7 @@ export default function ParkingBooking() {
         sts
       }
 
-      const response = await axios.post('http://13.48.42.169:4000/vendor/createbooking', payload)
+      const response = await axios.post('https://pmwapis.parkmywheels.com/vendor/createbooking', payload)
 
       setAlert({
         show: true,

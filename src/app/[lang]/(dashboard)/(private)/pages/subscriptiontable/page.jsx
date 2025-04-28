@@ -20,7 +20,7 @@ const SubscriptionTable = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await axios.get('http://13.48.42.169:4000/admin/subscriptionall')
+      const response = await axios.get('https://pmwapis.parkmywheels.com/admin/subscriptionall')
 
       // Ensure every row has a unique `id`
       const formattedData = response.data.map((item) => ({

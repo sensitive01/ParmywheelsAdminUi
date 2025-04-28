@@ -29,7 +29,7 @@
 //         formDataToSend.append(key, formData[key]);
 //       });
 
-//       await axios.post('http://13.48.42.169:4000/signup', formDataToSend, {
+//       await axios.post('https://pmwapis.parkmywheels.com/signup', formDataToSend, {
 //         headers: { 'Content-Type': 'multipart/form-data' }
 //       });
 //       alert('User registered successfully!');
@@ -94,7 +94,7 @@ const SignupForm = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://13.48.42.169:4000/signup", formData);
+      const response = await axios.post("https://pmwapis.parkmywheels.com/signup", formData);
 
       alert(response.data.message);
       router.push("/en/apps/ecommerce/customers/list");

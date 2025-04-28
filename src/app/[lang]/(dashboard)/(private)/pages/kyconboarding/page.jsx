@@ -17,7 +17,7 @@ const KycDataTable = () => {
 
   const fetchKycData = async () => {
     try {
-      const response = await axios.get('http://13.48.42.169:4000/vendor/getallkyc')
+      const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/getallkyc')
 
       const formattedData = response.data.data.map((item) => ({
         ...item,
@@ -36,7 +36,7 @@ const KycDataTable = () => {
 
   const verifyKyc = async (vendorId) => {
     try {
-      await axios.put(`http://13.48.42.169:4000/vendor/verifykyc/${vendorId}`)
+      await axios.put(`https://pmwapis.parkmywheels.com/vendor/verifykyc/${vendorId}`)
       setKycData(prevData => prevData.map(item => item.vendorId === vendorId ? { ...item, status: 'Verified' } : item))
       setSnackbar({ open: true, message: 'KYC verified successfully', severity: 'success' })
     } catch (error) {

@@ -57,7 +57,7 @@
 
 //   const fetchUsers = () => {
 //     setLoading(true);
-//     axios.get('http://13.48.42.169:4000/allusers')
+//     axios.get('https://pmwapis.parkmywheels.com/allusers')
 //       .then(response => {
 //         setUsers(response.data.users);
 //         setFilteredUsers(response.data.users);
@@ -114,7 +114,7 @@
 //     e.preventDefault();
 //     setFormLoading(true);
 //     try {
-//       const response = await axios.post("http://13.48.42.169:4000/signup", formData);
+//       const response = await axios.post("https://pmwapis.parkmywheels.com/signup", formData);
 //       alert(response.data.message);
 //       handleDrawerClose();
 //       fetchUsers();
@@ -582,7 +582,7 @@ const UserDataTable = () => {
 
   const fetchUsers = () => {
     setLoading(true);
-    axios.get('http://13.48.42.169:4000/allusers')
+    axios.get('https://pmwapis.parkmywheels.com/allusers')
       .then(response => {
         setUsers(response.data.users);
         setFilteredUsers(response.data.users);
@@ -711,7 +711,7 @@ const UserDataTable = () => {
 
       const { confirmPassword, ...submissionData } = formData;
 
-      const response = await axios.post("http://13.48.42.169:4000/signup", submissionData);
+      const response = await axios.post("https://pmwapis.parkmywheels.com/signup", submissionData);
 
       alert(response.data.message);
       handleDrawerClose();

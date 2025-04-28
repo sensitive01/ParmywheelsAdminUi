@@ -22,6 +22,24 @@ import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import IconButton from '@mui/material/IconButton'
+import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Alert from '@mui/material/Alert'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -38,8 +56,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table'
-import AddIcon from '@mui/icons-material/Add';
-
+import AddIcon from '@mui/icons-material/Add'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import CloseIcon from '@mui/icons-material/Close'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
+import InfoIcon from '@mui/icons-material/Info'
+import ContactsIcon from '@mui/icons-material/Contacts'
+import SubscriptionsIcon from '@mui/icons-material/Subscriptions'
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
@@ -50,7 +76,6 @@ import { getInitials } from '@/utils/getInitials'
 import { getLocalizedUrl } from '@/utils/i18n'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
-
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -72,6 +97,551 @@ export const placeTypeIcons = {
   default: { icon: 'ri-map-pin-line', color: '#282a42' }
 };
 
+// Day name mapping
+const dayNames = {
+  0: "Sunday",
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday"
+};
+
+// Format time from 24h to 12h format
+const formatTime = (time) => {
+  if (!time) return 'Closed';
+  
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const formattedHour = hour % 12 || 12;
+  
+  return `${formattedHour}:${minutes} ${period}`;
+};
+
+// Vendor Detail Modal Component
+const VendorDetailModal = ({ open, handleClose, vendorId }) => {
+  const [vendorData, setVendorData] = useState(null);
+  const [businessHours, setBusinessHours] = useState([]);
+  const [parkingCharges, setParkingCharges] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [hoursLoading, setHoursLoading] = useState(false);
+  const [chargesLoading, setChargesLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  useEffect(() => {
+    const fetchVendorDetails = async () => {
+      if (!vendorId || !open) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/fetch-vendor-data?id=${vendorId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setVendorData(data.data);
+      } catch (err) {
+        console.error("Failed to fetch vendor details:", err);
+        setError(err.message || "Failed to fetch vendor details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchVendorDetails();
+  }, [vendorId, open]);
+
+  // Fetch business hours
+  useEffect(() => {
+    const fetchBusinessHours = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setHoursLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/fetchbusinesshours/${vendorData.vendorId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error fetching business hours: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setBusinessHours(data.businessHours || []);
+      } catch (err) {
+        console.error("Failed to fetch business hours:", err);
+      } finally {
+        setHoursLoading(false);
+      }
+    };
+    
+    fetchBusinessHours();
+  }, [vendorData]);
+
+  // Fetch parking charges
+  useEffect(() => {
+    const fetchParkingCharges = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setChargesLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error fetching parking charges: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setParkingCharges(data.vendor || null);
+      } catch (err) {
+        console.error("Failed to fetch parking charges:", err);
+      } finally {
+        setChargesLoading(false);
+      }
+    };
+    
+    fetchParkingCharges();
+  }, [vendorData]);
+
+  // Render contact information
+  const renderContacts = () => {
+    if (!vendorData?.contacts || vendorData.contacts.length === 0) {
+      return <Typography>No contact information available</Typography>;
+    }
+    
+    return (
+      <Box sx={{ mt: 2 }}>
+        {vendorData.contacts.map((contact, index) => (
+          <Paper key={index} sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
+            <Typography variant="subtitle1" fontWeight="bold">{contact.name}</Typography>
+            <Typography variant="body2">Mobile: {contact.mobile}</Typography>
+            {contact.email && <Typography variant="body2">Email: {contact.email}</Typography>}
+            {contact.designation && <Typography variant="body2">Role: {contact.designation}</Typography>}
+          </Paper>
+        ))}
+      </Box>
+    );
+  };
+
+  // Render subscription information
+  const renderSubscription = () => {
+    if (!vendorData) return null;
+    
+    const isSubscribed = vendorData.subscription === "true";
+    const endDate = vendorData.subscriptionenddate 
+      ? new Date(vendorData.subscriptionenddate).toLocaleDateString() 
+      : 'N/A';
+    
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
+          <Typography variant="subtitle1" fontWeight="bold">Subscription Status</Typography>
+          <Chip
+            label={isSubscribed ? "Active" : "Inactive"}
+            variant="filled"
+            size="small"
+            color={isSubscribed ? "success" : "default"}
+            sx={{ mt: 1, mb: 1 }}
+          />
+          {isSubscribed && (
+            <>
+              <Typography variant="body2">Days Remaining: {vendorData.subscriptionleft || 0}</Typography>
+              <Typography variant="body2">End Date: {endDate}</Typography>
+              {vendorData.subscriptionplan && (
+                <Typography variant="body2">Plan: {vendorData.subscriptionplan}</Typography>
+              )}
+              {vendorData.trial === "true" && (
+                <Chip label="Trial" size="small" color="info" sx={{ mt: 1 }} />
+              )}
+              {vendorData.platformfee && (
+                <Typography variant="body2" sx={{ mt: 1 }}>Platform Fee: {vendorData.platformfee}</Typography>
+              )}
+            </>
+          )}
+        </Paper>
+      </Box>
+    );
+  };
+  
+  // Render parking information
+  const renderParking = () => {
+    if (!vendorData?.parkingEntries || vendorData.parkingEntries.length === 0) {
+      return <Typography>No parking information available</Typography>;
+    }
+    
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
+          <Typography variant="subtitle1" fontWeight="bold">Parking Capacity</Typography>
+          <Box sx={{ mt: 1 }}>
+            {vendorData.parkingEntries.map((entry, index) => (
+              <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <i 
+                  className={entry.type?.toLowerCase() === 'bike' ? 'ri-motorbike-fill' : 'ri-car-fill'} 
+                  style={{ 
+                    fontSize: '18px', 
+                    color: entry.type?.toLowerCase() === 'bike' ? '#72e128' : '#ff4d49',
+                    marginRight: '8px'
+                  }}
+                />
+                <Typography variant="body1">
+                  {entry.type}: <strong>{entry.count}</strong>
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+      </Box>
+    );
+  };
+
+  // Render business hours
+  const renderBusinessHours = () => {
+    if (hoursLoading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress size={30} />
+        </Box>
+      );
+    }
+    
+    if (!businessHours || businessHours.length === 0) {
+      return <Alert severity="info">No business hours information available</Alert>;
+    }
+    
+    // Sort business hours by day
+    const sortedHours = [...businessHours].sort((a, b) => a.day - b.day);
+    
+    return (
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableCell><strong>Day</strong></TableCell>
+              <TableCell><strong>Opening Time</strong></TableCell>
+              <TableCell><strong>Closing Time</strong></TableCell>
+              <TableCell align="center"><strong>Status</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedHours.map((hours, index) => (
+              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                <TableCell>{dayNames[hours.day]}</TableCell>
+                <TableCell>{formatTime(hours.openTime)}</TableCell>
+                <TableCell>{formatTime(hours.closeTime)}</TableCell>
+                <TableCell align="center">
+                  <Chip 
+                    label={hours.closed ? "Closed" : "Open"} 
+                    color={hours.closed ? "default" : "success"} 
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  // Render parking charges
+  const renderParkingCharges = () => {
+    if (chargesLoading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress size={30} />
+        </Box>
+      );
+    }
+    
+    if (!parkingCharges) {
+      return <Alert severity="info">No parking charges information available</Alert>;
+    }
+    
+    return (
+      <Box sx={{ mt: 2 }}>
+        {parkingCharges.carCharges || parkingCharges.bikeCharges ? (
+          <>
+            {parkingCharges.carCharges && (
+              <Paper sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <i className="ri-car-fill" style={{ fontSize: '20px', color: '#ff4d49' }}></i>
+                  <Typography variant="subtitle1" fontWeight="bold">Car Charges</Typography>
+                </Box>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#f3f3f3' }}>
+                        <TableCell>Time Range</TableCell>
+                        <TableCell align="right">Charge (₹)</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {parkingCharges.carCharges.map((charge, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{charge.time} {charge.time === 1 ? 'Hour' : 'Hours'}</TableCell>
+                          <TableCell align="right">₹{charge.price}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
+            
+            {parkingCharges.bikeCharges && (
+              <Paper sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <i className="ri-motorbike-fill" style={{ fontSize: '20px', color: '#72e128' }}></i>
+                  <Typography variant="subtitle1" fontWeight="bold">Bike Charges</Typography>
+                </Box>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#f3f3f3' }}>
+                        <TableCell>Time Range</TableCell>
+                        <TableCell align="right">Charge (₹)</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {parkingCharges.bikeCharges.map((charge, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{charge.time} {charge.time === 1 ? 'Hour' : 'Hours'}</TableCell>
+                          <TableCell align="right">₹{charge.price}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
+          </>
+        ) : (
+          <Alert severity="info">No parking charges defined</Alert>
+        )}
+      </Box>
+    );
+  };
+
+  // Render location information
+  const renderLocation = () => {
+    if (!vendorData) return null;
+    
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
+          <Typography variant="subtitle1" fontWeight="bold">Location Details</Typography>
+          
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <Typography variant="body2" color="text.secondary">Address</Typography>
+              <Typography variant="body1">{vendorData.address || 'N/A'}</Typography>
+            </Grid>
+            
+            {vendorData.landMark && (
+              <Grid item xs={12}>
+                <Typography variant="body2" color="text.secondary">Landmark</Typography>
+                <Typography variant="body1">{vendorData.landMark}</Typography>
+              </Grid>
+            )}
+            
+            <Grid item xs={6}>
+              <Typography variant="body2" color="text.secondary">Latitude</Typography>
+              <Typography variant="body1">{vendorData.latitude || 'N/A'}</Typography>
+            </Grid>
+            
+            <Grid item xs={6}>
+              <Typography variant="body2" color="text.secondary">Longitude</Typography>
+              <Typography variant="body1">{vendorData.longitude || 'N/A'}</Typography>
+            </Grid>
+          </Grid>
+          
+          {vendorData.latitude && vendorData.longitude && (
+            <Button 
+              variant="outlined" 
+              color="primary" 
+              size="small" 
+              startIcon={<LocationOnIcon />} 
+              sx={{ mt: 2 }}
+              component="a"
+              href={`https://www.google.com/maps?q=${vendorData.latitude},${vendorData.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on Map
+            </Button>
+          )}
+        </Paper>
+      </Box>
+    );
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Vendor Details
+          <IconButton aria-label="close" onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent dividers>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography color="error">{error}</Typography>
+        ) : vendorData ? (
+          <>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+              {vendorData.image ? (
+                <img
+                  src={vendorData.image}
+                  alt={vendorData.vendorName}
+                  style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                <CustomAvatar skin='light' size={64}>
+                  {getInitials(vendorData.vendorName || '')}
+                </CustomAvatar>
+              )}
+              <Box>
+                <Typography variant="h6">{vendorData.vendorName}</Typography>
+                <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                  <Chip
+                    label={vendorData.status || 'Pending'}
+                    variant="filled"
+                    size="small"
+                    color={
+                      vendorData.status === 'approved' ? 'success' :
+                      vendorData.status === 'rejected' ? 'error' :
+                      vendorData.status === 'suspended' ? 'default' : 'warning'
+                    }
+                  />
+                  <Chip
+                    label={`ID: ${vendorData.vendorId}`}
+                    variant="outlined"
+                    size="small"
+                  />
+                </Box>
+              </Box>
+            </Box>
+            
+            <Divider sx={{ mb: 2 }} />
+            
+            <Tabs 
+              value={tabValue} 
+              onChange={handleTabChange} 
+              aria-label="vendor details tabs" 
+              sx={{ mb: 2 }}
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              <Tab icon={<InfoIcon fontSize="small" />} iconPosition="start" label="Basic Info" />
+              <Tab icon={<ContactsIcon fontSize="small" />} iconPosition="start" label="Contacts" />
+              <Tab icon={<LocationOnIcon fontSize="small" />} iconPosition="start" label="Location" />
+              <Tab icon={<AccessTimeIcon fontSize="small" />} iconPosition="start" label="Business Hours" />
+              <Tab icon={<DirectionsCarIcon fontSize="small" />} iconPosition="start" label="Parking" />
+              <Tab icon={<MonetizationOnIcon fontSize="small" />} iconPosition="start" label="Charges" />
+              <Tab icon={<SubscriptionsIcon fontSize="small" />} iconPosition="start" label="Subscription" />
+            </Tabs>
+            
+            {/* Basic Info Tab */}
+            {tabValue === 0 && (
+              <Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Vendor ID</Typography>
+                    <Typography variant="body1">#{vendorData.vendorId || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Space ID</Typography>
+                    <Typography variant="body1">{vendorData.spaceid || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Creation Date</Typography>
+                    <Typography variant="body1">
+                      {vendorData.createdAt ? new Date(vendorData.createdAt).toLocaleDateString() : 'N/A'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Last Updated</Typography>
+                    <Typography variant="body1">
+                      {vendorData.updatedAt ? new Date(vendorData.updatedAt).toLocaleDateString() : 'N/A'}
+                    </Typography>
+                  </Grid>
+                  {vendorData.email && (
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="text.secondary">Email</Typography>
+                      <Typography variant="body1">{vendorData.email}</Typography>
+                    </Grid>
+                  )}
+                  {vendorData.mobile && (
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="text.secondary">Mobile</Typography>
+                      <Typography variant="body1">{vendorData.mobile}</Typography>
+                    </Grid>
+                  )}
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+                    <Typography variant="body1">{vendorData.status || 'Pending'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" color="text.secondary">MongoDB ID</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>{vendorData._id || 'N/A'}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            
+            {/* Contacts Tab */}
+            {tabValue === 1 && renderContacts()}
+            
+            {/* Location Tab */}
+            {tabValue === 2 && renderLocation()}
+            
+            {/* Business Hours Tab */}
+            {tabValue === 3 && renderBusinessHours()}
+            
+            {/* Parking Tab */}
+            {tabValue === 4 && renderParking()}
+            
+            {/* Charges Tab */}
+            {tabValue === 5 && renderParkingCharges()}
+            
+            {/* Subscription Tab */}
+            {tabValue === 6 && renderSubscription()}
+          </>
+        ) : (
+          <Typography>No vendor data available</Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
 
@@ -79,7 +649,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
     itemRank
   })
   
-return itemRank.passed
+  return itemRank.passed
 }
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
@@ -88,16 +658,14 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
   useEffect(() => {
     setValue(initialValue)
   }, [initialValue])
+  
   useEffect(() => {
     const timeout = setTimeout(() => {
       onChange(value)
     }, debounce)
 
-     // Add a newline before the return statement
-return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout)
   }, [value, debounce, onChange])
-  
-    // Add a blank line before the return statement
 
   return (
     <TextField
@@ -121,8 +689,20 @@ const VendorListTable = () => {
   const { data: session } = useSession()
   const router = useRouter()
   const [vendorLoading, setVendorLoading] = useState({});
-const [vendorStatusMap, setVendorStatusMap] = useState({});
+  const [vendorStatusMap, setVendorStatusMap] = useState({});
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
 
+  const handleOpenModal = (vendorId) => {
+    setSelectedVendorId(vendorId);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
 
   const fetchVendors = async () => {
     try {
@@ -149,77 +729,35 @@ const [vendorStatusMap, setVendorStatusMap] = useState({});
   }, [])
 
   // Function to update vendor status
+  const updateVendorStatus = async (vendorId, newStatus) => {
+    setVendorLoading(prev => ({ ...prev, [vendorId]: true }));
 
-//   const updateVendorStatus = async (vendorId, newStatus) => {
-//     try {
-//       const endpoint = newStatus === 'approved' 
-//         ? `${API_URL}/vendor/approve/${vendorId}` 
-//         : `${API_URL}/vendor/updateStatus/${vendorId}`;
-      
-//       const response = await fetch(endpoint, {
-//         method: 'PUT',
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({ status: newStatus })
-//       });
+    try {
+      const endpoint = newStatus === 'approved' 
+        ? `${API_URL}/vendor/approve/${vendorId}` 
+        : `${API_URL}/vendor/updateStatus/${vendorId}`;
 
-//       if (!response.ok) {
-//         throw new Error('Failed to update vendor status');
-//       }
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
 
-//       // Update the data state with the new status
-//       setData(prevData => 
-//         prevData.map(vendor => 
-//           vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
-//         )
-//       );
-      
-//       setFilteredData(prevData => 
-//         prevData.map(vendor => 
-//           vendor._id === vendorId ? { ...vendor, status: newStatus } : vendor
-//         )
-//       );
+      if (!response.ok) throw new Error('Failed to update vendor status');
 
-//       return true;
-//     } catch (error) {
-//       console.error('Error updating vendor status:', error);
-      
-// return false;
-//     }
-//   };
+      setVendorStatusMap(prev => ({ ...prev, [vendorId]: newStatus }));
 
-// Function to update vendor status
-const updateVendorStatus = async (vendorId, newStatus) => {
-  setVendorLoading(prev => ({ ...prev, [vendorId]: true }));
+      return true;
+    } catch (error) {
+      console.error('Error updating vendor status:', error);
 
-  try {
-    const endpoint = newStatus === 'approved' 
-      ? `${API_URL}/vendor/approve/${vendorId}` 
-      : `${API_URL}/vendor/updateStatus/${vendorId}`;
-
-    const response = await fetch(endpoint, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ status: newStatus })
-    });
-
-    if (!response.ok) throw new Error('Failed to update vendor status');
-
-    setVendorStatusMap(prev => ({ ...prev, [vendorId]: newStatus }));
-
-    return true;
-  } catch (error) {
-    console.error('Error updating vendor status:', error);
-
-    return false;
-  } finally {
-      // Add a blank line before the comment
-    setVendorLoading(prev => ({ ...prev, [vendorId]: false }));
-  }
-};
+      return false;
+    } finally {
+      setVendorLoading(prev => ({ ...prev, [vendorId]: false }));
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -264,6 +802,7 @@ const updateVendorStatus = async (vendorId, newStatus) => {
                   {getInitials(vendor.vendorName)}
                 </CustomAvatar>
               )}
+              
               <div className="flex flex-col">
                 <Typography className="font-medium">{vendor.vendorName}</Typography>
                 <Typography variant="body2">{vendor.spaceid}</Typography>
@@ -400,9 +939,26 @@ const updateVendorStatus = async (vendorId, newStatus) => {
             </div>
           );
         }
+      }),
+      // New column for View button
+      columnHelper.accessor('actions', {
+        header: 'Actions',
+        cell: ({ row }) => {
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              color="primary"
+              startIcon={<VisibilityIcon />}
+              onClick={() => handleOpenModal(row.original._id)}
+            >
+              View
+            </Button>
+          );
+        }
       })
     ],
-    [data, filteredData]
+    [data, filteredData, vendorLoading, vendorStatusMap]
   );
 
   const table = useReactTable({
@@ -514,6 +1070,13 @@ const updateVendorStatus = async (vendorId, newStatus) => {
           table.setPageIndex(page)
         }}
         onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
+      />
+      
+      {/* Vendor Detail Modal */}
+      <VendorDetailModal 
+        open={modalOpen}
+        handleClose={handleCloseModal}
+        vendorId={selectedVendorId}
       />
     </Card>
   )
