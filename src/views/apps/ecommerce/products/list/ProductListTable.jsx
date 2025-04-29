@@ -124,12 +124,24 @@ const formatTime = (time) => {
 const VendorDetailModal = ({ open, handleClose, vendorId }) => {
   const [vendorData, setVendorData] = useState(null);
   const [businessHours, setBusinessHours] = useState([]);
-  const [parkingCharges, setParkingCharges] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hoursLoading, setHoursLoading] = useState(false);
-  const [chargesLoading, setChargesLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+  const router = useRouter();
+  const { lang: locale } = useParams();
+
+
+  // Day name mapping - Changed from object to array for better ordering
+  const dayNames = [
+    "Monday",    // 0
+    "Tuesday",   // 1
+    "Wednesday", // 2
+    "Thursday",  // 3
+    "Friday",    // 4
+    "Saturday",  // 5
+    "Sunday"     // 6
+  ];
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -162,7 +174,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     fetchVendorDetails();
   }, [vendorId, open]);
 
-  // Fetch business hours
+  // Fetch business hours - Updated to match the expected API response structure
   useEffect(() => {
     const fetchBusinessHours = async () => {
       if (!vendorData?.vendorId) return;
@@ -177,7 +189,28 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         }
         
         const data = await response.json();
-        setBusinessHours(data.businessHours || []);
+        
+        // Make sure we have the expected data structure
+        if (data && data.businessHours && Array.isArray(data.businessHours)) {
+          // Process the hours data to ensure it conforms to our expected format
+          const processedHours = data.businessHours.map(hour => ({
+            day: typeof hour.day === 'number' ? dayNames[hour.day] : hour.day,
+            openTime: hour.openTime || null,
+            closeTime: hour.closeTime || null,
+            closed: hour.isClosed || !hour.openTime || !hour.closeTime
+          }));
+          
+          // Sort by day of week to ensure consistent order
+          const sortedHours = processedHours.sort((a, b) => {
+            return dayNames.indexOf(a.day) - dayNames.indexOf(b.day);
+          });
+          
+          setBusinessHours(sortedHours);
+        } else {
+          // If data structure is unexpected, log for debugging
+          console.warn("Business hours data structure is not as expected:", data);
+          setBusinessHours([]);
+        }
       } catch (err) {
         console.error("Failed to fetch business hours:", err);
       } finally {
@@ -188,31 +221,17 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     fetchBusinessHours();
   }, [vendorData]);
 
-  // Fetch parking charges
-  useEffect(() => {
-    const fetchParkingCharges = async () => {
-      if (!vendorData?.vendorId) return;
-      
-      setChargesLoading(true);
-      
-      try {
-        const response = await fetch(`${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
-        
-        if (!response.ok) {
-          throw new Error(`Error fetching parking charges: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setParkingCharges(data.vendor || null);
-      } catch (err) {
-        console.error("Failed to fetch parking charges:", err);
-      } finally {
-        setChargesLoading(false);
-      }
-    };
+  // Format time from 24h to 12h format
+  const formatTime = (time) => {
+    if (!time) return 'Closed';
     
-    fetchParkingCharges();
-  }, [vendorData]);
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours, 10);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12;
+    
+    return `${formattedHour}:${minutes} ${period}`;
+  };
 
   // Render contact information
   const renderContacts = () => {
@@ -306,7 +325,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     );
   };
 
-  // Render business hours
+  // Render business hours - Updated to handle various data structures
   const renderBusinessHours = () => {
     if (hoursLoading) {
       return (
@@ -320,9 +339,6 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
       return <Alert severity="info">No business hours information available</Alert>;
     }
     
-    // Sort business hours by day
-    const sortedHours = [...businessHours].sort((a, b) => a.day - b.day);
-    
     return (
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table size="small">
@@ -335,11 +351,11 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedHours.map((hours, index) => (
+            {businessHours.map((hours, index) => (
               <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell>{dayNames[hours.day]}</TableCell>
-                <TableCell>{formatTime(hours.openTime)}</TableCell>
-                <TableCell>{formatTime(hours.closeTime)}</TableCell>
+                <TableCell>{hours.day}</TableCell>
+                <TableCell>{hours.closed ? 'Closed' : formatTime(hours.openTime)}</TableCell>
+                <TableCell>{hours.closed ? 'Closed' : formatTime(hours.closeTime)}</TableCell>
                 <TableCell align="center">
                   <Chip 
                     label={hours.closed ? "Closed" : "Open"} 
@@ -353,85 +369,6 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </TableBody>
         </Table>
       </TableContainer>
-    );
-  };
-
-  // Render parking charges
-  const renderParkingCharges = () => {
-    if (chargesLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-          <CircularProgress size={30} />
-        </Box>
-      );
-    }
-    
-    if (!parkingCharges) {
-      return <Alert severity="info">No parking charges information available</Alert>;
-    }
-    
-    return (
-      <Box sx={{ mt: 2 }}>
-        {parkingCharges.carCharges || parkingCharges.bikeCharges ? (
-          <>
-            {parkingCharges.carCharges && (
-              <Paper sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <i className="ri-car-fill" style={{ fontSize: '20px', color: '#ff4d49' }}></i>
-                  <Typography variant="subtitle1" fontWeight="bold">Car Charges</Typography>
-                </Box>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#f3f3f3' }}>
-                        <TableCell>Time Range</TableCell>
-                        <TableCell align="right">Charge (₹)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {parkingCharges.carCharges.map((charge, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{charge.time} {charge.time === 1 ? 'Hour' : 'Hours'}</TableCell>
-                          <TableCell align="right">₹{charge.price}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            )}
-            
-            {parkingCharges.bikeCharges && (
-              <Paper sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <i className="ri-motorbike-fill" style={{ fontSize: '20px', color: '#72e128' }}></i>
-                  <Typography variant="subtitle1" fontWeight="bold">Bike Charges</Typography>
-                </Box>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#f3f3f3' }}>
-                        <TableCell>Time Range</TableCell>
-                        <TableCell align="right">Charge (₹)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {parkingCharges.bikeCharges.map((charge, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{charge.time} {charge.time === 1 ? 'Hour' : 'Hours'}</TableCell>
-                          <TableCell align="right">₹{charge.price}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            )}
-          </>
-        ) : (
-          <Alert severity="info">No parking charges defined</Alert>
-        )}
-      </Box>
     );
   };
 
@@ -487,14 +424,30 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
       </Box>
     );
   };
+  const handleEditProfile = () => {
+    if (vendorId) {
+      router.push(getLocalizedUrl(`/pages/vendordetails/${vendorId}`, locale))
+    }
+  }
 
   return (
     <Dialog 
       open={open} 
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth="lg" // Changed from "md" to "lg" to increase the width
       fullWidth
     >
+      <DialogActions>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={handleEditProfile}
+          sx={{ mr: 2 }}
+        >
+          Edit Profile
+        </Button>
+        {/* <Button onClick={handleClose} color="primary">Close</Button> */}
+      </DialogActions>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Vendor Details
@@ -561,7 +514,6 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
               <Tab icon={<LocationOnIcon fontSize="small" />} iconPosition="start" label="Location" />
               <Tab icon={<AccessTimeIcon fontSize="small" />} iconPosition="start" label="Business Hours" />
               <Tab icon={<DirectionsCarIcon fontSize="small" />} iconPosition="start" label="Parking" />
-              <Tab icon={<MonetizationOnIcon fontSize="small" />} iconPosition="start" label="Charges" />
               <Tab icon={<SubscriptionsIcon fontSize="small" />} iconPosition="start" label="Subscription" />
             </Tabs>
             
@@ -625,11 +577,8 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             {/* Parking Tab */}
             {tabValue === 4 && renderParking()}
             
-            {/* Charges Tab */}
-            {tabValue === 5 && renderParkingCharges()}
-            
             {/* Subscription Tab */}
-            {tabValue === 6 && renderSubscription()}
+            {tabValue === 5 && renderSubscription()}
           </>
         ) : (
           <Typography>No vendor data available</Typography>
