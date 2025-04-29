@@ -609,7 +609,7 @@ export default function ParkingBooking() {
 
       try {
         // Update the URL to your local API endpoint
-        const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/fetch-all-vendor-data')
+        const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/all-vendors')
 
         // Extract vendor names from the response
         const vendorNames = response.data.data.map(vendor => ({
