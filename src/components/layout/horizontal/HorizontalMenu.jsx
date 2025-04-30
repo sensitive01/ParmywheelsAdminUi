@@ -80,9 +80,12 @@ const HorizontalMenu = ({ dictionary }) => {
             {/* <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem> */}
             <SubMenu label={dictionary['navigation'].products}>
               <MenuItem href={`/${locale}/apps/ecommerce/products/list`}>{dictionary['navigation'].list}</MenuItem>
-              <MenuItem href={`/${locale}/pages/wizard-examples/property-listing`}>
+              {/* <MenuItem href={`/${locale}/pages/wizard-examples/property-listing`}>
               {dictionary['navigation'].propertyListing}
-            </MenuItem>
+            </MenuItem> */}
+             <MenuItem href={`/${locale}/pages/vendoradd`} icon={<i className='ri-money-dollar-circle-line' />}>
+            {dictionary['navigation'].vendoradd }
+          </MenuItem>
               {/* <MenuItem href={`/${locale}/apps/ecommerce/products/add`}>{dictionary['navigation'].add}</MenuItem> */}
               {/* <MenuItem href={`/${locale}/apps/ecommerce/products/category`}>
                 {dictionary['navigation'].category}

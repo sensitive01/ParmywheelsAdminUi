@@ -23,6 +23,8 @@ const UserProfileHeader = () => {
 
   // Extract user details from the session
   const user = session?.user
+  console.log(session?.user?.image);
+  console.log(session?.user?.address);
 
   const handleClickUrl = (event, url) => {
     if (url) {
@@ -44,7 +46,7 @@ return (
         </div>
         <div className='flex is-full flex-wrap justify-start flex-col items-center sm:flex-row sm:justify-between sm:items-end gap-5'>
           <div className='flex flex-col items-center sm:items-start gap-2'>
-            <Typography variant='h4'>{user?.name || 'User Name'}</Typography>
+            <Typography variant='h4'>{user?.name || 'Admin Name'}</Typography>
             <div className='flex flex-wrap gap-6 gap-y-3 justify-center sm:justify-normal min-bs-[38px]'>
               <div className='flex items-center gap-2'>
                 <i className='ri-map-pin-line' />
