@@ -151,7 +151,7 @@ const OrderListTable = ({ orderData }) => {
     };
   
     fetchData();
-  }, []); // No need for vendorId dependency if fetching all bookings
+  }, []); 
 
   const columns = useMemo(
     () => [
@@ -290,7 +290,7 @@ return (
  
                       if (selectedId) {
                         console.log('Navigating to Order Details:', selectedId); // ✅ Debugging
-                        router.push(`/apps/ecommerce/orders/details/${selectedId}`); // ✅ Navigate with Next.js
+                        router.push(`/pages/bookingdetails/${selectedId}`); // ✅ Navigate with Next.js
                       } else {
                         console.error('⚠️ Booking ID is undefined!');
                       }
@@ -496,3 +496,5 @@ return (
 }
 
 export default OrderListTable
+
+

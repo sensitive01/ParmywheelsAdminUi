@@ -40,6 +40,7 @@
   import TableHead from '@mui/material/TableHead'
   import TableRow from '@mui/material/TableRow'
   import Alert from '@mui/material/Alert'
+  import DeleteIcon from '@mui/icons-material/Delete';
 
   // Third-party Imports
   import classnames from 'classnames'
@@ -890,22 +891,111 @@
           }
         }),
         // New column for View button
-        columnHelper.accessor('actions', {
-          header: 'Actions',
-          cell: ({ row }) => {
-            return (
-              <Button
-                variant="outlined"
-                size="small"
-                color="primary"
-                startIcon={<VisibilityIcon />}
-                onClick={() => handleOpenModal(row.original._id)}
-              >
-                View
-              </Button>
-            );
-          }
-        })
+        // columnHelper.accessor('actions', {
+        //   header: 'Actions',
+        //   cell: ({ row }) => {
+        //     return (
+        //       <Button
+        //         variant="outlined"
+        //         size="small"
+        //         color="primary"
+        //         startIcon={<VisibilityIcon />}
+        //         onClick={() => handleOpenModal(row.original._id)}
+        //       >
+        //         View
+        //       </Button>
+        //     );
+        //   }
+        // })
+        // Updated Actions Column with Delete Button
+columnHelper.accessor('actions', {
+  header: 'Actions',
+  cell: ({ row }) => {
+    // State for delete confirmation dialog
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    
+    // Function to delete vendor
+    const handleDeleteVendor = async () => {
+      try {
+        setDeleteLoading(true);
+        const response = await fetch(`${API_URL}/admin/deletevendor/${row.original.vendorId}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to delete vendor');
+        }
+        
+        // Close dialog and refresh vendor list
+        setDeleteDialogOpen(false);
+        fetchVendors(); // Call the fetchVendors function to refresh the list
+        
+      } catch (error) {
+        console.error('Error deleting vendor:', error);
+        // You could add a toast notification here
+      } finally {
+        setDeleteLoading(false);
+      }
+    };
+    
+    return (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          color="primary"
+          startIcon={<VisibilityIcon />}
+          onClick={() => handleOpenModal(row.original._id)}
+        >
+          View
+        </Button>
+        
+        <Button
+          variant="outlined"
+          size="small"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          Delete
+        </Button>
+        
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        >
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete vendor <strong>{row.original.vendorName}</strong> (ID: {row.original.vendorId})?
+              This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setDeleteDialogOpen(false)} 
+              color="primary"
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteVendor} 
+              color="error" 
+              variant="contained"
+              disabled={deleteLoading}
+              startIcon={deleteLoading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+            >
+              {deleteLoading ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
+})
       ],
       [data, filteredData, vendorLoading, vendorStatusMap]
     );
