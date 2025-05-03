@@ -155,7 +155,7 @@ const UserUpdate = ({ params }) => {
             <CardContent>
                 <Box sx={{ mb: 3 }}>
                     <Breadcrumbs aria-label="breadcrumb">
-                        <Link href="/en/pages/userdatatable" passHref style={{ textDecoration: 'none', color: '#329a73' }}>
+                        <Link href="/en/apps/ecommerce/customers/list" passHref style={{ textDecoration: 'none', color: '#329a73' }}>
                             Customer List
                         </Link>
                         <Typography color="text.primary">Edit Customer</Typography>

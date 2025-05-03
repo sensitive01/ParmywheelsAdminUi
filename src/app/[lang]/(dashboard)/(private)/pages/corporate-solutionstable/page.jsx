@@ -97,7 +97,7 @@ const CommercialServicesTable = () => {
   return (
     <Box sx={{ height: 600, width: '100%', padding: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5">Corporate Solution Data</Typography>
+        <Typography variant="h3">Corporate Solution Data</Typography>
         <Button 
           variant="contained" 
           sx={{ backgroundColor: '#329a73' }}
