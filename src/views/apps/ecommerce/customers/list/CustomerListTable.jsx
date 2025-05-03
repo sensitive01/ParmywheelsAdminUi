@@ -13,6 +13,7 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
+  DialogTitle,
   IconButton,
   Drawer,
   Box,
@@ -27,6 +28,7 @@ import {
   Snackbar
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
@@ -46,6 +48,10 @@ const UserDataTable = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [successSnackbar, setSuccessSnackbar] = useState({ open: false, message: '' });
 
   const [formData, setFormData] = useState({
     userName: "",
@@ -123,6 +129,43 @@ const UserDataTable = () => {
     setPasswordError("");
     setOtpSent(false);
     setGeneratedOTP("");
+  };
+
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete || !userToDelete.uuid) {
+      setDeleteDialogOpen(false);
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const response = await axios.delete(`https://pmwapis.parkmywheels.com/admin/deleteuser/${userToDelete.uuid}`);
+      
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      fetchUsers(); // Refresh the user list
+      
+      // Show success message
+      setSuccessSnackbar({
+        open: true,
+        message: response.data.message || 'User deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert(error.response?.data?.message || 'Error deleting user');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const handleFormChange = (e) => {
@@ -223,6 +266,10 @@ const UserDataTable = () => {
     }
   };
 
+  const handleSnackbarClose = () => {
+    setSuccessSnackbar({ ...successSnackbar, open: false });
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -256,13 +303,21 @@ const UserDataTable = () => {
     },
     { field: 'createdAt', headerName: 'Created At', width: 200 },
     {
-      field: 'view',
-      headerName: 'View',
-      width: 100,
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
       renderCell: (params) => (
-        <IconButton onClick={() => handleView(params.row)}>
-          <VisibilityIcon color='primary' />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <IconButton onClick={() => handleView(params.row)}>
+            <VisibilityIcon color='primary' />
+          </IconButton>
+          <IconButton 
+            onClick={() => handleDeleteClick(params.row)}
+            color="error"
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
       )
     }
   ];
@@ -304,6 +359,8 @@ const UserDataTable = () => {
           />
         </div>
       </CardContent>
+      
+      {/* View User Dialog */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -526,6 +583,55 @@ const UserDataTable = () => {
           <Button onClick={handleClose} color="primary">Close</Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#ffebee', color: '#d32f2f', py: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DeleteIcon color="error" />
+            Confirm Deletion
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography variant="body1">
+            Are you sure you want to delete this user?
+          </Typography>
+          {userToDelete && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography><strong>Name:</strong> {userToDelete.userName || 'N/A'}</Typography>
+              <Typography><strong>Email:</strong> {userToDelete.userEmail || 'N/A'}</Typography>
+              <Typography><strong>Mobile:</strong> {userToDelete.userMobile || 'N/A'}</Typography>
+            </Box>
+          )}
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleDeleteCancel} 
+            variant="outlined"
+            disabled={deleteLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            variant="contained" 
+            color="error"
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? 'Deleting...' : 'Yes, Delete User'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Add User Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -636,6 +742,8 @@ const UserDataTable = () => {
           </CardContent>
         </Card>
       </Drawer>
+      
+      {/* OTP Alert */}
       <Snackbar
         open={otpAlertOpen}
         autoHideDuration={10000}
@@ -659,6 +767,22 @@ const UserDataTable = () => {
           <Typography variant="body2" sx={{ mt: 1, color: 'white' }}>
             Please use this code to complete your registration.
           </Typography>
+        </Alert>
+      </Snackbar>
+      
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successSnackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: '100%', boxShadow: 3 }}
+        >
+          {successSnackbar.message}
         </Alert>
       </Snackbar>
     </Card>
