@@ -1,6 +1,9 @@
   'use client'
 
   // React Imports
+  import React from 'react';
+  import { Fragment } from 'react';
+
   import { useState, useEffect, useMemo } from 'react'
 
   import Link from 'next/link'
@@ -28,6 +31,7 @@
   import DialogActions from '@mui/material/DialogActions'
   import IconButton from '@mui/material/IconButton'
   import Grid from '@mui/material/Grid'
+  import { DataGrid } from "@mui/x-data-grid";
   import Box from '@mui/material/Box'
   import CircularProgress from '@mui/material/CircularProgress'
   import Tabs from '@mui/material/Tabs'
@@ -62,11 +66,13 @@
   import CloseIcon from '@mui/icons-material/Close'
   import AccessTimeIcon from '@mui/icons-material/AccessTime'
   import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
+  import ChatIcon from '@mui/icons-material/Chat'
   import LocationOnIcon from '@mui/icons-material/LocationOn'
   import InfoIcon from '@mui/icons-material/Info'
   import ContactsIcon from '@mui/icons-material/Contacts'
   import SubscriptionsIcon from '@mui/icons-material/Subscriptions'
   import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
+  import axios from 'axios'
 
   // Component Imports
   import CustomAvatar from '@core/components/mui/Avatar'
@@ -80,6 +86,7 @@
 
   // Style Imports
   import tableStyles from '@core/styles/table.module.css'
+import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 
   // Status color mapping for vendor status
   export const statusChipColor = {
@@ -131,8 +138,26 @@
     const [tabValue, setTabValue] = useState(0);
     const router = useRouter();
     const { lang: locale } = useParams();
-
-
+    const [amenities, setAmenities] = useState([]);
+    const [amenitiesLoading, setAmenitiesLoading] = useState(false);
+    const [parkingServices , setParkingServies] = useState([]);
+    const [servicesLoading, setServicesLoading] = useState(false);
+    const [supportRequests, setSupportRequests] = useState([]);
+    const [supportRequestsLoading, setSupportRequestsLoading] = useState(false);
+    const [bankDetails, setBankDetails] = useState(null);
+    const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
+    const [meetings, setMeetings] = useState([]);
+    const [meetingsLoading, setMeetingsLoading] = useState(false);
+    const [bookingTransactions, setBookingTransactions] = useState([]);
+    const [transactionsLoading, setTransactionsLoading] = useState(false);
+    const [transactionDates, setTransactionDates] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+    });
+    const [bookings, setBookings] = useState([]);
+    const [bookingsLoading, setBookingsLoading] = useState(false);
+    const [charges, setCharges] = useState({});
+const [chargesLoading, setChargesLoading] = useState(false);
     // Day name mapping - Changed from object to array for better ordering
     const dayNames = [
       "Monday",    // 0
@@ -232,6 +257,221 @@
       const formattedHour = hour % 12 || 12;
       
       return `${formattedHour}:${minutes} ${period}`;
+    };
+
+
+    const fetchAmenitiesData = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setAmenitiesLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`);
+        const data = await response.json();
+  
+        if (data?.AmenitiesData?.amenities) {
+          setAmenities(data.AmenitiesData.amenities);
+        }
+      } catch (error) {
+        console.error('Error fetching amenities data:', error);
+      } finally {
+        setAmenitiesLoading(false);
+      }
+    };
+  
+    useEffect(() => {
+      if (vendorData?.vendorId) {
+        fetchAmenitiesData();
+      }
+    }, [vendorData]);
+
+    const fetchServiceData = async () => {
+      if(!vendorData?.vendorId) return;
+      setServicesLoading(true);
+      try{
+        const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`);
+        const data = await response.json();
+
+        if (data?.AmenitiesData?.parkingEntries) {
+          setParkingServies(data.AmenitiesData.parkingEntries);
+        }
+      } catch (error) {
+        console.error('Error fetching service data',error);
+      } finally {
+        setServicesLoading(false);
+      } 
+    };
+
+    useEffect(() => {
+      if (vendorData?.vendorId) {
+        fetchServiceData();
+        fetchSupportRequests(); 
+        fetchBankDetails();
+        fetchMeetings();
+        fetchBookingTransactions();
+        fetchBookings();
+        fetchChargesData();
+      }
+    }, [vendorData]);
+
+    const fetchSupportRequests = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setSupportRequestsLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/gethelpvendor/${vendorData.vendorId}`);
+        const data = await response.json();
+        
+        if (data?.helpRequests) {
+          setSupportRequests(Array.isArray(data.helpRequests) ? data.helpRequests : []);
+        }
+      } catch (error) {
+        console.error('Error fetching support requests:', error);
+      } finally {
+        setSupportRequestsLoading(false);
+      }
+    };
+
+    const fetchBankDetails = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setBankDetailsLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/getbankdetails/${vendorData.vendorId}`);
+        const data = await response.json();
+        
+        if (data?.data && data.data.length > 0) {
+          setBankDetails(data.data[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching bank details:', error);
+      } finally {
+        setBankDetailsLoading(false);
+      }
+    };
+
+    const fetchMeetings = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setMeetingsLoading(true);
+      
+      try {
+        const response = await axios.get(`${API_URL}/vendor/fetchmeeting/${vendorData.vendorId}`);
+        if (response.data?.meetings) {
+          setMeetings(response.data.meetings);
+        }
+      } catch (error) {
+        console.error('Error fetching meetings:', error);
+      } finally {
+        setMeetingsLoading(false);
+      }
+    };
+
+    const fetchBookingTransactions = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setTransactionsLoading(true);
+      
+      try {
+        const response = await axios.get(
+          `${API_URL}/vendor/fetchbookingtransaction/${vendorData.vendorId}?startDate=${transactionDates.start}&endDate=${transactionDates.end}`
+        );
+        
+        if (response.data?.data?.bookings) {
+          const formattedTransactions = response.data.data.bookings.map((item, index) => ({
+            id: item._id,
+            serialNo: index + 1,
+            bookingId: item._id,
+            bookingAmount: `₹${item.amount}`,
+            platformFee: `₹${item.platformfee}`,
+            receivable: `₹${item.receivableAmount}`,
+          }));
+          setBookingTransactions(formattedTransactions);
+        }
+      } catch (error) {
+        console.error('Error fetching booking transactions:', error);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    const fetchBookings = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setBookingsLoading(true);
+      
+      try {
+        const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${vendorData.vendorId}`);
+        const data = await response.json();
+        
+        if (data?.bookings) {
+          // Sort bookings by date (newest first)
+          const sortedBookings = data.bookings.sort((a, b) => {
+            const dateA = new Date(a.bookingDate).getTime();
+            const dateB = new Date(b.bookingDate).getTime();
+            return dateB - dateA;
+          });
+          setBookings(sortedBookings);
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      } finally {
+        setBookingsLoading(false);
+      }
+    };
+
+    const fetchChargesData = async () => {
+      if (!vendorData?.vendorId) return;
+      
+      setChargesLoading(true);
+      
+      try {
+        console.log(`Fetching charges from: ${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
+        
+        const response = await fetch(`${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
+        const data = await response.json();
+        console.log('Charges API response:', data);
+    
+        if (!data || !data.vendor) {
+          throw new Error('Invalid response format');
+        }
+        
+        const { vendor } = data;
+        const chargesMap = {};
+    
+        vendor.charges.forEach(charge => {
+          let label;
+          
+          // Case-insensitive type matching
+          const typeLC = charge.type.toLowerCase();
+          
+          if (typeLC.includes('additional')) {
+            label = 'Additional Hour';
+          } else if (typeLC.includes('full day') || typeLC.includes('24 hour')) {
+            label = 'Full Day';
+          } else if (typeLC.includes('monthly')) {
+            label = 'Monthly';
+          } else {
+            label = 'Minimum Charges';
+          }
+    
+          // Create a key using category and label
+          const key = `${charge.category}-${label}`;
+          chargesMap[key] = {
+            ...charge,
+            label
+          };
+        });
+        
+        console.log('Mapped charges:', chargesMap);
+        setCharges(chargesMap);
+      } catch (error) {
+        console.error('Error fetching charges data:', error);
+      } finally {
+        setChargesLoading(false);
+      }
     };
 
     // Render contact information
@@ -425,6 +665,584 @@
         </Box>
       );
     };
+
+    const renderAmenities = () => {
+      if (amenitiesLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!amenities || amenities.length === 0) {
+        return <Alert severity="info">No amenities information available</Alert>;
+      }
+      
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              Available Amenities
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {amenities.map((amenity, index) => (
+                <Chip
+                  key={index}
+                  label={amenity}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mb: 1 }}
+                />
+              ))}
+            </Box>
+          </Paper>
+        </Box>
+      );
+    };
+
+    const renderServicesPricing = () => {
+      if (servicesLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!parkingServices || parkingServices.length === 0) {
+        return <Alert severity="info">No services & pricing information available</Alert>;
+      }
+      
+      return (
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableCell><strong>Service Name</strong></TableCell>
+                <TableCell align="right"><strong>Price (₹)</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {parkingServices.map((service, index) => (
+                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell>
+                    <div style={{ fontWeight: 500 }}>{service.text}</div>
+                  </TableCell>
+                  <TableCell align="right">
+                    <div style={{ color: '#2196f3', fontWeight: 500 }}>
+                      ₹{service.amount}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    };
+
+    const renderSupportRequests = () => {
+      if (supportRequestsLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!supportRequests || supportRequests.length === 0) {
+        return <Alert severity="info">No support requests found</Alert>;
+      }
+      
+      return (
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableCell><strong>Description</strong></TableCell>
+                <TableCell align="right"><strong>Status</strong></TableCell>
+                <TableCell align="right"><strong>Date</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {supportRequests.map((request) => (
+                <TableRow key={request._id}>
+                  <TableCell>{request.description}</TableCell>
+                  <TableCell align="right">
+                    <Chip 
+                      label={request.status || 'Pending'} 
+                      color={
+                        request.status === 'resolved' ? 'success' :
+                        request.status === 'closed' ? 'default' : 'warning'
+                      } 
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    {request.date ? new Date(request.date).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    };
+
+    const renderBankDetails = () => {
+      if (bankDetailsLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!bankDetails) {
+        return <Alert severity="info">No bank details found</Alert>;
+      }
+      
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Bank Account Information</Typography>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableBody>
+                <TableRow>
+                  <TableCell component="th" scope="row">Account Number</TableCell>
+                  <TableCell>{bankDetails.accountnumber || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell component="th" scope="row">Account Holder</TableCell>
+                  <TableCell>{bankDetails.accountholdername || 'N/A'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell component="th" scope="row">IFSC Code</TableCell>
+                  <TableCell>{bankDetails.ifsccode || 'N/A'}</TableCell>
+                </TableRow>
+                {/* <TableRow>
+                  <TableCell component="th" scope="row">Last Updated</TableCell>
+                  <TableCell>
+                    {bankDetails.updatedAt ? new Date(bankDetails.updatedAt).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                </TableRow> */}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      );
+    };
+
+    const renderMeetings = () => {
+      if (meetingsLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!meetings || meetings.length === 0) {
+        return <Alert severity="info">No meeting requests found</Alert>;
+      }
+      
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Advertise with us</Typography>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableCell><strong>Name</strong></TableCell>
+                  <TableCell><strong>Email</strong></TableCell>
+                  <TableCell><strong>Mobile</strong></TableCell>
+                  <TableCell><strong>Time</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {meetings.map((meeting) => (
+                  <TableRow key={meeting._id}>
+                    <TableCell>{meeting.name || 'N/A'}</TableCell>
+                    <TableCell>{meeting.email || 'N/A'}</TableCell>
+                    <TableCell>{meeting.mobile || 'N/A'}</TableCell>
+                    <TableCell>{meeting.callbackTime || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      );
+    };
+    
+    const renderBookingTransactions = () => {
+      if (transactionsLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!bookingTransactions || bookingTransactions.length === 0) {
+        return <Alert severity="info">No booking transactions found</Alert>;
+      }
+    
+      const getTotalReceivable = () => {
+        return bookingTransactions.reduce((total, transaction) => {
+          const amount = parseFloat(transaction.receivable.replace("₹", "")) || 0;
+          return total + amount;
+        }, 0);
+      };
+    
+      const columns = [
+        { field: "serialNo", headerName: "S.No", width: 80 },
+        { field: "bookingId", headerName: "Booking ID", width: 220 },
+        { field: "bookingAmount", headerName: "Total Amount", width: 150 },
+        { field: "platformFee", headerName: "Platform Fee", width: 150 },
+        { field: "receivable", headerName: "Receivable", width: 150 },
+      ];
+    
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Booking Transactions</Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={transactionDates.start}
+              onChange={(e) => setTransactionDates({...transactionDates, start: e.target.value})}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              sx={{ width: 180, mr: 2 }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={transactionDates.end}
+              onChange={(e) => setTransactionDates({...transactionDates, end: e.target.value})}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              sx={{ width: 180, mr: 2 }}
+            />
+            <Button 
+              variant="contained" 
+              onClick={fetchBookingTransactions}
+              sx={{ textTransform: 'none' }}
+            >
+              Apply Filter
+            </Button>
+          </Box>
+    
+          <Box sx={{ 
+            bgcolor: '#f5f5f5', 
+            padding: '8px 16px', 
+            borderRadius: 1,
+            border: '1px solid #e0e0e0',
+            mb: 2,
+            display: 'inline-block'
+          }}>
+            <Typography variant="body2" fontWeight="bold" color="#329a73">
+              Total Receivable: ₹{getTotalReceivable().toFixed(2)}
+            </Typography>
+          </Box>
+    
+          <div style={{ height: 400, width: '100%' }}>
+            <DataGrid 
+              rows={bookingTransactions} 
+              columns={columns}
+              pageSizeOptions={[5, 10, 20]}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5 } },
+              }}
+              sx={{
+                "& .MuiDataGrid-columnHeaders": { 
+                  backgroundColor: "#329a73", 
+                  color: "black",
+                  fontSize: '0.875rem'
+                },
+                borderRadius: 2,
+              }}
+            />
+          </div>
+        </Box>
+      );
+    };
+
+    const renderBookings = () => {
+      if (bookingsLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (!bookings || bookings.length === 0) {
+        return <Alert severity="info">No bookings found</Alert>;
+      }
+    
+      const columns = [
+        { 
+          field: 'vehicleNumber', 
+          headerName: 'Vehicle Number', 
+          width: 150,
+          renderCell: (params) => (
+            <Typography style={{ color: '#329a73' }}>
+              {params.value || 'N/A'}
+            </Typography>
+          )
+        },
+        { 
+          field: 'bookingDateTime', 
+          headerName: 'Booking Date & Time', 
+          width: 300,
+          renderCell: (params) => {
+            const formatDate = (dateStr) => {
+              if (!dateStr) return 'N/A';
+              try {
+                return new Date(dateStr).toLocaleString();
+              } catch (e) {
+                return dateStr;
+              }
+            };
+            
+            return (
+              <Typography>
+                {formatDate(params.row.bookingDate)}, {params.row.bookingTime || 'N/A'}
+              </Typography>
+            );
+          }
+        },
+        { 
+          field: 'status', 
+          headerName: 'Status', 
+          width: 180,
+          renderCell: (params) => {
+            const statusKey = params.value?.toLowerCase();
+            const chipData = statusChipColor[statusKey] || { color: 'default' };
+            
+            return (
+              <Chip
+                label={params.value || 'N/A'}
+                variant="tonal"
+                size="small"
+                color={chipData.color}
+              />
+            );
+          }
+        },
+        { 
+          field: 'sts', 
+          headerName: 'Booking Type', 
+          width: 200,
+          renderCell: (params) => {
+            const statusKey = params.value?.toLowerCase();
+            const chipData = statusChipColor[statusKey] || { color: 'default' };
+            
+            return (
+              <Chip
+                label={params.value || 'N/A'}
+                variant="tonal"
+                size="small"
+                color={chipData.color}
+              />
+            );
+          }
+        },
+        { 
+          field: 'vehicleType', 
+          headerName: 'vehicle Type', 
+          width: 200,
+          renderCell: (params) => {
+            const vehicleType = params.value?.toLowerCase();
+            const vehicleIcons = {
+              car: { icon: 'ri-car-fill', color: '#ff4d49' },
+              bike: { icon: 'ri-motorbike-fill', color: '#72e128' },
+              default: { icon: 'ri-roadster-fill', color: '#282a42' }
+            };
+            const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default;
+            
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <i className={icon} style={{ fontSize: '16px', color }}></i>
+                <Typography>{params.value || 'N/A'}</Typography>
+              </Box>
+            );
+          }
+        },
+        { 
+          field: 'customer', 
+          headerName: 'Customer', 
+          width: 200,
+          renderCell: (params) => (
+            <Box>
+              <Typography fontWeight="500">{params.row.personName || 'Unknown'}</Typography>
+              <Typography variant="body2">{params.row.mobileNumber || 'N/A'}</Typography>
+            </Box>
+          )
+        },
+      ];
+    
+      const rows = bookings.map(booking => ({
+        id: booking._id,
+        ...booking,
+        bookingDateTime: `${booking.bookingDate}, ${booking.bookingTime}`
+      }));
+    
+      return (
+        <Box sx={{ height: 400, width: '100%', mt: 2 }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSizeOptions={[5, 10, 20]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 5 } },
+            }}
+            sx={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#329a73',
+                color: 'black',
+              },
+            }}
+          />
+        </Box>
+      );
+    };
+    
+
+    const renderCharges = () => {
+      const categories = ['Car', 'Bike', 'Others'];
+      const labels = ['Minimum Charges', 'Additional Hour', 'Full Day', 'Monthly'];
+      
+      if (chargesLoading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress size={30} />
+          </Box>
+        );
+      }
+      
+      if (Object.keys(charges).length === 0) {
+        return <Alert severity="info">No parking charges found for this vendor</Alert>;
+      }
+      
+      return (
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Parking Charges
+          </Typography>
+          
+          {/* Charges Table */}
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell align="right">Amount (₹)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(charges).map((key) => {
+                  const charge = charges[key];
+                  return (
+                    <TableRow
+                      key={key}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {charge.category === 'Car' && <i className="ri-car-fill" style={{ color: '#ff4d49' }} />}
+                          {charge.category === 'Bike' && <i className="ri-motorbike-fill" style={{ color: '#72e128' }} />}
+                          {charge.category === 'Others' && <i className="ri-roadster-fill" style={{ color: '#282a42' }} />}
+                          {charge.category}
+                        </Box>
+                      </TableCell>
+                      <TableCell>{charge.label}</TableCell>
+                      <TableCell>{charge.type}</TableCell>
+                      <TableCell align="right">
+                        <Typography fontWeight="medium" color="primary">
+                          {charge.amount}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          {/* Alternative Card View */}
+          <Typography variant="subtitle1" sx={{ mt: 4, mb: 2 }}>
+            Charges by Category
+          </Typography>
+          
+          <Grid container spacing={2}>
+            {categories.map((category) => {
+              // Filter charges for this category
+              const categoryCharges = Object.values(charges).filter(
+                charge => charge.category === category
+              );
+              
+              if (categoryCharges.length === 0) {
+                return null;
+              }
+              
+              return (
+                <Grid item xs={12} md={4} key={category}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardHeader
+                      title={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {category === 'Car' && <i className="ri-car-fill" style={{ color: '#ff4d49' }} />}
+                          {category === 'Bike' && <i className="ri-motorbike-fill" style={{ color: '#72e128' }} />}
+                          {category === 'Others' && <i className="ri-roadster-fill" style={{ color: '#282a42' }} />}
+                          {category}
+                        </Box>
+                      }
+                      sx={{ pb: 1 }}
+                    />
+                    <Divider />
+                    <CardContent sx={{ pt: 2 }}>
+                      <List dense>
+                        {categoryCharges.map((charge, index) => (
+                          <React.Fragment key={`${charge.category}-${charge.type}`}>
+                            <ListItem
+                              secondaryAction={
+                                <Chip 
+                                  label={`₹${charge.amount}`} 
+                                  color="primary" 
+                                  size="small"
+                                  variant="tonal"
+                                />
+                              }
+                            >
+                              <ListItemIcon sx={{ minWidth: '36px' }}>
+                                <i className="ri-time-line" />
+                              </ListItemIcon>
+                              <ListItemText
+                                primary={charge.label} 
+                                secondary={charge.type} 
+                              />
+                            </ListItem>
+                            {index < categoryCharges.length - 1 && <Divider variant="inset" component="li" />}
+                          </React.Fragment>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      );
+    };
+
     const handleEditProfile = () => {
       if (vendorId) {
         router.push(getLocalizedUrl(`/pages/vendordetails/${vendorId}`, locale))
@@ -514,8 +1332,16 @@
                 <Tab icon={<ContactsIcon fontSize="small" />} iconPosition="start" label="Contacts" />
                 <Tab icon={<LocationOnIcon fontSize="small" />} iconPosition="start" label="Location" />
                 <Tab icon={<AccessTimeIcon fontSize="small" />} iconPosition="start" label="Business Hours" />
-                <Tab icon={<DirectionsCarIcon fontSize="small" />} iconPosition="start" label="Parking" />
-                <Tab icon={<SubscriptionsIcon fontSize="small" />} iconPosition="start" label="Subscription" />
+                <Tab icon={<DirectionsCarIcon fontSize="small" />} iconPosition="start" label="Parking Entries" />
+                <Tab icon={<SubscriptionsIcon fontSize="small" />} iconPosition="start" label="Premium Package" />
+                <Tab icon={<i className="ri-list-check" />} iconPosition='start' label="Amenities"/>
+                <Tab icon={<MonetizationOnIcon fontSize="small" />} iconPosition="start" label="Services & Pricing" />
+                <Tab icon={<ChatIcon fontSize="small" />} iconPosition="start" label="Support Requests" />
+                <Tab icon={<i className="ri-bank-line" />} iconPosition="start" label="Bank Details" />
+                <Tab icon={<i className="ri-calendar-line" />} iconPosition="start" label="Advertise With Us" />
+                <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Booking Transactions" />
+                <Tab icon={<i className="ri-car-line" />} iconPosition="start" label="Bookings" />
+                <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Parking Charges" />
               </Tabs>
               
               {/* Basic Info Tab */}
@@ -580,6 +1406,22 @@
               
               {/* Subscription Tab */}
               {tabValue === 5 && renderSubscription()}
+              
+              {tabValue === 6 && renderAmenities()}
+
+              {tabValue ===7 && renderServicesPricing()}
+
+              {tabValue === 8 && renderSupportRequests()}
+
+              {tabValue === 9 && renderBankDetails()}
+
+              {tabValue === 10 && renderMeetings()}
+
+              {tabValue === 11 && renderBookingTransactions()}
+
+              {tabValue === 12 && renderBookings()}
+
+              {tabValue === 13 && renderCharges()}
             </>
           ) : (
             <Typography>No vendor data available</Typography>

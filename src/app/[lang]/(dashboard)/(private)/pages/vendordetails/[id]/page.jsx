@@ -45,6 +45,11 @@ import CustomAvatar from '@core/components/mui/Avatar'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import { useDropzone } from 'react-dropzone'
+import VendorAmenitiesServices from '../VendorAmenitiesServices'
+import VendorSupportChat from '../VendorSupportChat'
+import VendorBankDetails from '../VendorBankDetails'
+import ParkingCharges from '../ParkingCharges'
+import BookingEdit from '../BookingEdit'
 
 // Styled Dropzone Component
 const Dropzone = styled(AppReactDropzone)(({ theme }) => ({
@@ -904,6 +909,11 @@ const VendorSettingsPage = () => {
       </Typography>
       <VendorUpdate vendorId={vendorId} />
       <BusinessHoursUpdate vendorId={vendorId} />
+      <VendorAmenitiesServices vendorId={vendorId} />
+      <VendorSupportChat vendorId={vendorId} />
+      <VendorBankDetails vendorId={vendorId} />
+      <ParkingCharges vendorId={vendorId} />
+      <BookingEdit vendorId={vendorId} />
     </div>
   )
 }

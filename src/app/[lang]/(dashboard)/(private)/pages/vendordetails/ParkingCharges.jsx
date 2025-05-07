@@ -1,0 +1,691 @@
+'use client'
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import axios from 'axios';
+import {
+  Box, Card, CardContent, Typography, Button, TextField, FormControl,
+  InputLabel, Select, MenuItem, Alert, Paper, Fade, Grow, Tabs, Tab,
+  useMediaQuery, useTheme, CircularProgress, Chip, Switch, FormControlLabel,
+  Grid, Divider
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import {
+  Add as AddIcon, Edit as EditIcon, Save as SaveIcon,
+  Close as CloseIcon, AccessTime as ClockIcon,
+  DirectionsCar as CarIcon,
+  TwoWheeler as BikeIcon,
+  Category as OthersIcon,
+  Schedule as ScheduleIcon,
+  DateRange as CalendarIcon,
+  Timelapse as TimelapseIcon
+} from '@mui/icons-material';
+
+const categories = ['Car', 'Bike', 'Others'];
+const labels = ['Minimum Charges', 'Additional Hour', 'Full Day', 'Monthly'];
+
+const typesByLabel = {
+  'Minimum Charges': ['0 to 1 hour', '0 to 2 hours', '0 to 3 hours', '0 to 4 hours'],
+  'Additional Hour': ['Additional 1 hour', 'Additional 2 hours', 'Additional 3 hours', 'Additional 4 hours'],
+  'Full Day': ['Full day', '24 hours'],
+  'Monthly': ['Monthly'],
+};
+
+// Styled components
+const StyledCard = styled(Card)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'scale(1.02)',
+    boxShadow: theme.shadows[8],
+  },
+}));
+
+const RateDisplay = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.light,
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  textAlign: 'center',
+  '&:hover': {
+    backgroundColor: theme.palette.primary.main,
+    '& .MuiTypography-root': {
+      color: theme.palette.primary.contrastText,
+    },
+  },
+}));
+
+const SectionToggle = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(1, 2),
+  marginBottom: theme.spacing(2),
+  border: `1px solid ${theme.palette.divider}`,
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+}));
+
+// Helper functions
+const categoryToSlotProperty = {
+  'Car': 'Cars',
+  'Bike': 'Bikes',
+  'Others': 'Others'
+};
+
+const getCategoryIcon = (category) => {
+  switch(category) {
+    case 'Car': return <CarIcon />;
+    case 'Bike': return <BikeIcon />;
+    case 'Others': return <OthersIcon />;
+    default: return null;
+  }
+};
+
+const getSectionIcon = (section) => {
+  switch(section) {
+    case 'Temporary': return <ScheduleIcon />;
+    case 'Full Day': return <TimelapseIcon />;
+    case 'Monthly': return <CalendarIcon />;
+    default: return null;
+  }
+};
+
+const getChargeIdForNewEntry = (category, label) => {
+  const idMap = {
+    'Car-Minimum Charges': 'A',
+    'Car-Additional Hour': 'B',
+    'Car-Full Day': 'C',
+    'Car-Monthly': 'D',
+    'Bike-Minimum Charges': 'E',
+    'Bike-Additional Hour': 'F',
+    'Bike-Full Day': 'G',
+    'Bike-Monthly': 'H',
+    'Others-Minimum Charges': 'I',
+    'Others-Additional Hour': 'J',
+    'Others-Full Day': 'K',
+    'Others-Monthly': 'L'
+  };
+  
+  const key = `${category}-${label}`;
+  return idMap[key] || key.substring(0, 1).toUpperCase();
+};
+
+const ParkingCharges = ({ vendorId }) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const [charges, setCharges] = useState({});
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [editStates, setEditStates] = useState({});
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const [availableSlots, setAvailableSlots] = useState({
+    Cars: 0,
+    Bikes: 0,
+    Others: 0
+  });
+  
+  const [categoryToggles, setCategoryToggles] = useState({
+    Car: false,
+    Bike: false,
+    Others: false
+  });
+  
+  const [sectionToggles, setSectionToggles] = useState({
+    'Car-Temporary': false,
+    'Car-Full Day': false,
+    'Car-Monthly': false,
+    'Bike-Temporary': false,
+    'Bike-Full Day': false,
+    'Bike-Monthly': false,
+    'Others-Temporary': false,
+    'Others-Full Day': false,
+    'Others-Monthly': false
+  });
+  
+  const [fullDayTypeToggles, setFullDayTypeToggles] = useState({
+    'Car-Full Day': false,
+    'Bike-Full Day': false,
+    'Others-Full Day': false
+  });
+
+  useEffect(() => {
+    if (vendorId) {
+      fetchCharges();
+      fetchAvailableSlots();
+    }
+  }, [vendorId]);
+
+  useEffect(() => {
+    if (!loading && Object.keys(charges).length > 0) {
+      const newCategoryToggles = { ...categoryToggles };
+      const newSectionToggles = { ...sectionToggles };
+      const newFullDayTypeToggles = { ...fullDayTypeToggles };
+      
+      Object.keys(charges).forEach(key => {
+        const [category, label] = key.split('-');
+        const slotProperty = categoryToSlotProperty[category];
+        const hasAvailableSlots = slotProperty && availableSlots[slotProperty] > 0;
+        
+        if (hasAvailableSlots) {
+          newCategoryToggles[category] = true;
+          
+          if (label === 'Minimum Charges' || label === 'Additional Hour') {
+            newSectionToggles[`${category}-Temporary`] = true;
+          } else if (label === 'Full Day') {
+            newSectionToggles[`${category}-Full Day`] = true;
+            if (charges[key].type.includes('24')) {
+              newFullDayTypeToggles[`${category}-Full Day`] = true;
+            }
+          } else if (label === 'Monthly') {
+            newSectionToggles[`${category}-Monthly`] = true;
+          }
+        }
+      });
+      
+      setCategoryToggles(newCategoryToggles);
+      setSectionToggles(newSectionToggles);
+      setFullDayTypeToggles(newFullDayTypeToggles);
+    }
+  }, [loading, charges, availableSlots]);
+
+  const fetchCharges = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/vendor/getchargesdata/${vendorId}`);
+      
+      if (!response.data || !response.data.vendor) {
+        throw new Error('Invalid response format');
+      }
+      
+      const { vendor } = response.data;
+      const chargesMap = {};
+
+      vendor.charges.forEach(charge => {
+        let label;
+        const typeLC = charge.type.toLowerCase();
+        
+        if (typeLC.includes('additional')) {
+          label = 'Additional Hour';
+        } else if (typeLC.includes('full day') || typeLC.includes('24 hour')) {
+          label = 'Full Day';
+        } else if (typeLC.includes('monthly')) {
+          label = 'Monthly';
+        } else {
+          label = 'Minimum Charges';
+        }
+
+        const key = `${charge.category}-${label}`;
+        chargesMap[key] = {
+          ...charge,
+          label
+        };
+      });
+      
+      setCharges(chargesMap);
+    } catch (err) {
+      console.error('Error fetching charges:', err);
+      setError(`Failed to load charges data: ${err.message}`);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableSlots = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/vendor/availableslots/${vendorId}`);
+      const { Cars = 0, Bikes = 0, Others = 0 } = response.data;
+      setAvailableSlots({ Cars, Bikes, Others });
+    } catch (err) {
+      console.error('Error fetching available slots:', err);
+      setError(`Failed to load available slots: ${err.message}`);
+      setTimeout(() => setError(''), 5000);
+    }
+  };
+
+  const handleSave = async (category, label, type, amount) => {
+    try {
+      if (!type || !amount) {
+        throw new Error('Please enter both type and amount');
+      }
+
+      const slotProperty = categoryToSlotProperty[category];
+      if (!slotProperty || availableSlots[slotProperty] <= 0) {
+        throw new Error(`Cannot set charges for ${category} as there are no available slots`);
+      }
+
+      const existingCharge = charges[`${category}-${label}`];
+      const chargeid = existingCharge?.chargeid || getChargeIdForNewEntry(category, label);
+
+      const chargeData = {
+        type,
+        amount,
+        category,
+        chargeid
+      };
+
+      const payload = {
+        vendorid: vendorId,
+        charges: [chargeData]
+      };
+
+      const response = await axios.post(`${API_URL}/vendor/addparkingcharges`, payload);
+
+      await fetchCharges();
+      setEditStates(prev => ({
+        ...prev,
+        [`${category}-${label}`]: false
+      }));
+      setSuccess('Charge saved successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Save error:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to save charges');
+      setTimeout(() => setError(''), 5000);
+    }
+  };
+
+  const handleCategoryToggle = (category) => {
+    const slotProperty = categoryToSlotProperty[category];
+    const hasAvailableSlots = slotProperty && availableSlots[slotProperty] > 0;
+    
+    if (!hasAvailableSlots) {
+      setError(`Cannot enable ${category} as there are no available slots`);
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    setCategoryToggles(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  const handleSectionToggle = (category, section) => {
+    const slotProperty = categoryToSlotProperty[category];
+    const hasAvailableSlots = slotProperty && availableSlots[slotProperty] > 0;
+    
+    if (!hasAvailableSlots) {
+      setError(`Cannot enable ${section} section for ${category} as there are no available slots`);
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    setSectionToggles(prev => ({
+      ...prev,
+      [`${category}-${section}`]: !prev[`${category}-${section}`]
+    }));
+  };
+
+  const handleFullDayTypeToggle = (category) => {
+    setFullDayTypeToggles(prev => ({
+      ...prev,
+      [`${category}-Full Day`]: !prev[`${category}-Full Day`]
+    }));
+  };
+
+  const ChargeCard = ({ category, label }) => {
+    const [formData, setFormData] = useState({
+      type: charges[`${category}-${label}`]?.type || '',
+      amount: charges[`${category}-${label}`]?.amount || ''
+    });
+
+    useEffect(() => {
+      setFormData({
+        type: charges[`${category}-${label}`]?.type || '',
+        amount: charges[`${category}-${label}`]?.amount || ''
+      });
+    }, [charges, category, label]);
+    
+    const isEditing = editStates[`${category}-${label}`];
+    const hasValue = `${category}-${label}` in charges;
+    const charge = charges[`${category}-${label}`];
+    const slotProperty = categoryToSlotProperty[category];
+    const hasAvailableSlots = slotProperty && availableSlots[slotProperty] > 0;
+
+    if (!hasAvailableSlots && !hasValue) {
+      return (
+        <Grow in={true} timeout={300}>
+          <StyledCard>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                {label}
+              </Typography>
+              <Alert severity="info" sx={{ mt: 1 }}>
+                No {category} slots available. Cannot set charges.
+              </Alert>
+            </CardContent>
+          </StyledCard>
+        </Grow>
+      );
+    }
+
+    let typeOptions = typesByLabel[label];
+    if (label === 'Full Day') {
+      const is24HoursMode = fullDayTypeToggles[`${category}-Full Day`];
+      typeOptions = is24HoursMode ? ['24 hours'] : ['Full day'];
+    }
+
+    const handleTypeChange = (e) => {
+      setFormData({ ...formData, type: e.target.value });
+    };
+
+    const handleAmountChange = (e) => {
+      setFormData({ ...formData, amount: e.target.value });
+    };
+
+    return (
+      <Grow in={true} timeout={300}>
+        <StyledCard>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {label}
+            </Typography>
+            <Fade in={true} timeout={500}>
+              <Box>
+                {isEditing ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Duration</InputLabel>
+                      <Select
+                        value={formData.type}
+                        onChange={handleTypeChange}
+                        label="Duration"
+                        startAdornment={<ClockIcon sx={{ mr: 1 }} />}
+                      >
+                        {typeOptions.map((type) => (
+                          <MenuItem key={type} value={type}>{type}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      fullWidth
+                      label="Amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={handleAmountChange}
+                      InputProps={{
+                        startAdornment: '₹',
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<CloseIcon />}
+                        onClick={() => {
+                          setEditStates(prev => ({
+                            ...prev,
+                            [`${category}-${label}`]: false
+                          }));
+                          setFormData({
+                            type: charges[`${category}-${label}`]?.type || '',
+                            amount: charges[`${category}-${label}`]?.amount || ''
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        onClick={() => handleSave(category, label, formData.type, formData.amount)}
+                      >
+                        Save
+                      </Button>
+                    </Box>
+                  </Box>
+                ) : hasValue ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <RateDisplay>
+                      <Typography variant="h4" color="primary.main" gutterBottom>
+                        ₹{charge.amount}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ClockIcon sx={{ mr: 1 }} />
+                        <Typography variant="body1" color="text.secondary">
+                          {charge.type}
+                        </Typography>
+                      </Box>
+                    </RateDisplay>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<EditIcon />}
+                      onClick={() => setEditStates(prev => ({
+                        ...prev,
+                        [`${category}-${label}`]: true
+                      }))}
+                      disabled={!hasAvailableSlots}
+                    >
+                      Edit Rate
+                    </Button>
+                    {!hasAvailableSlots && (
+                      <Alert severity="warning" sx={{ mt: 1 }}>
+                        No {category} slots available. Cannot edit charges.
+                      </Alert>
+                    )}
+                  </Box>
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setEditStates(prev => ({
+                      ...prev,
+                      [`${category}-${label}`]: true
+                    }))}
+                    disabled={!hasAvailableSlots}
+                  >
+                    Set Rate
+                  </Button>
+                )}
+              </Box>
+            </Fade>
+          </CardContent>
+        </StyledCard>
+      </Grow>
+    );
+  };
+
+  const CategorySection = ({ category }) => {
+    const slotProperty = categoryToSlotProperty[category];
+    const hasAvailableSlots = slotProperty && availableSlots[slotProperty] > 0;
+    const isCategoryEnabled = categoryToggles[category] && hasAvailableSlots;
+
+    return (
+      <Box sx={{ mb: 4 }}>
+        <SectionToggle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {getCategoryIcon(category)}
+            <Typography variant="h6" sx={{ ml: 1 }}>
+              {category}
+            </Typography>
+            <Chip 
+              size="small"
+              label={`${availableSlots[categoryToSlotProperty[category]]} slots`}
+              color={availableSlots[categoryToSlotProperty[category]] > 0 ? "success" : "error"}
+              sx={{ ml: 1 }}
+            />
+          </Box>
+          <FormControlLabel
+            control={
+              <Switch 
+                checked={isCategoryEnabled}
+                onChange={() => handleCategoryToggle(category)}
+                disabled={!hasAvailableSlots}
+              />
+            }
+            label={isCategoryEnabled ? "On" : "Off"}
+          />
+        </SectionToggle>
+        
+        {isCategoryEnabled && (
+          <Box sx={{ pl: 3, pt: 1 }}>
+            <SectionToggle>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ScheduleIcon />
+                <Typography variant="subtitle1" sx={{ ml: 1 }}>
+                  Temporary
+                </Typography>
+              </Box>
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={sectionToggles[`${category}-Temporary`]}
+                    onChange={() => handleSectionToggle(category, 'Temporary')}
+                  />
+                }
+                label={sectionToggles[`${category}-Temporary`] ? "On" : "Off"}
+              />
+            </SectionToggle>
+            
+            {sectionToggles[`${category}-Temporary`] && (
+              <Box sx={{ pl: 3, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <ChargeCard category={category} label="Minimum Charges" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <ChargeCard category={category} label="Additional Hour" />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            
+            <SectionToggle>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TimelapseIcon />
+                <Typography variant="subtitle1" sx={{ ml: 1 }}>
+                  Full Day
+                </Typography>
+              </Box>
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={sectionToggles[`${category}-Full Day`]}
+                    onChange={() => handleSectionToggle(category, 'Full Day')}
+                  />
+                }
+                label={sectionToggles[`${category}-Full Day`] ? "On" : "Off"}
+              />
+            </SectionToggle>
+            
+            {sectionToggles[`${category}-Full Day`] && (
+              <Box sx={{ pl: 3, mb: 2 }}>
+                <SectionToggle>
+                  <Typography variant="body1">
+                    {fullDayTypeToggles[`${category}-Full Day`] ? "24 Hours" : "Full Day"}
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={fullDayTypeToggles[`${category}-Full Day`]}
+                        onChange={() => handleFullDayTypeToggle(category)}
+                      />
+                    }
+                    label={fullDayTypeToggles[`${category}-Full Day`] ? "24 Hours" : "Full Day"}
+                  />
+                </SectionToggle>
+                <ChargeCard category={category} label="Full Day" />
+              </Box>
+            )}
+            
+            <SectionToggle>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <CalendarIcon />
+                <Typography variant="subtitle1" sx={{ ml: 1 }}>
+                  Monthly
+                </Typography>
+              </Box>
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={sectionToggles[`${category}-Monthly`]}
+                    onChange={() => handleSectionToggle(category, 'Monthly')}
+                  />
+                }
+                label={sectionToggles[`${category}-Monthly`] ? "On" : "Off"}
+              />
+            </SectionToggle>
+            
+            {sectionToggles[`${category}-Monthly`] && (
+              <Box sx={{ pl: 3, mb: 2 }}>
+                <ChargeCard category={category} label="Monthly" />
+              </Box>
+            )}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, sm: 4 } }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
+        Parking Charges Management
+      </Typography>
+      
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Available Slots
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Chip 
+            icon={<CarIcon />} 
+            label={`Cars: ${availableSlots.Cars}`} 
+            color={availableSlots.Cars > 0 ? "success" : "default"} 
+            variant="outlined" 
+          />
+          <Chip 
+            icon={<BikeIcon />} 
+            label={`Bikes: ${availableSlots.Bikes}`} 
+            color={availableSlots.Bikes > 0 ? "success" : "default"} 
+            variant="outlined" 
+          />
+          <Chip 
+            icon={<OthersIcon />} 
+            label={`Others: ${availableSlots.Others}`} 
+            color={availableSlots.Others > 0 ? "success" : "default"} 
+            variant="outlined" 
+          />
+        </Box>
+      </Box>
+      
+      <Box sx={{ mb: 3 }}>
+        <Fade in={!!error}>
+          <Box>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+          </Box>
+        </Fade>
+        <Fade in={!!success}>
+          <Box>
+            {success && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {success}
+              </Alert>
+            )}
+          </Box>
+        </Fade>
+      </Box>
+      
+      <Box sx={{ width: '100%' }}>
+        {categories.map((category) => (
+          <CategorySection key={category} category={category} />
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+export default ParkingCharges;
