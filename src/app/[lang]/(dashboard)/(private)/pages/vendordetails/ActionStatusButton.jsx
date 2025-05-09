@@ -19,10 +19,9 @@ import {
 } from '@mui/material'
 import ExitVehicleCalculator from './ExitVehicleCalculator'
 
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-const ActionStatusButton = ({ bookingId, currentStatus, bookingDetails, onUpdate }) => {
+const ActionStatusButton = ({ bookingId, currentStatus, bookingDetails, vendorId, onUpdate }) => {
   const { data: session } = useSession()
   const [anchorEl, setAnchorEl] = useState(null)
   const [openDialog, setOpenDialog] = useState(false)
@@ -35,6 +34,7 @@ const ActionStatusButton = ({ bookingId, currentStatus, bookingDetails, onUpdate
     message: '',
     severity: 'success'
   })
+  const effectiveVendorId = vendorId || session?.user?.id;
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget)
@@ -209,6 +209,7 @@ const ActionStatusButton = ({ bookingId, currentStatus, bookingDetails, onUpdate
             vehicleType={bookingDetails?.vehicleType || 'Car'}
             bookType={bookingDetails?.bookType || 'Hourly'}
             bookingDetails={bookingDetails}
+            vendorId={effectiveVendorId} 
             onClose={handleDialogClose}
             onSuccess={handleExitSuccess}
           />
@@ -302,17 +303,21 @@ const ActionStatusButton = ({ bookingId, currentStatus, bookingDetails, onUpdate
         maxWidth={actionType === 'exitVehicle' ? 'md' : 'sm'} 
         fullWidth
       >
-        <DialogTitle>
-          {{
-            'approve': 'Approve Booking',
-            'cancel': 'Cancel Booking',
-            'cancelApproved': 'Cancel Approved Booking',
-            'allowParking': 'Allow Parking',
-            'exitVehicle': 'Exit Vehicle'
-          }[actionType] || 'Update Booking Status'}
-        </DialogTitle>
+        {actionType !== 'exitVehicle' && (
+          <DialogTitle>
+            {{
+              'approve': 'Approve Booking',
+              'cancel': 'Cancel Booking',
+              'cancelApproved': 'Cancel Approved Booking',
+              'allowParking': 'Allow Parking',
+              'exitVehicle': 'Exit Vehicle'
+            }[actionType] || 'Update Booking Status'}
+          </DialogTitle>
+        )}
         
-        {renderDialogContent()}
+        <DialogContent>
+          {renderDialogContent()}
+        </DialogContent>
         
         {actionType !== 'exitVehicle' && (
           <DialogActions>
