@@ -117,7 +117,7 @@ return (
         <div className='flex flex-col gap-5 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset]'>
           <div>
             <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}!👋🏻`}</Typography>
-            <Typography>Please sign-in to your account and start the adventure</Typography>
+            <Typography>Please sign-in to your account and start the adventur</Typography>
           </div>
           <Alert icon={false} className='bg-[var(--mui-palette-primary-lightOpacity)]'>
             <Typography variant='body2' color='primary.main'>
@@ -125,17 +125,25 @@ return (
             </Typography>
           </Alert>
           <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
-            <div>
-              <TextField
-                fullWidth
-                label="Mobile"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                required
-                error={!!error}
-                helperText={error}
-              />
-            </div>
+                    <div>
+  <TextField
+    fullWidth
+    label="Mobile"
+    value={mobile}
+    onChange={(e) => {
+      const input = e.target.value;
+      // Allow only digits and max length 10
+      if (/^\d{0,10}$/.test(input)) {
+        setMobile(input);
+      }
+    }}
+    required
+    error={!!error}
+    helperText={error}
+    inputMode="numeric"
+    placeholder="Enter 10-digit mobile number"
+  />
+</div>
             <div>
               <TextField
                 fullWidth

@@ -172,12 +172,19 @@ return prev - 1;
           <Typography variant='h4'>Forgot Password 🔒</Typography>
           <form noValidate autoComplete='off' className='flex flex-col gap-5'>
             <TextField
-              autoFocus
-              fullWidth
-              label='Mobile Number'
-              value={mobile}
-              onChange={e => setMobile(e.target.value)}
-            />
+  autoFocus
+  fullWidth
+  label="Mobile Number"
+  value={mobile}
+  onChange={e => {
+    const input = e.target.value;
+    if (/^\d{0,10}$/.test(input)) {
+      setMobile(input);
+    }
+  }}
+  inputMode="numeric"
+  placeholder="Enter 10-digit mobile number"
+/>
             {showOtpField && (
               <>
                 <Grid container spacing={2}>

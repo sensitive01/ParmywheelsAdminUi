@@ -248,13 +248,110 @@ return (
           );
         }
       }),
-      columnHelper.accessor('payableTime', {
+      // columnHelper.accessor('payableTime', {
+      //   header: 'Payable Time',
+      //   cell: ({ row }) => {
+      //     // Check booking status
+      //     const status = row.original.status?.toLowerCase()
+      //     const isParked = status === 'parked'
+      //     const isCompleted = status === 'completed'
+          
+      //     // Show real-time timer for PARKED status
+      //     if (isParked) {
+      //       return (
+      //         <div className="flex items-center gap-2">
+      //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
+      //           <PayableTimeTimer 
+      //             parkedDate={row.original.parkedDate}
+      //             parkedTime={row.original.parkedTime}
+      //           />
+      //         </div>
+      //       )
+      //     }
+          
+      //     // Show total time for COMPLETED status using exit vehicle data
+      //     if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
+      //       // Calculate and format the total parking duration
+      //       const calculateTotalTime = () => {
+      //         try {
+      //           // Parse the parking start time
+      //           const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
+      //           const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
+      //           let [startHours, startMinutes] = startTimePart.split(':').map(Number)
+                
+      //           // Convert to 24-hour format if needed
+      //           if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
+      //             startHours += 12
+      //           } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
+      //             startHours = 0
+      //           }
+                
+      //           // Create start date object
+      //           const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
+                
+      //           // Parse the exit vehicle time
+      //           const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
+      //           const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
+      //           let [endHours, endMinutes] = endTimePart.split(':').map(Number)
+                
+      //           // Convert to 24-hour format if needed
+      //           if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
+      //             endHours += 12
+      //           } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
+      //             endHours = 0
+      //           }
+                
+      //           // Create end date object
+      //           const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
+                
+      //           // Calculate difference in milliseconds
+      //           const diffMs = endTime - startTime
+                
+      //           // Convert to days, hours, minutes
+      //           const diffSecs = Math.floor(diffMs / 1000)
+      //           const days = Math.floor(diffSecs / (3600 * 24))
+      //           const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
+      //           const minutes = Math.floor((diffSecs % 3600) / 60)
+                
+      //           // Format the output
+      //           if (days > 0) {
+      //             return `${days}d ${hours}h ${minutes}m`
+      //           } else {
+      //             return `${hours}h ${minutes}m`
+      //           }
+      //         } catch (e) {
+      //           console.error("Error calculating total time:", e)
+      //           return 'N/A'
+      //         }
+      //       }
+            
+      //       return (
+      //         <div className="flex items-center gap-2">
+      //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
+      //           <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
+      //             {calculateTotalTime()}
+      //           </Typography>
+      //         </div>
+      //       )
+      //     }
+          
+      //     // Default case for other statuses
+      //     return <Typography>--:--:--</Typography>
+      //   }
+      // }),
+
+  columnHelper.accessor('payableTime', {
         header: 'Payable Time',
         cell: ({ row }) => {
           // Check booking status
           const status = row.original.status?.toLowerCase()
+          
+          // Return empty for completed status
+          if (status === 'completed') {
+            return null
+          }
+          
           const isParked = status === 'parked'
-          const isCompleted = status === 'completed'
           
           // Show real-time timer for PARKED status
           if (isParked) {
@@ -269,74 +366,8 @@ return (
             )
           }
           
-          // Show total time for COMPLETED status using exit vehicle data
-          if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
-            // Calculate and format the total parking duration
-            const calculateTotalTime = () => {
-              try {
-                // Parse the parking start time
-                const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
-                const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
-                let [startHours, startMinutes] = startTimePart.split(':').map(Number)
-                
-                // Convert to 24-hour format if needed
-                if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
-                  startHours += 12
-                } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
-                  startHours = 0
-                }
-                
-                // Create start date object
-                const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
-                
-                // Parse the exit vehicle time
-                const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
-                const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
-                let [endHours, endMinutes] = endTimePart.split(':').map(Number)
-                
-                // Convert to 24-hour format if needed
-                if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
-                  endHours += 12
-                } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
-                  endHours = 0
-                }
-                
-                // Create end date object
-                const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
-                
-                // Calculate difference in milliseconds
-                const diffMs = endTime - startTime
-                
-                // Convert to days, hours, minutes
-                const diffSecs = Math.floor(diffMs / 1000)
-                const days = Math.floor(diffSecs / (3600 * 24))
-                const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
-                const minutes = Math.floor((diffSecs % 3600) / 60)
-                
-                // Format the output
-                if (days > 0) {
-                  return `${days}d ${hours}h ${minutes}m`
-                } else {
-                  return `${hours}h ${minutes}m`
-                }
-              } catch (e) {
-                console.error("Error calculating total time:", e)
-                return 'N/A'
-              }
-            }
-            
-            return (
-              <div className="flex items-center gap-2">
-                <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
-                <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
-                  {calculateTotalTime()}
-                </Typography>
-              </div>
-            )
-          }
-          
           // Default case for other statuses
-          return <Typography>--:--:--</Typography>
+          return null
         }
       }),
 
