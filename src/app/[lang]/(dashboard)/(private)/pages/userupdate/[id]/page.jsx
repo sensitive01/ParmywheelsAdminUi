@@ -112,7 +112,7 @@ const UserUpdate = ({ params }) => {
             });
             setHasChanges(false);
             setTimeout(() => {
-                router.push('/en/pages/userdatatable');
+                router.push('/en/apps/ecommerce/customers/list');
             }, 2000);
 
         } catch (error) {

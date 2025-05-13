@@ -182,6 +182,9 @@ const HorizontalMenu = ({ dictionary }) => {
           </MenuItem>
           <SubMenu label={dictionary['navigation'].customers}>
               <MenuItem href={`/${locale}/apps/ecommerce/customers/list`}>{dictionary['navigation'].list}</MenuItem>
+                <MenuItem href={`/${locale}/pages/myspace`} icon={<i className='ri-calendar-line' />}>
+            {dictionary['navigation'].myspace}
+          </MenuItem>
               {/* <MenuItem
                 href={`/${locale}/apps/ecommerce/customers/details/879861`}
                 exactMatch={false}
@@ -190,6 +193,7 @@ const HorizontalMenu = ({ dictionary }) => {
                 {dictionary['navigation'].details}
               </MenuItem> */}
             </SubMenu>
+
         <SubMenu label={dictionary['navigation'].pages} icon={<i className='ri-file-list-2-line' />}>
           <MenuItem href={`/${locale}/pages/user-profile`} icon={<i className='ri-user-line' />}>
             {dictionary['navigation'].userProfile}
