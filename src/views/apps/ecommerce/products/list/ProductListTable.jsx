@@ -1964,3 +1964,8 @@ columnHelper.accessor('actions', {
   }
 
   export default VendorListTable
+
+
+
+
+

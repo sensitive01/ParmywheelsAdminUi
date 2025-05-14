@@ -105,7 +105,7 @@ const ProductImage = ({ onChange, existingImage }) => {
   return (
     <Dropzone>
       <Card>
-        <CardHeader title='Upload Vendor Banner' />
+        <CardHeader title='Upload MySpace Banner' />
         <CardContent>
           <div {...getRootProps({ className: 'dropzone' })}>
             <input {...getInputProps()} />
@@ -527,7 +527,7 @@ const VendorUpdate = ({ vendorId }) => {
         const result = await response.json()
         
         if (response.ok && result.data) {
-          console.log('Received vendor data:', result.data)
+          console.log('Received MySpace data:', result.data)
           const vendorData = result.data
           
           setVendorName(vendorData.vendorName || '')
@@ -562,10 +562,10 @@ const VendorUpdate = ({ vendorId }) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching vendor data:', error)
+        console.error('Error fetching MySpace data:', error)
         setSnackbar({
           open: true,
-          message: 'Failed to load vendor data',
+          message: 'Failed to load MySpace data',
           severity: 'error'
         })
       } finally {
@@ -643,7 +643,7 @@ const VendorUpdate = ({ vendorId }) => {
       if (response.ok) {
         setSnackbar({
           open: true,
-          message: 'Vendor details updated successfully!',
+          message: 'MySpace details updated successfully!',
           severity: 'success'
         })
         
@@ -686,14 +686,14 @@ const VendorUpdate = ({ vendorId }) => {
     <Card>
       <CardContent>
         <Typography variant='h4' sx={{ mb: 4 }} align='center'>
-          Update Vendor Details
+          Update MySpace Details
         </Typography>
         
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label='Vendor Name'
+              label='MySpace Name'
               value={vendorName}
               onChange={e => setVendorName(e.target.value)}
               required
@@ -794,7 +794,7 @@ const VendorUpdate = ({ vendorId }) => {
             {imagePreview && (
               <img
                 src={imagePreview}
-                alt="Vendor Image"
+                alt="MySpace Image"
                 style={{ width: 100, height: 100, borderRadius: '50%' }}
               />
             )}
@@ -905,7 +905,7 @@ const VendorSettingsPage = () => {
   return (
     <div maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" sx={{ mb: 4 }}>
-        Vendor Update
+        MySpace Update
       </Typography>
       <VendorUpdate vendorId={vendorId} />
       <BusinessHoursUpdate vendorId={vendorId} />

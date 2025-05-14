@@ -1488,8 +1488,8 @@ const SpaceListTable = () => {
 
         try {
             const endpoint = newStatus === 'approved'
-                ? `${API_URL}/admin/approvespace/${vendorId}`
-                : `${API_URL}/admin/updatespacestatus/${vendorId}`;
+                ? `${API_URL}/vendor/approve/${vendorId}`
+                : `${API_URL}/vendor/updateStatus/${vendorId}`;
 
             const response = await fetch(endpoint, {
                 method: 'PUT',
@@ -1683,7 +1683,7 @@ const SpaceListTable = () => {
                     const handleDeleteSpace = async () => {
                         try {
                             setDeleteLoading(true);
-                            const response = await fetch(`${API_URL}/admin/deletespace/${row.original.vendorId}`, {
+                            const response = await fetch(`${API_URL}/admin/deletevendor/${row.original.vendorId}`, {
                                 method: 'DELETE',
                             });
 
