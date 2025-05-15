@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import {
   Box,
@@ -13,7 +15,7 @@ import {
   TextField,
   Button,
   IconButton,
-  Radio,
+  Radio,  
   RadioGroup,
   FormControlLabel,
   FormControl,
@@ -182,14 +184,28 @@ const steps = [
 ]
 
 export default function ParkingBooking() {
+   const router = useRouter() 
   const API_URL = process.env.NEXT_PUBLIC_API_URL
   const { data: session } = useSession()
+  const params = useParams()
+  const userId = params?.id // Get userId from URL
   
   // Vendor selection state
   const [vendors, setVendors] = useState([])
   const [selectedVendor, setSelectedVendor] = useState('')
+  const [selectedVendorName, setSelectedVendorName] = useState('')
   const [vendorLoading, setVendorLoading] = useState(false)
   const [vendorError, setVendorError] = useState(null)
+
+  // Vehicle selection state
+  const [vehicles, setVehicles] = useState([])
+  const [vehicleLoading, setVehicleLoading] = useState(false)
+  const [vehicleError, setVehicleError] = useState(null)
+
+  // User data state
+  const [userData, setUserData] = useState(null)
+  const [userLoading, setUserLoading] = useState(false)
+  const [userError, setUserError] = useState(null)
 
   const [activeStep, setActiveStep] = useState(0)
   const [vehicleType, setVehicleType] = useState('Car')
@@ -232,6 +248,30 @@ export default function ParkingBooking() {
     return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
   };
 
+  // Fetch user data when userId is available
+  useEffect(() => {
+    if (userId) {
+      const fetchUserData = async () => {
+        setUserLoading(true)
+        try {
+          const response = await axios.get(`https://pmwapis.parkmywheels.com/get-userdata?id=${userId}`)
+          if (response.data.success) {
+            setUserData(response.data.data)
+            // Pre-fill the personal info fields for all booking types
+            setPersonName(response.data.data.userName || '')
+            setMobileNumber(response.data.data.userMobile || '')
+          }
+          setUserLoading(false)
+        } catch (error) {
+          console.error('Error fetching user data:', error)
+          setUserError('Failed to load user data')
+          setUserLoading(false)
+        }
+      }
+      fetchUserData()
+    }
+  }, [userId])
+
   // Fetch vendors on component mount
   useEffect(() => {
     const fetchVendors = async () => {
@@ -252,6 +292,25 @@ export default function ParkingBooking() {
     }
     fetchVendors()
   }, [])
+
+  // Fetch user vehicles when userId is available
+  useEffect(() => {
+    if (userId) {
+      const fetchUserVehicles = async () => {
+        setVehicleLoading(true)
+        try {
+          const response = await axios.get(`https://pmwapis.parkmywheels.com/get-vehicle-slot?id=${userId}`)
+          setVehicles(response.data.vehicles || [])
+          setVehicleLoading(false)
+        } catch (error) {
+          console.error('Error fetching user vehicles:', error)
+          setVehicleError('Failed to load user vehicles')
+          setVehicleLoading(false)
+        }
+      }
+      fetchUserVehicles()
+    }
+  }, [userId])
 
   const updateCurrentDateTime = () => {
     const now = new Date()
@@ -335,7 +394,7 @@ export default function ParkingBooking() {
     }
   }
 
-  const handleBack = () => {
+  const handleBack = () => {  
     setActiveStep((prev) => prev - 1)
   }
 
@@ -350,6 +409,7 @@ export default function ParkingBooking() {
       
       const payload = {
         vendorId: selectedVendor,
+        vendorName: selectedVendorName,
         personName,
         mobileNumber,
         vehicleType,
@@ -363,9 +423,12 @@ export default function ParkingBooking() {
         parkingTime: formattedTime,
         tenditivecheckout: tentativeCheckout ? formatToDDMMYYYY(tentativeCheckout.split('T')[0]) + ' ' + formatTimeTo12Hour(tentativeCheckout.split('T')[1]) : '',
         subsctiptiontype: sts === 'Subscription' ? subscriptionType : '',
-        status: sts === 'Instant' ? 'PARKED' : 'PENDING', // Set status to PARKED for Instant, PENDING for others
+        // status: sts === 'Instant' ? 'PARKED' : 'PENDING',
+        status: 'PENDING',
         sts,
-        bookType: sts === 'Subscription' ? '' : bookType
+        bookType: sts === 'Subscription' ? '' : bookType,
+        userId: userId,
+        userid: userId,
       }
 
       const response = await axios.post(`${API_URL}/vendor/createbooking`, payload)
@@ -379,7 +442,8 @@ export default function ParkingBooking() {
         vehicleType,
         vehicleNumber,
         personName,
-        status: sts === 'Instant' ? 'PARKED' : 'PENDING'
+        // status: sts === 'Instant' ? 'PARKED' : 'PENDING'
+        status: 'PENDING',
       })
 
       setAlert({
@@ -387,7 +451,7 @@ export default function ParkingBooking() {
         message: 'Booking created successfully!',
         type: 'success'
       })
-
+      router.push('/apps/ecommerce/customers/list')
       setTimeout(() => {
         setActiveStep(0)
         setVehicleType('Car')
@@ -400,12 +464,14 @@ export default function ParkingBooking() {
         setTentativeCheckout('')
         setSubscriptionType('Monthly')
         setSelectedVendor('')
+        setSelectedVendorName('')
         updateCurrentDateTime()
       }, 2000)
     } catch (error) {
+      console.error('Booking creation error:', error)
       setAlert({
         show: true,
-        message: 'Failed to create booking. Please try again.',
+        message: error.response?.data?.message || 'Failed to create booking. Please try again.',
         type: 'error'
       })
     } finally {
@@ -420,7 +486,7 @@ export default function ParkingBooking() {
   }
 
   const handleVehicleNumberChange = (e) => {
-    setVehicleNumber(e.target.value.toUpperCase())
+    setVehicleNumber(e.target.value)
   }
 
   const handleStsChange = (e) => {
@@ -438,7 +504,6 @@ export default function ParkingBooking() {
     const selectedDate = e.target.value
     setParkingDate(selectedDate)
     
-    // Only enforce time validation for Instant booking
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
       if (selectedDate === today) {
@@ -458,7 +523,6 @@ export default function ParkingBooking() {
   const handleParkingTimeChange = (e) => {
     const selectedTime = e.target.value
     
-    // Only restrict time selection for Instant booking
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
       if (parkingDate === today && selectedTime < minTime) {
@@ -474,20 +538,29 @@ export default function ParkingBooking() {
     setParkingTime(selectedTime)
   }
 
+  const handleVendorChange = (e) => {
+    const selectedId = e.target.value
+    setSelectedVendor(selectedId)
+    
+    const vendor = vendors.find(v => v.id === selectedId)
+    if (vendor) {
+      setSelectedVendorName(vendor.name)
+    }
+  }
+
   const renderVehicleTypeStep = () => (
     <Box>
       <Typography variant="h6" gutterBottom style={{ marginTop: '20px', marginBottom: '20px' }}>
         Vehicle Type
       </Typography>
 
-      {/* Vendor Selection Field */}
       <Grid item xs={12} style={{ marginBottom: '20px' }}>
         <FormControl fullWidth error={!!errors.selectedVendor}>
           <InputLabel>Select Vendor</InputLabel>
           <Select
             value={selectedVendor}
             label="Select Vendor"
-            onChange={(e) => setSelectedVendor(e.target.value)}
+            onChange={handleVendorChange}
             disabled={vendorLoading}
           >
             {vendorLoading ? (
@@ -564,19 +637,36 @@ export default function ParkingBooking() {
             ))}
           </RadioGroup>
         </Grid>
+        
         <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Vehicle Number"
-            value={vehicleNumber}
-            onChange={handleVehicleNumberChange}
-            error={!!errors.vehicleNumber}
-            helperText={errors.vehicleNumber}
-            placeholder="Enter vehicle number"
-            inputProps={{
-              style: { textTransform: 'uppercase' }  
-            }}
-          />
+          <FormControl fullWidth error={!!errors.vehicleNumber}>
+            <InputLabel>Select Vehicle</InputLabel>
+            <Select
+              value={vehicleNumber}
+              onChange={handleVehicleNumberChange}
+              label="Select Vehicle"
+              disabled={vehicleLoading}
+            >
+              {vehicleLoading ? (
+                <MenuItem disabled>Loading vehicles...</MenuItem>
+              ) : vehicleError ? (
+                <MenuItem disabled>{vehicleError}</MenuItem>
+              ) : vehicles.length > 0 ? (
+                vehicles.map((vehicle) => (
+                  <MenuItem key={vehicle._id} value={vehicle.vehicleNo}>
+                    {vehicle.vehicleNo} ({vehicle.category})
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem disabled>No vehicles found</MenuItem>
+              )}
+            </Select>
+            {errors.vehicleNumber && (
+              <Typography color="error" variant="caption">
+                {errors.vehicleNumber}
+              </Typography>
+            )}
+          </FormControl>
         </Grid>
         
         {sts !== 'Subscription' && (
@@ -688,28 +778,32 @@ export default function ParkingBooking() {
             value={personName}
             onChange={(e) => setPersonName(e.target.value)}
             placeholder="Enter your full name"
+            InputProps={{
+              readOnly: userLoading || !!userData?.userName
+            }}
           />
         </Grid>
-            <Grid item xs={12} md={6}>
-  <TextField
-    fullWidth
-    label="Mobile Number"
-    value={mobileNumber}
-    onChange={(e) => {
-      const input = e.target.value;
-      if (/^\d{0,10}$/.test(input)) {
-        setMobileNumber(input);
-      }
-    }}
-    error={!!errors.mobileNumber}
-    helperText={errors.mobileNumber}
-    placeholder="Enter your mobile number"
-    InputProps={{
-      startAdornment: <InputAdornment position="start">+91</InputAdornment>,
-      inputMode: 'numeric'
-    }}
-  />
-</Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Mobile Number"
+            value={mobileNumber}
+            onChange={(e) => {
+              const input = e.target.value;
+              if (/^\d{0,10}$/.test(input)) {
+                setMobileNumber(input);
+              }
+            }}
+            error={!!errors.mobileNumber}
+            helperText={errors.mobileNumber}
+            placeholder="Enter your mobile number"
+            InputProps={{
+              startAdornment: <InputAdornment position="start">+91</InputAdornment>,
+              inputMode: 'numeric',
+              readOnly: userLoading || !!userData?.userMobile
+            }}
+          />
+        </Grid>
       </Grid>
     </Box>
   )

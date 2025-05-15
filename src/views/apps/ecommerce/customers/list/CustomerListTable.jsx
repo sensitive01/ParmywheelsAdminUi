@@ -775,6 +775,36 @@ const handleRescheduleSubmit = async () => {
   }
 };
 
+const handleCancelBooking = async (booking) => {
+  if (!booking?._id || booking.status !== 'PENDING') return;
+
+  const confirmed = window.confirm(`Are you sure you want to cancel booking ${booking._id}?`);
+  if (!confirmed) return;
+
+  try {
+    const response = await axios.put(
+      `https://pmwapis.parkmywheels.com/updatebookingbyid/${booking._id}`,
+      { status: 'Cancelled' }
+    );
+    
+    setSuccessSnackbar({
+      open: true,
+      message: 'Booking cancelled successfully'
+    });
+    
+    // Refresh bookings data
+    if (selectedUser) {
+      fetchUserBookings(selectedUser.uuid);
+    }
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    setSuccessSnackbar({
+      open: true,
+      message: error.response?.data?.message || 'Error cancelling booking'
+    });
+  }
+};
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -1691,25 +1721,7 @@ const renderCharges = () => {
                         </Typography>
                       </Box>
 
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <ShoppingCartIcon sx={{ color: '#329a73', mr: 1 }} />
-                          <Typography variant="body2">Orders</Typography>
-                        </Box>
-                        <Typography variant="body1" fontWeight="bold">
-                          {selectedUser.orders || '157'}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <AccountBalanceWalletIcon sx={{ color: '#329a73', mr: 1 }} />
-                          <Typography variant="body2">Spent</Typography>
-                        </Box>
-                        <Typography variant="body1" fontWeight="bold">
-                          ${selectedUser.totalSpent || '2074.22'}
-                        </Typography>
-                      </Box>
+                   
                     </Paper>
                   </Grid>
 
@@ -2322,7 +2334,7 @@ const renderCharges = () => {
 
 {currentTab === 12 && (
   <Box sx={{ p: 3 }}>
-<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
       <Typography variant="h6">User Bookings</Typography>
       <Button 
         variant="contained" 
@@ -2375,13 +2387,25 @@ const renderCharges = () => {
                 </TableCell>
                 <TableCell>₹{booking.amount || '0'}</TableCell>
                 <TableCell>
-  <IconButton 
-    onClick={() => handleOpenReschedule(booking)}
-    color="primary"
-  >
-    <i className="ri-calendar-line" />
-  </IconButton>
-</TableCell>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton 
+                      onClick={() => handleOpenReschedule(booking)}
+                      color="primary"
+                       disabled={booking.status === 'Cancelled'}
+                       title={booking.status === 'Cancelled' ? 'Cancelled bookings cannot be rescheduled' : 'Reschedule booking'}
+                    >
+                      <i className="ri-calendar-line" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleCancelBooking(booking)}
+                      color="error"
+                      disabled={booking.status !== 'PENDING'}
+                      title={booking.status !== 'PENDING' ? 'Only pending bookings can be cancelled' : 'Cancel booking'}
+                    >
+                      <i className="ri-close-line" />
+                    </IconButton>
+                  </Box>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
