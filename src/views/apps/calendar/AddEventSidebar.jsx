@@ -38,7 +38,7 @@ const AddEventSidebar = props => {
   // Props
   const { addEventSidebarOpen, handleAddEventSidebarToggle } = props
 
-  // Session for vendor details
+  // Session for 
   const { data: session } = useSession()
   const vendorId = session?.user?.id
 
@@ -68,8 +68,8 @@ const AddEventSidebar = props => {
   const onSubmit = async data => {
     if (!vendorId) {
       alert('Vendor not logged in')
-      
-return
+
+      return
     }
 
     const meetingData = {
@@ -103,8 +103,8 @@ return
     }
   }
 
-  
-return (
+
+  return (
     <Drawer
       anchor='right'
       open={addEventSidebarOpen}

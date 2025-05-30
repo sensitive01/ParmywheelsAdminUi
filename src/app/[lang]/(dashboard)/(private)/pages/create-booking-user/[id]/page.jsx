@@ -825,7 +825,7 @@ export default function ParkingBooking() {
     <>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom color="primary" sx={{ fontWeight: 600 }}>
-          Parking Booking
+          User Parking Booking
         </Typography>
       </Box>
       <Card>

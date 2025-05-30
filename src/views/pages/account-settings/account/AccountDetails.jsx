@@ -21,7 +21,7 @@ const VendorRegistration = () => {
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false)
   const [image, setImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null) // Store image URL for preview
+  const [imagePreview, setImagePreview] = useState(null) 
   const [showMap, setShowMap] = useState(false)
   const [vendorName, setVendorName] = useState('')
   const [contacts, setContacts] = useState([{ id: 1, name: '', mobile: '' }])
@@ -34,7 +34,6 @@ const VendorRegistration = () => {
   const autocompleteRef = useRef(null)
 
 
-  // Load session data into form fields
   useEffect(() => {
     if (session?.user) {
       const user = session.user
@@ -152,7 +151,7 @@ return (
     <Card >
       <CardContent>
         <Typography variant='h4' className='mbe-1' align='center'>
-          Update Vendor Details
+          Update Admin Details
         </Typography>
         <br />
         {/* Vendor Name Field */}
@@ -160,7 +159,7 @@ return (
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label='Vendor Name'
+              label='Admin Name'
               placeholder='John'
               value={vendorName}
               onChange={e => setVendorName(e.target.value)}

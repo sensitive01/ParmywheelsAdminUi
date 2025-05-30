@@ -995,20 +995,20 @@ const [chargesLoading, setChargesLoading] = useState(false);
             </Typography>
           )
         },
-        { 
-          field: 'bookingDateTime', 
-          headerName: 'Booking Date & Time', 
-          width: 300,
+
+        {
+          field: 'bookingDateTime',
+          headerName: 'Booking Date & Time',
+          width: '300',
           renderCell: (params) => {
             const formatDate = (dateStr) => {
               if (!dateStr) return 'N/A';
-              try {
-                return new Date(dateStr).toLocaleString();
-              } catch (e) {
-                return dateStr;
-              }
+              const [day,month,year] = dateStr.split('-');
+              if(!day || !month || !year) return 'Invalid Date';
+              const date = new Date (`${year}- ${month}-${day}`);
+              if(isNaN(date.getTime())) return 'Invalid Date';
+              return date.toDateString();
             };
-            
             return (
               <Typography>
                 {formatDate(params.row.bookingDate)}, {params.row.bookingTime || 'N/A'}
@@ -1243,6 +1243,35 @@ const [chargesLoading, setChargesLoading] = useState(false);
       );
     };
 
+    const renderPayout = () => {
+  return (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Payout
+      </Typography>
+
+      {/* Dummy Header Table */}
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>S.No</TableCell>
+              <TableCell>Booking Id</TableCell>
+              <TableCell>Total (₹)</TableCell>
+              <TableCell>Platform Fee (₹)</TableCell>
+              <TableCell>Receivable (₹)</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {/* Empty for now; just a dummy header */}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+};
+
+
     const handleEditProfile = () => {
       if (vendorId) {
         router.push(getLocalizedUrl(`/pages/vendordetails/${vendorId}`, locale))
@@ -1342,6 +1371,8 @@ const [chargesLoading, setChargesLoading] = useState(false);
                 <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Booking Transactions" />
                 <Tab icon={<i className="ri-car-line" />} iconPosition="start" label="Bookings" />
                 <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Parking Charges" />
+                <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Payout" />
+                
               </Tabs>
               
               {/* Basic Info Tab */}
@@ -1422,6 +1453,8 @@ const [chargesLoading, setChargesLoading] = useState(false);
               {tabValue === 12 && renderBookings()}
 
               {tabValue === 13 && renderCharges()}
+
+               {tabValue === 14 && renderPayout()}
             </>
           ) : (
             <Typography>No vendor data available</Typography>
@@ -1732,24 +1765,6 @@ const [chargesLoading, setChargesLoading] = useState(false);
             );
           }
         }),
-        // New column for View button
-        // columnHelper.accessor('actions', {
-        //   header: 'Actions',
-        //   cell: ({ row }) => {
-        //     return (
-        //       <Button
-        //         variant="outlined"
-        //         size="small"
-        //         color="primary"
-        //         startIcon={<VisibilityIcon />}
-        //         onClick={() => handleOpenModal(row.original._id)}
-        //       >
-        //         View
-        //       </Button>
-        //     );
-        //   }
-        // })
-        // Updated Actions Column with Delete Button
 columnHelper.accessor('actions', {
   header: 'Actions',
   cell: ({ row }) => {

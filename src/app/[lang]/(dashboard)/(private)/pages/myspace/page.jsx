@@ -991,11 +991,11 @@ const SpaceDetailModal = ({ open, handleClose, vendorId }) => {
                 renderCell: (params) => {
                     const formatDate = (dateStr) => {
                         if (!dateStr) return 'N/A';
-                        try {
-                            return new Date(dateStr).toLocaleString();
-                        } catch (e) {
-                            return dateStr;
-                        }
+                        const [day, month, year] = dateStr.split('-');
+                        if (!day || !month || !year) return 'Invalid Date';
+                        const date = new Date(`${year}-${month}-${day}`);
+                        if (isNaN(date.getTime())) return 'Invalid Date';
+                        return date.toDateString();
                     };
 
                     return (
@@ -1435,7 +1435,7 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 const columnHelper = createColumnHelper()
 
 const SpaceListTable = () => {
-      const [userModalOpen, setUserModalOpen] = useState(false);
+    const [userModalOpen, setUserModalOpen] = useState(false);
     const [rowSelection, setRowSelection] = useState({})
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
@@ -1450,10 +1450,10 @@ const SpaceListTable = () => {
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedVendorId, setSelectedVendorId] = useState(null);
-const handleUserSelect = (user) => {
-  setUserModalOpen(false);
-  router.push(getLocalizedUrl(`/pages/spacecreate/${user.uuid}`, locale));
-};
+    const handleUserSelect = (user) => {
+        setUserModalOpen(false);
+        router.push(getLocalizedUrl(`/pages/spacecreate/${user.uuid}`, locale));
+    };
 
     const handleOpenModal = (vendorId) => {
         setSelectedVendorId(vendorId);
@@ -1809,19 +1809,19 @@ const handleUserSelect = (user) => {
                     placeholder='Search Spaces'
                     className='sm:is-auto'
                 />
-                  <Button 
-      variant="contained" 
-      startIcon={<AddIcon />}
-      onClick={() => setUserModalOpen(true)}
-    >
-      Add My Space
-    </Button>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setUserModalOpen(true)}
+                >
+                    Add My Space
+                </Button>
             </CardContent>
             <UserListModal
-    open={userModalOpen}
-    onClose={() => setUserModalOpen(false)}
-    onUserSelect={handleUserSelect}
-  />
+                open={userModalOpen}
+                onClose={() => setUserModalOpen(false)}
+                onUserSelect={handleUserSelect}
+            />
             <div className='overflow-x-auto'>
                 <table className={tableStyles.table}>
                     <thead>

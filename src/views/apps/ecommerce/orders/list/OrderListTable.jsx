@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 
 import Link from 'next/link'
 
-import { useParams , useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import { useSession } from 'next-auth/react'
 
@@ -53,7 +53,7 @@ import { getInitials } from '@/utils/getInitials'
 import { getLocalizedUrl } from '@/utils/i18n'
 
 
- // ✅ Import Next.js router
+// ✅ Import Next.js router
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -81,8 +81,8 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
   addMeta({
     itemRank
   })
-  
-return itemRank.passed
+
+  return itemRank.passed
 }
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
@@ -96,16 +96,16 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
       onChange(value)
     }, debounce)
 
-    
-return () => clearTimeout(timeout)
+
+    return () => clearTimeout(timeout)
   }, [value])
-  
-return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
+
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
 const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
   const [elapsedTime, setElapsedTime] = useState('00:00:00')
-  
+
   useEffect(() => {
     if (!parkedDate || !parkedTime) {
       setElapsedTime('00:00:00')
@@ -127,24 +127,24 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
         setElapsedTime('00:00:00')
         return
       }
-      
+
       // Convert milliseconds to hours, minutes, seconds
       const diffSecs = Math.floor(diffMs / 1000)
       const hours = Math.floor(diffSecs / 3600)
       const minutes = Math.floor((diffSecs % 3600) / 60)
       const seconds = diffSecs % 60
-      
+
       // Format with leading zeros
       const formattedHours = hours.toString().padStart(2, '0')
       const formattedMinutes = minutes.toString().padStart(2, '0')
       const formattedSeconds = seconds.toString().padStart(2, '0')
-      
+
       setElapsedTime(`${formattedHours}:${formattedMinutes}:${formattedSeconds}`)
     }, 1000)
-    
+
     return () => clearInterval(timer)
   }, [parkedDate, parkedTime])
-  
+
   return (
     <Typography sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
       {elapsedTime}
@@ -174,14 +174,14 @@ const OrderListTable = ({ orderData }) => {
         setLoading(true);
         // Using the /vendor/bookings endpoint instead of the vendor-specific one
         const response = await fetch(`${API_URL}/vendor/bookings`);
-        
+
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
-        
+
         const result = await response.json();
         console.log('Fetched bookings:', result);
-  
+
         if (result && Array.isArray(result)) {
           setData(result); // Set full data
           setFilteredData(result); // Set initial filtered data to full data
@@ -199,9 +199,9 @@ const OrderListTable = ({ orderData }) => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
-  }, []); 
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -235,12 +235,12 @@ const OrderListTable = ({ orderData }) => {
             const [day, month, year] = dateStr.split('-'); // Extract day, month, year
             const formattedDate = new Date(`${year}-${month}-${day}`).toDateString(); // Convert and format
 
-            
-return formattedDate; // Example Output: "Sat Feb 08 2025"
+
+            return formattedDate; // Example Output: "Sat Feb 08 2025"
           };
 
-          
-return (
+
+          return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <i className="ri-calendar-2-line text-[26px]" style={{ fontSize: '16px', color: '#666' }}></i>
               {`${formatDate(row.original.bookingDate)}, ${row.original.bookingTime}`}
@@ -255,7 +255,7 @@ return (
       //     const status = row.original.status?.toLowerCase()
       //     const isParked = status === 'parked'
       //     const isCompleted = status === 'completed'
-          
+
       //     // Show real-time timer for PARKED status
       //     if (isParked) {
       //       return (
@@ -268,7 +268,7 @@ return (
       //         </div>
       //       )
       //     }
-          
+
       //     // Show total time for COMPLETED status using exit vehicle data
       //     if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
       //       // Calculate and format the total parking duration
@@ -278,41 +278,41 @@ return (
       //           const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
       //           const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
       //           let [startHours, startMinutes] = startTimePart.split(':').map(Number)
-                
+
       //           // Convert to 24-hour format if needed
       //           if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
       //             startHours += 12
       //           } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
       //             startHours = 0
       //           }
-                
+
       //           // Create start date object
       //           const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
-                
+
       //           // Parse the exit vehicle time
       //           const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
       //           const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
       //           let [endHours, endMinutes] = endTimePart.split(':').map(Number)
-                
+
       //           // Convert to 24-hour format if needed
       //           if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
       //             endHours += 12
       //           } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
       //             endHours = 0
       //           }
-                
+
       //           // Create end date object
       //           const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
-                
+
       //           // Calculate difference in milliseconds
       //           const diffMs = endTime - startTime
-                
+
       //           // Convert to days, hours, minutes
       //           const diffSecs = Math.floor(diffMs / 1000)
       //           const days = Math.floor(diffSecs / (3600 * 24))
       //           const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
       //           const minutes = Math.floor((diffSecs % 3600) / 60)
-                
+
       //           // Format the output
       //           if (days > 0) {
       //             return `${days}d ${hours}h ${minutes}m`
@@ -324,7 +324,7 @@ return (
       //           return 'N/A'
       //         }
       //       }
-            
+
       //       return (
       //         <div className="flex items-center gap-2">
       //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
@@ -334,38 +334,38 @@ return (
       //         </div>
       //       )
       //     }
-          
+
       //     // Default case for other statuses
       //     return <Typography>--:--:--</Typography>
       //   }
       // }),
 
-  columnHelper.accessor('payableTime', {
+      columnHelper.accessor('payableTime', {
         header: 'Payable Time',
         cell: ({ row }) => {
           // Check booking status
           const status = row.original.status?.toLowerCase()
-          
+
           // Return empty for completed status
           if (status === 'completed') {
             return null
           }
-          
+
           const isParked = status === 'parked'
-          
+
           // Show real-time timer for PARKED status
           if (isParked) {
             return (
               <div className="flex items-center gap-2">
                 <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
-                <PayableTimeTimer 
+                <PayableTimeTimer
                   parkedDate={row.original.parkedDate}
                   parkedTime={row.original.parkedTime}
                 />
               </div>
             )
           }
-          
+
           // Default case for other statuses
           return null
         }
@@ -395,8 +395,8 @@ return (
           const stsKey = row.original.sts?.toLowerCase(); // Convert to lowercase for case insensitivity
           const chipData = stsChipColor[stsKey] || { color: 'text.secondary', text: row.original.sts }; // Default text color
 
-          
-return (
+
+          return (
             <Typography
               sx={{ color: chipData.color, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1 }}
             >
@@ -412,8 +412,8 @@ return (
           const statusKey = row.original.status?.toLowerCase(); // Case-insensitive lookup
           const chipData = statusChipColor[statusKey] || { color: 'default' };
 
-          
-return (
+
+          return (
             <Chip
               label={row.original.status}
               variant="tonal"
@@ -437,8 +437,8 @@ return (
 
           const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default;
 
-          
-return (
+
+          return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <i className={icon} style={{ fontSize: '16px', color }}></i>
               {row.original.vehicleType}
@@ -460,7 +460,7 @@ return (
                   menuItemProps: {
                     onClick: () => {
                       const selectedId = row.original._id;
- 
+
                       if (selectedId) {
                         console.log('Navigating to Order Details:', selectedId); // ✅ Debugging
                         router.push(`/pages/bookingdetails/${selectedId}`); // ✅ Navigate with Next.js
@@ -480,8 +480,8 @@ return (
 
                         if (!selectedId) {
                           console.error('⚠️ Booking ID is missing!');
-                          
-return;
+
+                          return;
                         }
 
                         console.log('Attempting to delete Booking ID:', selectedId);
@@ -491,8 +491,8 @@ return;
 
                         if (!isConfirmed) {
                           console.log('Deletion cancelled');
-                          
-return;
+
+                          return;
                         }
 
 
@@ -568,8 +568,8 @@ return;
     }
   }
 
-  
-return (
+
+  return (
     <Card>
       <CardHeader title='Filters' />
       <TableFilters setData={setFilteredData} bookingData={data} />
