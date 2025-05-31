@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import axios from 'axios'
 
-// MUI Imports
+
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -17,11 +17,17 @@ import Paper from '@mui/material/Paper'
 import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 
-// Icon Imports
 import SendIcon from '@mui/icons-material/Send'
 import ImageIcon from '@mui/icons-material/Image'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 const VendorSupportChat = ({ vendorId }) => {
   const { data: session } = useSession()
@@ -37,7 +43,9 @@ const VendorSupportChat = ({ vendorId }) => {
     message: '',
     severity: 'info'
   })
-  
+  const [requestToComplete, setRequestToComplete] = useState(null)
+  const [completingId, setCompletingId] = useState(null)
+
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
   const chatContainerRef = useRef(null)
@@ -59,24 +67,24 @@ const VendorSupportChat = ({ vendorId }) => {
   useEffect(() => {
     scrollToBottom()
   }, [chatMessages])
-  
+
   const fetchHelpRequests = async () => {
     if (!vendorId) return
-    
+
     try {
       setLoading(true)
       const response = await axios.get(`${API_URL}/vendor/gethelpvendor/${vendorId}`)
-      
+
       if (response.status === 200 && response.data?.helpRequests) {
         setHelpRequests(response.data.helpRequests)
-        
-        // Select the most recent help request by default
+
         if (response.data.helpRequests.length > 0) {
           const sortedRequests = [...response.data.helpRequests].sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
-          setSelectedRequest(sortedRequests[0])
-          fetchChatData(sortedRequests[0]._id)
+          );
+          setSelectedRequest(sortedRequests[0]);
+          fetchChatData(sortedRequests[0]._id);
+
         } else {
           setLoading(false)
         }
@@ -100,7 +108,7 @@ const VendorSupportChat = ({ vendorId }) => {
     try {
       setLoading(true)
       const response = await axios.get(`${API_URL}/vendor/fetchchat/${helpRequestId}`)
-      
+
       if (response.status === 200) {
         setChatMessages(response.data.chatbox || [])
       }
@@ -113,6 +121,56 @@ const VendorSupportChat = ({ vendorId }) => {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCompleteRequest = async (requestId) => {
+    try {
+      setCompletingId(requestId)
+      // const response = await axios.patch(
+      //   `${API_URL}/admin/adminclosechat/${requestId}`,
+      //   { adminId: session?.user?.id }
+      // )
+const response = await axios.patch(
+  `http://localhost:4000/admin/adminclosechat/${selectedRequest._id}`,
+  { adminId: session?.user?.id } 
+);
+
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: 'Request marked as completed',
+          severity: 'success'
+        })
+
+        // Update the request in state
+        setHelpRequests(prev =>
+          prev.map(req =>
+            req._id === requestId
+              ? { ...req, status: 'Completed', closedAt: new Date().toISOString() }
+              : req
+          )
+        )
+
+        // Update selected request if it's the one being completed
+        if (selectedRequest?._id === requestId) {
+          setSelectedRequest(prev => ({
+            ...prev,
+            status: 'Completed',
+            closedAt: new Date().toISOString()
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error completing request:', error)
+      setSnackbar({
+        open: true,
+        message: 'Failed to complete request',
+        severity: 'error'
+      })
+    } finally {
+      setCompletingId(null)
+      setRequestToComplete(null)
     }
   }
 
@@ -139,7 +197,7 @@ const VendorSupportChat = ({ vendorId }) => {
       if (selectedImage) {
         formData.append('image', selectedImage)
       }
-      
+
       const response = await axios.post(
         `${API_URL}/vendor/sendchat/${selectedRequest._id}`,
         formData,
@@ -151,20 +209,18 @@ const VendorSupportChat = ({ vendorId }) => {
       )
 
       if (response.status === 200) {
-        // Add new message to chat
         const newMessage = {
-          userId: vendorId, 
+          userId: vendorId,
           message: message,
           image: selectedImage ? URL.createObjectURL(selectedImage) : null,
           timestamp: new Date().toISOString(),
           time: new Date().toLocaleTimeString()
         }
-        
+
         setChatMessages(prev => [...prev, newMessage])
         setMessage('')
         setSelectedImage(null)
-        
-        // Refresh chat data after sending
+
         setTimeout(() => fetchChatData(selectedRequest._id), 500)
       }
     } catch (error) {
@@ -205,10 +261,36 @@ const VendorSupportChat = ({ vendorId }) => {
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
   }
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Completed':
+        return '#c8e6c9' // Green
+      case 'Resolved':
+        return '#bbdefb' // Blue
+      case 'In Progress':
+        return '#fff9c4' // Yellow
+      default:
+        return '#ffccbc' // Orange for Pending/other statuses
+    }
+  }
+
+  const getStatusTextColor = (status) => {
+    switch (status) {
+      case 'Completed':
+        return '#2e7d32' // Dark Green
+      case 'Resolved':
+        return '#1565c0' // Dark Blue
+      case 'In Progress':
+        return '#f57f17' // Dark Yellow/Orange
+      default:
+        return '#d84315' // Dark Orange for Pending/other statuses
+    }
+  }
+
   return (
     <Card sx={{ mt: 6 }}>
-      <CardHeader 
-        title="Support Requests & Chat" 
+      <CardHeader
+        title="Support Requests & Chat"
         sx={{ bgcolor: 'primary.main' }}
         titleTypographyProps={{ color: 'common.white' }}
       />
@@ -218,9 +300,9 @@ const VendorSupportChat = ({ vendorId }) => {
         ) : (
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, height: '600px' }}>
             {/* Request List */}
-            <Box 
-              sx={{ 
-                width: { xs: '100%', md: '30%' }, 
+            <Box
+              sx={{
+                width: { xs: '100%', md: '30%' },
                 pr: { xs: 0, md: 2 },
                 mb: { xs: 2, md: 0 },
                 borderRight: { xs: 'none', md: '1px solid #e0e0e0' },
@@ -229,7 +311,7 @@ const VendorSupportChat = ({ vendorId }) => {
               }}
             >
               <Typography variant="h6" sx={{ mb: 2 }}>Your Requests</Typography>
-              
+
               {helpRequests.map((request) => (
                 <Paper
                   key={request._id}
@@ -243,27 +325,55 @@ const VendorSupportChat = ({ vendorId }) => {
                   }}
                   onClick={() => handleRequestSelect(request)}
                 >
-                  <Typography variant="subtitle2" noWrap sx={{ fontWeight: 'bold' }}>
-                    {request.description.substring(0, 30)}
-                    {request.description.length > 30 ? '...' : ''}
-                  </Typography>
-                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 'bold', flex: 1 }}>
+                      {request.description.substring(0, 30)}
+                      {request.description.length > 30 ? '...' : ''}
+                    </Typography>
+
+                    {request.status === 'Pending' && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color="success"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setRequestToComplete(request._id)
+                        }}
+                        disabled={completingId === request._id}
+                        sx={{
+                          ml: 1,
+                          textTransform: 'none',
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          padding: '2px 8px',
+                          minWidth: '80px'
+                        }}
+                      >
+                        {completingId === request._id ? (
+                          <CircularProgress size={14} color="inherit" />
+                        ) : (
+                          'Complete'
+                        )}
+                      </Button>
+                    )}
+                  </Box>
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
                     <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center' }}>
                       <AccessTimeIcon sx={{ fontSize: 12, mr: 0.5 }} />
                       {formatRequestDate(request.createdAt)}
                     </Typography>
-                    
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        px: 1, 
-                        py: 0.5, 
+
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        px: 1,
+                        py: 0.5,
                         borderRadius: '4px',
-                        backgroundColor: 
-                          request.status === 'Resolved' ? '#c8e6c9' : 
-                          request.status === 'In Progress' ? '#fff9c4' : 
-                          '#ffccbc'
+                        backgroundColor: getStatusColor(request.status),
+                        color: getStatusTextColor(request.status),
+                        fontWeight: 'bold'
                       }}
                     >
                       {request.status || 'Pending'}
@@ -277,20 +387,41 @@ const VendorSupportChat = ({ vendorId }) => {
             <Box sx={{ width: { xs: '100%', md: '70%' }, display: 'flex', flexDirection: 'column', height: '100%' }}>
               {selectedRequest && (
                 <>
-                  <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 1, mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {selectedRequest.description}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Request ID: {selectedRequest._id} • Status: {selectedRequest.status || 'Pending'}
-                    </Typography>
+                  <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {selectedRequest.description}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Request ID: {selectedRequest._id} • Created: {formatRequestDate(selectedRequest.createdAt)}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          px: 1.5,
+                          py: 0.8,
+                          borderRadius: '12px',
+                          backgroundColor: getStatusColor(selectedRequest.status),
+                          color: getStatusTextColor(selectedRequest.status),
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}
+                      >
+                        {selectedRequest.status === 'Completed' && <CheckCircleIcon sx={{ fontSize: 14 }} />}
+                        {selectedRequest.status || 'Pending'}
+                      </Typography>
+                    </Box>
                   </Box>
-                  
-                  <Box 
+
+                  <Box
                     ref={chatContainerRef}
-                    sx={{ 
-                      flexGrow: 1, 
-                      p: 2, 
+                    sx={{
+                      flexGrow: 1,
+                      p: 2,
                       overflowY: 'auto',
                       display: 'flex',
                       flexDirection: 'column',
@@ -334,11 +465,11 @@ const VendorSupportChat = ({ vendorId }) => {
                                 Support Team
                               </Typography>
                             )}
-                            
+
                             <Typography variant="body1">
                               {msg.message}
                             </Typography>
-                            
+
                             {msg.image && (
                               <Box
                                 component="img"
@@ -356,7 +487,7 @@ const VendorSupportChat = ({ vendorId }) => {
                                 }}
                               />
                             )}
-                            
+
                             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'right' }}>
                               {msg.time || formatDate(msg.timestamp)}
                             </Typography>
@@ -366,78 +497,84 @@ const VendorSupportChat = ({ vendorId }) => {
                     )}
                     <div ref={messagesEndRef} />
                   </Box>
-                  
-                  {/* Input Area */}
-                  <Box
-                    component="form"
-                    onSubmit={sendMessage}
-                    sx={{
-                      p: 2,
-                      bgcolor: '#fff',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      ref={fileInputRef}
-                      onChange={handleImageSelect}
-                    />
 
-                    <IconButton
-                      color="primary"
-                      onClick={() => fileInputRef.current.click()}
-                      sx={{ mr: 1 }}
-                    >
-                      <ImageIcon />
-                    </IconButton>
-
-                    {selectedImage && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, px: 1, py: 0.5, bgcolor: '#f0f0f0', borderRadius: 1 }}>
-                        <Typography variant="caption" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {selectedImage.name}
-                        </Typography>
-                      </Box>
-                    )}
-
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      placeholder="Type your message..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      size="small"
-                      sx={{ mx: 1 }}
-                    />
-
-                    <IconButton
-                      color="primary"
-                      type="submit"
-                      disabled={sending || (!message.trim() && !selectedImage)}
-                      sx={{ 
-                        bgcolor: 'primary.main', 
-                        color: 'common.white', 
-                        '&:hover': { bgcolor: 'primary.dark' },
-                        '&.Mui-disabled': {
-                          bgcolor: 'action.disabledBackground',
-                          color: 'action.disabled'
-                        }
+                  {/* Input Area or Completed Message */}
+                  {selectedRequest.status !== 'Completed' ? (
+                    <Box
+                      component="form"
+                      onSubmit={sendMessage}
+                      sx={{
+                        p: 2,
+                        bgcolor: '#fff',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: 1,
+                        display: 'flex',
+                        alignItems: 'center'
                       }}
                     >
-                      {sending ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
-                    </IconButton>
-                  </Box>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        ref={fileInputRef}
+                        onChange={handleImageSelect}
+                      />
+
+                      <IconButton
+                        color="primary"
+                        onClick={() => fileInputRef.current.click()}
+                        sx={{ mr: 1 }}
+                      >
+                        <ImageIcon />
+                      </IconButton>
+
+                      {selectedImage && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, px: 1, py: 0.5, bgcolor: '#f0f0f0', borderRadius: 1 }}>
+                          <Typography variant="caption" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {selectedImage.name}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Type your message..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        size="small"
+                        sx={{ mx: 1 }}
+                      />
+
+                      <IconButton
+                        color="primary"
+                        type="submit"
+                        disabled={sending || (!message.trim() && !selectedImage)}
+                        sx={{
+                          bgcolor: 'primary.main',
+                          color: 'common.white',
+                          '&:hover': { bgcolor: 'primary.dark' },
+                          '&.Mui-disabled': {
+                            bgcolor: 'action.disabledBackground',
+                            color: 'action.disabled'
+                          }
+                        }}
+                      >
+                        {sending ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
+                      </IconButton>
+                    </Box>
+                  ) : (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      This conversation has been marked as completed. No further messages can be sent.
+                    </Alert>
+                  )}
                 </>
               )}
             </Box>
           </Box>
         )}
       </CardContent>
-      
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -447,6 +584,32 @@ const VendorSupportChat = ({ vendorId }) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Completion Confirmation Dialog */}
+      <Dialog
+        open={Boolean(requestToComplete)}
+        onClose={() => setRequestToComplete(null)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirm Completion</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to mark this request as completed? This will close the conversation.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRequestToComplete(null)}>Cancel</Button>
+          <Button
+            onClick={() => handleCompleteRequest(requestToComplete)}
+            color="success"
+            variant="contained"
+            autoFocus
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }
