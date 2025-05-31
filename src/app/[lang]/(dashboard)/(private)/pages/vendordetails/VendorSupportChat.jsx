@@ -127,12 +127,8 @@ const VendorSupportChat = ({ vendorId }) => {
   const handleCompleteRequest = async (requestId) => {
     try {
       setCompletingId(requestId)
-      // const response = await axios.patch(
-      //   `${API_URL}/admin/adminclosechat/${requestId}`,
-      //   { adminId: session?.user?.id }
-      // )
 const response = await axios.patch(
-  `http://localhost:4000/admin/adminclosechat/${selectedRequest._id}`,
+  `${API_URL}/admin/adminclosechat/${selectedRequest._id}`,
   { adminId: session?.user?.id } 
 );
 
