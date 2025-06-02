@@ -129,7 +129,7 @@ return (
             </Button>
             <div className='flex justify-center items-center flex-wrap gap-2'>
               <Typography>Already have an account?</Typography>
-              <Typography component={Link} href='/login' color='primary.main'>
+              <Typography component={Link} href='/admin' color='primary.main'>
                 Sign in instead
               </Typography>
             </div>

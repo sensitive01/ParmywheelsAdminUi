@@ -15,7 +15,7 @@ import { useTheme } from '@mui/material/styles'
 // Components Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
@@ -36,7 +36,7 @@ const KycTimeline = () => {
     const fetchKycData = async () => {
       try {
         // Fetch summary data
-        const summaryResponse = await fetch('http://localhost:4000/admin/kyc-summary')
+        const summaryResponse = await fetch(`${API_URL}/admin/kyc-summary`)
         if (!summaryResponse.ok) throw new Error('Failed to fetch summary data')
         const summaryData = await summaryResponse.json()
         

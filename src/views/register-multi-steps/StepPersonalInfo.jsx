@@ -14,7 +14,7 @@
 
 // const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
-// const StepPersonalInfo = ({ handleNext, contacts, setContacts, address, setAddress, vendorName, setadminName }) => {
+// const StepPersonalInfo = ({ handleNext, contacts, setContacts, address, setAddress, adminName, setadminName }) => {
 //   const [showMap, setShowMap] = useState(false)
 //   const mapRef = useRef(null)
 //   const markerRef = useRef(null)
@@ -87,7 +87,7 @@
 //             fullWidth
 //             label='Admin Name'
 //             placeholder='John'
-//             value={vendorName}
+//             value={adminName}
 //             onChange={e => setadminName(e.target.value)}
 //           />
 //         </Grid>
@@ -200,8 +200,8 @@ const StepPersonalInfo = ({
   setContacts, 
   address, 
   setAddress, 
-  vendorName, 
-  setVendorName, 
+  adminName, 
+  setadminName, 
   latitude, 
   setLatitude, 
   longitude, 
@@ -262,8 +262,8 @@ const StepPersonalInfo = ({
             fullWidth
             label='Admin Name'
             placeholder='Enter Your Admin Name'
-            value={vendorName}
-            onChange={e => setVendorName(e.target.value)}
+            value={adminName}
+            onChange={e => setadminName(e.target.value)}
           />
         </Grid>
       </Grid>

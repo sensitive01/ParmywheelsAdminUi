@@ -686,7 +686,7 @@ const VendorUpdate = ({ vendorId }) => {
     <Card>
       <CardContent>
         <Typography variant='h4' sx={{ mb: 4 }} align='center'>
-          Update Vendor Details
+          Update Admin Details
         </Typography>
         
         <Grid container spacing={3}>

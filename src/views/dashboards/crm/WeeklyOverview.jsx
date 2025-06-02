@@ -10,7 +10,7 @@ import CardContent from '@mui/material/CardContent'
 import { useTheme } from '@mui/material/styles'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL 
 // Safely import the chart component with SSR disabled
 const AppReactApexCharts = dynamic(
   () => import('@/libs/styles/AppReactApexCharts'),
@@ -33,7 +33,7 @@ const VendorStatusChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4000/admin/vendor-status-stats')
+        const response = await fetch(`${API_URL}/admin/vendor-status-stats`)
         if (!response.ok) throw new Error('Network response was not ok')
         
         const data = await response.json()

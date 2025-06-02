@@ -10,7 +10,7 @@ import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import CircularProgress from '@mui/material/CircularProgress'
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
@@ -25,7 +25,7 @@ const DonutChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4000/admin/transaction-status-list')
+        const response = await fetch(`${API_URL}/admin/transaction-status-list`)
         if (!response.ok) {
           throw new Error('Failed to fetch data')
         }

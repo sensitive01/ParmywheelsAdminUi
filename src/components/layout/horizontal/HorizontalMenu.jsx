@@ -195,9 +195,9 @@ const HorizontalMenu = ({ dictionary }) => {
             </SubMenu>
 
         <SubMenu label={dictionary['navigation'].pages} icon={<i className='ri-file-list-2-line' />}>
-          <MenuItem href={`/${locale}/pages/user-profile`} icon={<i className='ri-user-line' />}>
+          {/* <MenuItem href={`/${locale}/pages/user-profile`} icon={<i className='ri-user-line' />}>
             {dictionary['navigation'].userProfile}
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem href={`/${locale}/pages/account-settings`} icon={<i className='ri-user-settings-line' />}>
             {dictionary['navigation'].accountSettings}
           </MenuItem>

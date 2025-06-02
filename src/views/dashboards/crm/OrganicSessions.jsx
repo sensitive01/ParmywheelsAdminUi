@@ -12,7 +12,7 @@ import { useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
@@ -34,7 +34,7 @@ const BookingSummaryChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4000/admin/transaction-summary')
+        const response = await fetch(`${API_URL}/admin/transaction-summary`)
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }

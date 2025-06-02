@@ -213,7 +213,7 @@ return prev - 1;
               {showOtpField ? 'Verify OTP' : 'Request OTP'}
             </Button>
             <Typography className='flex justify-center items-center' color='primary.main'>
-              <Link href='/' className='flex items-center gap-1.5'>
+              <Link href='/admin' className='flex items-center gap-1.5'>
                 <DirectionalIcon ltrIconClass='ri-arrow-left-s-line' rtlIconClass='ri-arrow-right-s-line' className='text-xl' />
                 <span>Back to Login</span>
               </Link>
