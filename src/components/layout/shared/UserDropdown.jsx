@@ -123,7 +123,7 @@ return (
             >
               <ClickAwayListener onClickAway={e => handleDropdownClose(e)}>
                 <MenuList>
-                  <div className='flex items-center plb-2 pli-4 gap-2' tabIndex={-1}>
+                  {/* <div className='flex items-center plb-2 pli-4 gap-2' tabIndex={-1}>
                     <Avatar alt={session?.user?.name || ''} src={session?.user?.image || ''} />
                     <div className='flex items-start flex-col'>
                       <Typography variant='body2' className='font-medium' color='text.primary'>
@@ -131,12 +131,12 @@ return (
                       </Typography>
                       <Typography variant='caption'>{session?.user?.email || ''}</Typography>
                     </div>
-                  </div>
+                  </div> */}
                   <Divider className='mlb-1' />
-                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, '/pages/user-profile')}>
+                  {/* <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, '/pages/user-profile')}>
                     <i className='ri-user-3-line' />
                     <Typography color='text.primary'>My Profile</Typography>
-                  </MenuItem>
+                  </MenuItem> */}
                 <div className='flex items-center plb-1.5 pli-4'>
                   <Button
                     fullWidth
