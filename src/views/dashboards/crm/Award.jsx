@@ -25,7 +25,7 @@ const Award = () => {
   useEffect(() => {
     const fetchVendorCount = async () => {
       try {
-        const response = await fetch('http://localhost:4000/admin/vendor-count')
+        const response = await fetch(`${API_URL}/admin/vendor-count`)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }

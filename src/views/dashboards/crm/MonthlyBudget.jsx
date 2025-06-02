@@ -2,6 +2,7 @@
 
 // Next Imports
 import dynamic from 'next/dynamic'
+import { useEffect, useState } from 'react'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -9,129 +10,170 @@ import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-
-// Components Imports
-import OptionMenu from '@core/components/option-menu'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
-const MonthlyBudget = () => {
+const SpaceStatusStats = () => {
   // Hooks
   const theme = useTheme()
+  const [stats, setStats] = useState({
+    totalApproved: 0,
+    totalPending: 0
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
+  useEffect(() => {
+    const fetchSpaceStats = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/admin/space-status-stats')
+        if (!response.ok) {
+          throw new Error('Failed to fetch space statistics')
+        }
+        const data = await response.json()
+        
+        if (data.message === "Vendor summary fetched successfully") {
+          setStats({
+            totalApproved: data.data.totalApproved || 0,
+            totalPending: data.data.totalPending || 0
+          })
+        }
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSpaceStats()
+  }, [])
+
+  // Chart options
   const options = {
     chart: {
+      type: 'donut',
+      height: 350,
       parentHeightOffset: 0,
       toolbar: { show: false }
     },
-    tooltip: { enabled: false },
-    dataLabels: { enabled: false },
-    stroke: {
-      width: 5,
-      lineCap: 'round',
-      curve: 'smooth'
-    },
-    grid: {
-      show: false,
-      padding: {
-        top: -9,
-        left: 6,
-        right: 8,
-        bottom: 0
+    labels: ['Approved Spaces', 'Pending Spaces'],
+    colors: ['var(--mui-palette-success-main)', 'var(--mui-palette-warning-main)'],
+    responsive: [{
+      breakpoint: theme.breakpoints.values.md,
+      options: {
+        chart: {
+          height: 300
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }],
+    legend: {
+      position: 'right',
+      offsetY: 0,
+      height: 230,
+      labels: {
+        colors: theme.palette.text.primary
       }
     },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        opacityTo: 0.7,
-        opacityFrom: 0.5,
-        shadeIntensity: 1,
-        stops: [0, 90, 100],
-        colorStops: [
-          [
-            {
-              offset: 0,
-              opacity: 0.6,
-              color: 'var(--mui-palette-success-main)'
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '70%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Total Spaces',
+              color: theme.palette.text.primary,
+              formatter: () => stats.totalApproved + stats.totalPending
             },
-            {
-              offset: 100,
-              opacity: 0.1,
-              color: 'var(--mui-palette-background-paper)'
+            value: {
+              color: theme.palette.text.primary,
+              formatter: (value) => value
             }
-          ]
-        ]
-      }
-    },
-    theme: {
-      monochrome: {
-        enabled: true,
-        shadeTo: 'light',
-        shadeIntensity: 1,
-        color: theme.palette.success.main
-      }
-    },
-    xaxis: {
-      type: 'numeric',
-      labels: { show: false },
-      axisTicks: { show: false },
-      axisBorder: { show: false }
-    },
-    yaxis: { show: false },
-    markers: {
-      size: 1,
-      offsetY: 1,
-      offsetX: -5,
-      strokeWidth: 4,
-      strokeOpacity: 1,
-      colors: ['transparent'],
-      strokeColors: 'transparent',
-      discrete: [
-        {
-          size: 7,
-          seriesIndex: 0,
-          dataPointIndex: 7,
-          strokeColor: 'var(--mui-palette-success-main)',
-          fillColor: 'var(--mui-palette-background-paper)'
-        }
-      ]
-    },
-    responsive: [
-      {
-        breakpoint: theme.breakpoints.values.md,
-        options: {
-          chart: {
-            height: 316
-          }
-        }
-      },
-      {
-        breakpoint: theme.breakpoints.values.sm,
-        options: {
-          chart: {
-            height: 245
           }
         }
       }
-    ]
+    },
+    dataLabels: {
+      enabled: false
+    },
+    states: {
+      hover: {
+        filter: {
+          type: 'none'
+        }
+      }
+    },
+    tooltip: {
+      enabled: true,
+      fillSeriesColor: false,
+      style: {
+        fontSize: '0.875rem',
+        fontFamily: 'inherit'
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader title='Space Status Statistics' />
+        <CardContent className='flex justify-center items-center' style={{ height: '300px' }}>
+          <CircularProgress />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader title='Space Status Statistics' />
+        <CardContent className='flex justify-center items-center' style={{ height: '300px' }}>
+          <Typography color='error'>Error: {error}</Typography>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <Card>
-      <CardHeader title='Monthly Budget' action={<OptionMenu options={['Refresh', 'Update', 'Share']} />} />
-      <CardContent className='flex flex-col gap-6'>
-        <AppReactApexCharts
-          type='area'
-          height={248}
-          width='100%'
-          options={options}
-          series={[{ name: 'Traffic Rate', data: [0, 85, 25, 125, 90, 250, 200, 350] }]}
+      <CardHeader 
+        title='Space Status Statistics' 
+        subheader={
+          <Box component="div" sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" color="text.secondary">
+              {`${stats.totalApproved} Approved Spaces`}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {`${stats.totalPending} Pending Spaces`}
+            </Typography>
+          </Box>
+        }
+      />
+      <CardContent>
+        <AppReactApexCharts 
+          type='donut' 
+          height={300} 
+          options={options} 
+          series={[stats.totalApproved, stats.totalPending]} 
         />
-        <Typography>Last month you had $2.42 expense transactions, 12 savings entries and 4 bills.</Typography>
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
+          {stats.totalPending === 0 ? (
+            'All spaces are currently approved and active.'
+          ) : (
+            `${stats.totalPending} spaces awaiting approval.`
+          )}
+        </Typography>
       </CardContent>
     </Card>
   )
 }
 
-export default MonthlyBudget
+export default SpaceStatusStats

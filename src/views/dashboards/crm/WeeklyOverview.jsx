@@ -1,205 +1,162 @@
 'use client'
 
-// Next Imports
 import dynamic from 'next/dynamic'
-
-// MUI Imports
+import { useEffect, useState } from 'react'
 import Card from '@mui/material/Card'
 import Button from '@mui/material/Button'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useTheme } from '@mui/material/styles'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
 
-// Components Imports
-import OptionMenu from '@core/components/option-menu'
+// Safely import the chart component with SSR disabled
+const AppReactApexCharts = dynamic(
+  () => import('@/libs/styles/AppReactApexCharts'),
+  { ssr: false }
+)
 
-// Styled Component Imports
-const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
-
-const series = [
-  {
-    name: 'Sales',
-    type: 'column',
-    data: [85, 68, 56, 65, 65, 50, 39]
-  },
-  {
-    type: 'line',
-    name: 'Sales',
-    data: [63, 38, 31, 45, 46, 27, 18]
-  }
-]
-
-const WeeklyOverview = () => {
-  // Hooks
+const VendorStatusChart = () => {
   const theme = useTheme()
+  const [chartData, setChartData] = useState({
+    series: [0, 0],
+    options: null,
+    stats: {
+      totalApproved: 0,
+      totalPending: 0
+    }
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const options = {
-    chart: {
-      parentHeightOffset: 0,
-      toolbar: { show: false }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 7,
-        columnWidth: '35%',
-        colors: {
-          ranges: [
-            {
-              to: 50,
-              from: 40,
-              color: 'var(--mui-palette-primary-main)'
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/admin/vendor-status-stats')
+        if (!response.ok) throw new Error('Network response was not ok')
+        
+        const data = await response.json()
+        
+        if (!data || !data.data) {
+          throw new Error('Invalid data structure received')
+        }
+
+        const newStats = {
+          totalApproved: data.data.totalApproved ?? 0,
+          totalPending: data.data.totalPending ?? 0
+        }
+
+        const newSeries = [newStats.totalApproved, newStats.totalPending]
+        
+        const newOptions = {
+          chart: { type: 'donut', height: 350 },
+          labels: ['Approved', 'Pending'],
+          colors: ['#00E396', '#FF4560'],
+          responsive: [{
+            breakpoint: 480,
+            options: { chart: { width: 200 }, legend: { position: 'bottom' } }
+          }],
+          legend: { position: 'right', offsetY: 0, height: 230 },
+          plotOptions: {
+            pie: {
+              donut: {
+                size: '65%',
+                labels: {
+                  show: true,
+                  total: {
+                    show: true,
+                    label: 'Total Vendors',
+                    color: theme.palette.text.primary,
+                    formatter: () => newSeries.reduce((a, b) => a + b, 0)
+                  },
+                  value: { color: theme.palette.text.primary }
+                }
+              }
             }
-          ]
-        }
-      }
-    },
-    markers: {
-      size: 3.5,
-      strokeWidth: 2,
-      fillOpacity: 1,
-      strokeOpacity: 1,
-      colors: 'var(--mui-palette-background-paper)',
-      strokeColors: 'var(--mui-palette-primary-main)'
-    },
-    stroke: {
-      width: [0, 2],
-      colors: ['var(--mui-palette-customColors-trackBg)', 'var(--mui-palette-primary-main)']
-    },
-    legend: { show: false },
-    dataLabels: { enabled: false },
-    colors: ['var(--mui-palette-customColors-trackBg)'],
-    grid: {
-      strokeDashArray: 7,
-      borderColor: 'var(--mui-palette-divider)',
-      padding: {
-        left: -2,
-        right: 8
-      }
-    },
-    states: {
-      hover: {
-        filter: { type: 'none' }
-      },
-      active: {
-        filter: { type: 'none' }
-      }
-    },
-    xaxis: {
-      categories: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      tickPlacement: 'on',
-      labels: { show: false },
-      axisTicks: { show: false },
-      axisBorder: { show: false }
-    },
-    yaxis: {
-      min: 0,
-      max: 90,
-      show: true,
-      tickAmount: 3,
-      labels: {
-        offsetX: -10,
-        formatter: value => `${value > 999 ? `${(value / 1000).toFixed(0)}` : value}k`,
-        style: {
-          fontSize: '0.8125rem',
-          colors: 'var(--mui-palette-text-disabled)'
-        }
-      }
-    },
-    responsive: [
-      {
-        breakpoint: theme.breakpoints.values.xl,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '35%' }
-          }
-        }
-      },
-      {
-        breakpoint: 1445,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '40%', borderRadius: 7 }
-          }
-        }
-      },
-      {
-        breakpoint: 1368,
-        options: {
-          plotOptions: {
-            bar: { borderRadius: 6 }
-          }
-        }
-      },
-      {
-        breakpoint: 1201,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '42%', borderRadius: 7 }
-          }
-        }
-      },
-      {
-        breakpoint: 1080,
-        options: {
-          plotOptions: {
-            bar: { borderRadius: 6 }
-          }
-        }
-      },
-      {
-        breakpoint: theme.breakpoints.values.md,
-        options: {
-          chart: {
-            height: 210
           },
-          plotOptions: {
-            bar: { columnWidth: '32%', borderRadius: 7 }
-          }
+          dataLabels: { enabled: false },
+          states: { hover: { filter: { type: 'none' } } }
         }
-      },
-      {
-        breakpoint: 750,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '38%', borderRadius: 6 }
-          }
-        }
-      },
-      {
-        breakpoint: theme.breakpoints.values.sm,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '25%', borderRadius: 7 }
-          }
-        }
-      },
-      {
-        breakpoint: 450,
-        options: {
-          plotOptions: {
-            bar: { columnWidth: '35%' }
-          }
-        }
+
+        setChartData({
+          series: newSeries,
+          options: newOptions,
+          stats: newStats
+        })
+
+      } catch (err) {
+        console.error('Fetch error:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
+
+    fetchData()
+  }, [theme])
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader title="Vendor Status Statistics" />
+        <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <CircularProgress />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader title="Vendor Status Statistics" />
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: 300, gap: 2 }}>
+          <Typography color="error">Error loading data</Typography>
+          <Button variant="outlined" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <Card>
-      <CardHeader title='Weekly Overview' action={<OptionMenu options={['Refresh', 'Update', 'Share']} />} />
-      <CardContent className='flex flex-col gap-6'>
-        <AppReactApexCharts type='line' height={186} width='100%' series={series} options={options} />
-        <div className='flex items-center gap-4'>
-          <Typography variant='h4'>62%</Typography>
-          <Typography>Your sales performance is 45% 😎 better compared to last month</Typography>
-        </div>
-        <Button variant='contained' color='primary'>
-          Details
-        </Button>
+      <CardHeader 
+        title="Vendor Status Statistics"
+        subheader={
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2">{`${chartData.stats.totalApproved} Approved`}</Typography>
+            <Typography variant="body2">{`${chartData.stats.totalPending} Pending`}</Typography>
+          </Box>
+        }
+      />
+      <CardContent>
+        {chartData.options ? (
+          <Box sx={{ minHeight: 300 }}>
+            <AppReactApexCharts
+              type="donut"
+              height={300}
+              series={chartData.series}
+              options={chartData.options}
+            />
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+            <Typography>No chart data available</Typography>
+          </Box>
+        )}
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
+          {chartData.stats.totalPending === 0 ? (
+            'All vendors are currently approved and active.'
+          ) : (
+            `${chartData.stats.totalPending} vendors awaiting approval.`
+          )}
+        </Typography>
       </CardContent>
     </Card>
   )
 }
 
-export default WeeklyOverview
+export default VendorStatusChart
