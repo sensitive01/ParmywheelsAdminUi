@@ -14,13 +14,20 @@ import {
   Paper,
   Divider,
   InputAdornment,
-  Chip
+  Chip,
+  Button,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
   AccountBalanceWallet,
   Receipt,
   Summarize,
-  CalendarToday
+  CalendarToday,
+  Download,
+  PictureAsPdf,
+  GridOn
 } from '@mui/icons-material';
 
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -38,6 +45,8 @@ const Dashboard = () => {
     endDate: '',
     vendor: 'all'
   });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
 
   useEffect(() => {
     fetchSummaryData();
@@ -69,12 +78,138 @@ const Dashboard = () => {
     }));
   };
 
+  const handleDownloadClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleDownloadClose = () => {
+    setAnchorEl(null);
+  };
+
+  const exportToExcel = () => {
+    if (!summaryData) return;
+    
+    // Get filtered vendors based on current selection
+    const vendorsToExport = filter.vendor === 'all' 
+      ? summaryData.vendors 
+      : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
+    
+    if (vendorsToExport.length === 0) return;
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Add headers
+    const headers = ["Vendor Name", "Bookings", "Total Amount", "Platform Fee %", "Receivable"];
+    csvContent += headers.join(",") + "\r\n";
+    
+    // Add data rows
+    vendorsToExport.forEach(vendor => {
+      const row = [
+        `"${vendor.vendorName}"`,
+        vendor.bookingCount,
+        vendor.totalAmount,
+        vendor.platformFeePercentage,
+        vendor.totalReceivable
+      ];
+      csvContent += row.join(",") + "\r\n";
+    });
+    
+    // Add summary row
+    csvContent += `"${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}",${
+      vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)
+    },${
+      vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)
+    },,${
+      vendorsToExport.reduce((sum, v) => sum + v.totalReceivable, 0)
+    }\r\n`;
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `transactions_${filter.vendor === 'all' ? 'all_vendors' : 'vendor_' + filter.vendor}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    handleDownloadClose();
+  };
+
+  const exportToPDF = () => {
+    if (!summaryData) return;
+    
+    // Get filtered vendors based on current selection
+    const vendorsToExport = filter.vendor === 'all' 
+      ? summaryData.vendors 
+      : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
+    
+    if (vendorsToExport.length === 0) return;
+    
+    // Create a basic PDF using browser's print functionality
+    const printContent = `
+      <html>
+        <head>
+          <title>Transactions Report</title>
+          <style>
+            body { font-family: Arial; margin: 20px; }
+            h1 { color: #333; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .total-row { font-weight: bold; background-color: #f9f9f9; }
+          </style>
+        </head>
+        <body>
+          <h1>Transactions Report</h1>
+          <p>${filter.vendor === 'all' ? 'All Vendors' : 'Selected Vendor'} | Generated on: ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Vendor Name</th>
+                <th>Bookings</th>
+                <th>Total Amount</th>
+                <th>Platform Fee %</th>
+                <th>Receivable</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${vendorsToExport.map(vendor => `
+                <tr>
+                  <td>${vendor.vendorName}</td>
+                  <td>${vendor.bookingCount}</td>
+                  <td>₹${vendor.totalAmount}</td>
+                  <td>${vendor.platformFeePercentage}%</td>
+                  <td>₹${vendor.totalReceivable}</td>
+                </tr>
+              `).join('')}
+              <tr class="total-row">
+                <td>${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}</td>
+                <td>${vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)}</td>
+                <td>₹${vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)}</td>
+                <td></td>
+                <td>₹${vendorsToExport.reduce((sum, v) => sum + v.totalReceivable, 0)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    const win = window.open('', '_blank');
+    win.document.write(printContent);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 500);
+    
+    handleDownloadClose();
+  };
+
   const filteredVendors = summaryData?.vendors.filter(vendor => {
-    // Vendor filter
     if (filter.vendor !== 'all' && vendor.vendorId !== filter.vendor) {
       return false;
     }
-    
     return true;
   }) || [];
 
@@ -88,15 +223,43 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 3 }}>
-      <Tabs
-        value={value}
-        onChange={handleChange}
-        centered
-        sx={{ mb: 3 }}
-      >
-        <Tab label="Transaction" icon={<Summarize />} iconPosition="start" />
-        <Tab label="Payouts Details" />
-      </Tabs>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          centered
+        >
+          <Tab label="Transaction" icon={<Summarize />} iconPosition="start" />
+          <Tab label="Payouts Details" />
+        </Tabs>
+        
+        <Button
+          variant="contained"
+          startIcon={<Download />}
+          onClick={handleDownloadClick}
+          sx={{ ml: 2 }}
+        >
+          Download
+        </Button>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleDownloadClose}
+        >
+          <MenuItem onClick={exportToExcel}>
+            <ListItemIcon>
+              <GridOn fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export to Excel</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={exportToPDF}>
+            <ListItemIcon>
+              <PictureAsPdf fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export to PDF</ListItemText>
+          </MenuItem>
+        </Menu>
+      </Box>
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
