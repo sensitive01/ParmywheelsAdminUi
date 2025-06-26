@@ -173,7 +173,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
     severity: 'success'
   })
 
-  const hours = Array.from({ length: 24 }, (_, index) => 
+  const hours = Array.from({ length: 24 }, (_, index) =>
     index < 10 ? `0${index}:00` : `${index}:00`
   )
 
@@ -207,7 +207,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
       try {
         console.log(`Fetching business hours from: ${API_URL}/vendor/fetchbusinesshours/${vendorId}`)
         const response = await axios.get(`${API_URL}/vendor/fetchbusinesshours/${vendorId}`)
-        
+
         if (response.data?.businessHours && response.data.businessHours.length > 0) {
           setBusinessHours(response.data.businessHours)
         } else {
@@ -231,7 +231,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
         `${API_URL}/vendor/updatehours/${vendorId}`,
         { businessHours }
       )
-      
+
       if (response.status === 200) {
         setSnackbar({
           open: true,
@@ -253,7 +253,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
   const handleModeChange = (index, mode) => {
     const updatedHours = [...businessHours]
-    
+
     switch (mode) {
       case 'timeBased':
         updatedHours[index] = {
@@ -308,9 +308,9 @@ const BusinessHoursUpdate = ({ vendorId }) => {
     return (
       <Card sx={{ mt: 6 }}>
         <CardHeader title="Operational Timings"
-        sx={{ bgcolor: 'error.main' }}
-        titleTypographyProps={{ color: 'common.white' }}
-         />
+          sx={{ bgcolor: 'error.main' }}
+          titleTypographyProps={{ color: 'common.white' }}
+        />
         <CardContent>
           <Alert severity="error">{error}</Alert>
         </CardContent>
@@ -320,8 +320,8 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
   return (
     <Card sx={{ mt: 6 }}>
-      <CardHeader 
-        title="Operational Timings" 
+      <CardHeader
+        title="Operational Timings"
         sx={{ bgcolor: 'primary.main' }}
         titleTypographyProps={{ color: 'common.white' }}
       />
@@ -344,12 +344,12 @@ const BusinessHoursUpdate = ({ vendorId }) => {
         </Box>
 
         {businessHours.map((dayData, index) => (
-          <Paper 
+          <Paper
             key={index}
             elevation={1}
-            sx={{ 
-              p: 1, 
-              mb: 1, 
+            sx={{
+              p: 1,
+              mb: 1,
               borderRadius: 2,
               ':hover': { boxShadow: 2 }
             }}
@@ -360,20 +360,20 @@ const BusinessHoursUpdate = ({ vendorId }) => {
                   {dayData.day}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={3}>
                 {dayData.isClosed ? (
                   <Box sx={{ bgcolor: 'error.light', borderRadius: 1, p: 0.5, textAlign: 'center' }}>
-                   <Typography variant="caption" color="common.white" fontWeight={600}>
-                    Closed
-                   </Typography>
+                    <Typography variant="caption" color="common.white" fontWeight={600}>
+                      Closed
+                    </Typography>
 
                   </Box>
                 ) : dayData.is24Hours ? (
                   <Box sx={{ bgcolor: 'success.light', borderRadius: 1, p: 0.5, textAlign: 'center' }}>
-                  <Typography variant="caption" color="common.white" fontWeight={600}>
-                    24 Hours
-                  </Typography>
+                    <Typography variant="caption" color="common.white" fontWeight={600}>
+                      24 Hours
+                    </Typography>
 
                   </Box>
                 ) : (
@@ -381,8 +381,8 @@ const BusinessHoursUpdate = ({ vendorId }) => {
                     <Select
                       value={dayData.openTime}
                       onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)}
-                      sx={{ 
-                        height: 32, 
+                      sx={{
+                        height: 32,
                         fontSize: { xs: '0.75rem', sm: '0.8rem' }
                       }}
                     >
@@ -395,16 +395,16 @@ const BusinessHoursUpdate = ({ vendorId }) => {
                   </FormControl>
                 )}
               </Grid>
-              
+
               <Grid item xs={3} sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {!dayData.isClosed && !dayData.is24Hours && (
                   <FormControl size="small" fullWidth>
                     <Select
                       value={dayData.closeTime}
                       onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)}
-                      sx={{ 
-                        height: 32, 
-                        fontSize: { xs: '0.75rem', sm: '0.8rem' } 
+                      sx={{
+                        height: 32,
+                        fontSize: { xs: '0.75rem', sm: '0.8rem' }
                       }}
                     >
                       {hours.map((time) => (
@@ -416,7 +416,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
                   </FormControl>
                 )}
               </Grid>
-              
+
               <Grid item xs={6} sm={3}>
                 <ToggleButtonGroup
                   value={getCurrentMode(dayData)}
@@ -460,7 +460,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
             startIcon={<SaveIcon />}
             fullWidth
             onClick={handleSave}
-            sx={{ 
+            sx={{
               py: { xs: 1, sm: 1.5 },
               fontSize: { xs: '0.8rem', sm: '0.875rem' }
             }}
@@ -488,7 +488,7 @@ const VendorUpdate = ({ vendorId }) => {
   const { data: session } = useSession()
   const router = useRouter()
   const API_URL = process.env.NEXT_PUBLIC_API_URL
-  
+
   // States for form data
   const [image, setImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
@@ -506,7 +506,7 @@ const VendorUpdate = ({ vendorId }) => {
     message: '',
     severity: 'success'
   })
-
+  const [platformFee, setPlatformFee] = useState('')
   // Fetch vendor data on component mount
   useEffect(() => {
     const fetchVendorData = async () => {
@@ -514,7 +514,7 @@ const VendorUpdate = ({ vendorId }) => {
         setLoading(false)
         return
       }
-      
+
       try {
         console.log(`Fetching vendor data for ID: ${vendorId}`)
         const response = await fetch(`${API_URL}/vendor/fetch-vendor-data?id=${vendorId}`, {
@@ -525,29 +525,30 @@ const VendorUpdate = ({ vendorId }) => {
           }
         })
         const result = await response.json()
-        
+
         if (response.ok && result.data) {
           console.log('Received vendor data:', result.data)
           const vendorData = result.data
-          
+
           setVendorName(vendorData.vendorName || '')
           setAddress(vendorData.address || '')
           setLandMark(vendorData.landMark || '')
           setLatitude(vendorData.latitude || '')
           setLongitude(vendorData.longitude || '')
-          
+          setPlatformFee(vendorData.platformfee || '')
+
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
               vendorData.contacts.map((contact, index) => ({
-                id: contact._id || (index + 1), 
-                name: contact.name || '', 
-                mobile: contact.mobile || '',  
+                id: contact._id || (index + 1),
+                name: contact.name || '',
+                mobile: contact.mobile || '',
               }))
             )
           } else {
             setContacts([{ id: 1, name: '', mobile: '' }])
           }
-          
+
           if (vendorData.parkingEntries?.length > 0) {
             setParkingEntries(vendorData.parkingEntries.map(entry => ({
               type: entry.type || '',
@@ -556,7 +557,7 @@ const VendorUpdate = ({ vendorId }) => {
           } else {
             setParkingEntries([{ type: '', count: '' }])
           }
-          
+
           if (vendorData.image) {
             setImagePreview(vendorData.image)
           }
@@ -572,7 +573,7 @@ const VendorUpdate = ({ vendorId }) => {
         setLoading(false)
       }
     }
-    
+
     if (vendorId) {
       fetchVendorData()
     }
@@ -610,13 +611,14 @@ const VendorUpdate = ({ vendorId }) => {
     formData.append('landmark', landMark)
     formData.append('latitude', latitude)
     formData.append('longitude', longitude)
-    
+    formData.append('platformfee', platformFee)
+
     const formattedContacts = contacts.map(contact => ({
       name: contact.name,
       mobile: contact.mobile
     }))
     formData.append('contacts', JSON.stringify(formattedContacts))
-    
+
     const formattedParkingEntries = parkingEntries
       .filter(entry => entry.type && entry.count)
       .map(entry => ({
@@ -632,8 +634,8 @@ const VendorUpdate = ({ vendorId }) => {
     try {
       setLoading(true)
       console.log('Submitting form data:', formData)
-      
-      const response = await fetch(`${API_URL}/vendor/updatevendor/${vendorId}`, {
+
+      const response = await fetch(`${API_URL}/admin/updatevendors/${vendorId}`, {
         method: 'PUT',
         body: formData
       })
@@ -646,10 +648,10 @@ const VendorUpdate = ({ vendorId }) => {
           message: 'Vendor details updated successfully!',
           severity: 'success'
         })
-        
+
         // Refresh data after update
         setRefreshTrigger(prev => prev + 1)
-        
+
         if (image) {
           setImage(null)
         }
@@ -688,7 +690,7 @@ const VendorUpdate = ({ vendorId }) => {
         <Typography variant='h4' sx={{ mb: 4 }} align='center'>
           Update Admin Details
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <TextField
@@ -706,23 +708,23 @@ const VendorUpdate = ({ vendorId }) => {
             <Grid item xs={12} key={contact.id || index}>
               <Grid container spacing={3} alignItems='center'>
                 <Grid item xs={12} sm={6}>
-                  <TextField 
-                    fullWidth 
-                    label={`Contact Name ${index + 1}`} 
-                    value={contact.name} 
+                  <TextField
+                    fullWidth
+                    label={`Contact Name ${index + 1}`}
+                    value={contact.name}
                     onChange={e => {
                       const updatedContacts = [...contacts]
                       updatedContacts[index].name = e.target.value
                       setContacts(updatedContacts)
-                    }} 
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <TextField 
-                      fullWidth 
-                      label={`Contact Number ${index + 1}`} 
-                      value={contact.mobile} 
+                    <TextField
+                      fullWidth
+                      label={`Contact Number ${index + 1}`}
+                      value={contact.mobile}
                       onChange={e => {
                         const updatedContacts = [...contacts]
                         updatedContacts[index].mobile = e.target.value
@@ -748,7 +750,7 @@ const VendorUpdate = ({ vendorId }) => {
             </Button>
           </Grid>
         </Grid>
-        
+
         <Grid container spacing={3} sx={{ mt: 1 }}>
           <Grid item xs={12}>
             <TextField
@@ -867,12 +869,23 @@ const VendorUpdate = ({ vendorId }) => {
                 Add Another Option
               </Button>
             </Box>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Platform Fee (%)"
+                value={platformFee}
+                onChange={(e) => setPlatformFee(e.target.value)}
+                type="number"
+                inputProps={{ min: 0, max: 100, step: 0.1 }}
+                placeholder="Enter platform fee percentage"
+              />
+            </Grid>
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-            <Button 
-              variant="contained" 
-              color="success" 
+            <Button
+              variant="contained"
+              color="success"
               onClick={handleSubmit}
               disabled={loading}
               startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
