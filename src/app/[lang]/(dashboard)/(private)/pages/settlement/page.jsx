@@ -207,18 +207,30 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
                 </Typography>
             )
         },
-          {
-            field: 'settlementStatus',
+           {
+            field: 'settlemtmentstatus',
             headerName: 'Settlement Status',
             width: 180,
-            renderCell: (params) => (
-                <Chip
-                    label="Pending"
-                    color="warning"
-                    variant="outlined"
-                    size="small"
-                />
-            )
+            renderCell: (params) => {
+                const status = params.value?.toLowerCase() || 'pending';
+                const statusMap = {
+                    completed: { color: 'success', label: 'Completed' },
+                    pending: { color: 'warning', label: 'Pending' },
+                    failed: { color: 'error', label: 'Failed' },
+                    processing: { color: 'info', label: 'Processing' }
+                };
+                
+                const currentStatus = statusMap[status] || statusMap.pending;
+                
+                return (
+                    <Chip
+                        label={currentStatus.label}
+                        color={currentStatus.color}
+                        variant="outlined"
+                        size="small"
+                    />
+                );
+            }
         }
     ];
 
