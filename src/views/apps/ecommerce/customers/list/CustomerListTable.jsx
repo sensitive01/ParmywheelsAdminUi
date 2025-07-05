@@ -53,7 +53,10 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
 import ChatIcon from '@mui/icons-material/Chat';
 import { statusChipColor } from '../details/customer-right/overview/OrderListTable';
-
+import { Download, PictureAsPdf, GridOn } from '@mui/icons-material';
+import Menu from '@mui/material/Menu';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 const UserDataTable = () => {
   const [users, setUsers] = useState([]);
@@ -130,6 +133,9 @@ const UserDataTable = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [generatedOTP, setGeneratedOTP] = useState("");
   const [otpAlertOpen, setOtpAlertOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);  // Renamed from 'open'
+  const isMenuOpen = Boolean(anchorEl);
   const router = useRouter();
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -150,6 +156,71 @@ const UserDataTable = () => {
         console.error('Error fetching users:', error);
         setLoading(false);
       });
+  };
+  const handleExportClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleExportClose = () => {
+    setAnchorEl(null);
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = search ? filteredUsers : users;
+    if (!dataToExport.length) return;
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    const headers = ["ID", "Name", "Email", "Mobile", "Role", "Status"];
+    csvContent += headers.join(",") + "\r\n";
+
+    dataToExport.forEach(user => {
+      const row = [
+        `"${user.id}"`, `"${user.userName}"`, `"${user.userEmail}"`,
+        `"${user.userMobile}"`, `"${user.role}"`, `"${user.status}"`
+      ];
+      csvContent += row.join(",") + "\r\n";
+    });
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", `users_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    handleExportClose();
+  };
+
+  const exportToPDF = () => {
+    const dataToExport = search ? filteredUsers : users;
+    if (!dataToExport.length) return;
+
+    const printContent = `
+    <html>
+      <head><title>Users Export</title></head>
+      <body>
+        <h1>Users Report</h1>
+        <table border="1">
+          <tr>
+            <th>ID</th><th>Name</th><th>Email</th>
+            <th>Mobile</th><th>Role</th><th>Status</th>
+          </tr>
+          ${dataToExport.map(user => `
+            <tr>
+              <td>${user.id}</td><td>${user.userName}</td>
+              <td>${user.userEmail}</td><td>${user.userMobile}</td>
+              <td>${user.role}</td><td>${user.status}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </body>
+    </html>
+  `;
+
+    const win = window.open('', '_blank');
+    win.document.write(printContent);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
+    handleExportClose();
   };
 
   const fetchVendorSpaces = async (userId) => {
@@ -1265,9 +1336,9 @@ const UserDataTable = () => {
           const formatDate = (dateStr) => {
             if (!dateStr) return 'N/A';
             const [day, month, year] = dateStr.split('-');
-            if(!day || !month || !year) return 'Invalid Date';
+            if (!day || !month || !year) return 'Invalid Date';
             const date = new Date(`${year}-${month}-${day}`);
-            if(isNaN(date.getTime())) return 'Invalid Date';
+            if (isNaN(date.getTime())) return 'Invalid Date';
             return date.toDateString();
           };
           return (
@@ -1496,14 +1567,38 @@ const UserDataTable = () => {
           <Typography variant='h3' gutterBottom>
             Customer List
           </Typography>
-          <Button
-            variant='contained'
-            onClick={handleDrawerOpen}
-            startIcon={<i className='ri-add-line' />}
-            sx={{ backgroundColor: '#329a73' }}
-          >
-            Add Customer
-          </Button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button
+              variant='contained'
+              startIcon={<Download />}
+              onClick={handleExportClick}
+              sx={{ backgroundColor: '#329a73' }}
+            >
+              Download
+            </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={isMenuOpen}
+              onClose={handleExportClose}
+            >
+              <MenuItem onClick={exportToExcel}>
+                <ListItemIcon><GridOn fontSize="small" /></ListItemIcon>
+                <ListItemText>Excel</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={exportToPDF}>
+                <ListItemIcon><PictureAsPdf fontSize="small" /></ListItemIcon>
+                <ListItemText>PDF</ListItemText>
+              </MenuItem>
+            </Menu>
+            <Button
+              variant='contained'
+              onClick={handleDrawerOpen}
+              startIcon={<i className='ri-add-line' />}
+              sx={{ backgroundColor: '#329a73' }}
+            >
+              Add Customer
+            </Button>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
           <TextField

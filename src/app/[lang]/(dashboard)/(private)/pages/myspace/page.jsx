@@ -73,7 +73,9 @@ import ContactsIcon from '@mui/icons-material/Contacts'
 import SubscriptionsIcon from '@mui/icons-material/Subscriptions'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 import axios from 'axios'
-
+import { Download, PictureAsPdf, GridOn } from '@mui/icons-material';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
@@ -169,9 +171,7 @@ const SpaceDetailModal = ({ open, handleClose, vendorId }) => {
         "Saturday",  // 5
         "Sunday"     // 6
     ];
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue);
-    };
+    // Add this state at the top of your component
 
     useEffect(() => {
         const fetchSpaceDetails = async () => {
@@ -1446,6 +1446,83 @@ const SpaceListTable = () => {
     const router = useRouter()
     const [spaceLoading, setSpaceLoading] = useState({});
     const [spaceStatusMap, setSpaceStatusMap] = useState({});
+       const [anchorEl, setAnchorEl] = useState(null);
+    const openMenu = Boolean(anchorEl);
+
+    const handleExportClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleExportClose = () => {
+        setAnchorEl(null);
+    };
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
+    };
+const exportToExcel = () => {
+  const dataToExport = globalFilter ? filteredData : data;
+  if (!dataToExport.length) return;
+  
+  let csvContent = "data:text/csv;charset=utf-8,";
+  const headers = ["ID", "Name", "Address", "Status", "Subscription", "Parking Capacity"];
+  csvContent += headers.join(",") + "\r\n";
+  
+  dataToExport.forEach(space => {
+    const parkingEntries = space.parkingEntries?.map(e => `${e.type}:${e.count}`).join('; ') || '';
+    const row = [
+      `"${space.vendorId}"`, 
+      `"${space.vendorName}"`, 
+      `"${space.address}"`,
+      `"${space.status}"`,
+      `"${space.subscription === "true" ? 'Active' : 'Inactive'}"`,
+      `"${parkingEntries}"`
+    ];
+    csvContent += row.join(",") + "\r\n";
+  });
+  
+  const link = document.createElement("a");
+  link.setAttribute("href", encodeURI(csvContent));
+  link.setAttribute("download", `spaces_export_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const exportToPDF = () => {
+  const dataToExport = globalFilter ? filteredData : data;
+  if (!dataToExport.length) return;
+  
+  const printContent = `
+    <html>
+      <head><title>Spaces Export</title></head>
+      <body>
+        <h1>Spaces Report</h1>
+        <table border="1">
+          <tr>
+            <th>ID</th><th>Name</th><th>Address</th>
+            <th>Status</th><th>Subscription</th><th>Parking Capacity</th>
+          </tr>
+          ${dataToExport.map(space => {
+            const parkingEntries = space.parkingEntries?.map(e => `${e.type}:${e.count}`).join('; ') || '';
+            return `
+              <tr>
+                <td>${space.vendorId}</td><td>${space.vendorName}</td>
+                <td>${space.address}</td><td>${space.status}</td>
+                <td>${space.subscription === "true" ? 'Active' : 'Inactive'}</td>
+                <td>${parkingEntries}</td>
+              </tr>
+            `;
+          }).join('')}
+        </table>
+      </body>
+    </html>
+  `;
+  
+  const win = window.open('', '_blank');
+  win.document.write(printContent);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+};
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
@@ -1800,7 +1877,41 @@ const SpaceListTable = () => {
 
     return (
         <Card>
-            <CardHeader title='Space Management' />
+            <CardHeader
+                title='Space Management'
+                action={
+                    <>
+                        <Button
+                            variant='contained'
+                            startIcon={<Download />}
+                            onClick={handleExportClick}
+                            sx={{ backgroundColor: '#329a73' }}
+                        >
+                            Export
+                        </Button>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={openMenu}
+                            onClose={handleExportClose}
+                        >
+                            <MenuItem onClick={() => {
+                                exportToExcel();
+                                handleExportClose();
+                            }}>
+                                <ListItemIcon><GridOn fontSize="small" /></ListItemIcon>
+                                <ListItemText>Excel</ListItemText>
+                            </MenuItem>
+                            <MenuItem onClick={() => {
+                                exportToPDF();
+                                handleExportClose();
+                            }}>
+                                <ListItemIcon><PictureAsPdf fontSize="small" /></ListItemIcon>
+                                <ListItemText>PDF</ListItemText>
+                            </MenuItem>
+                        </Menu>
+                    </>
+                }
+            />
             <Divider />
             <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
                 <DebouncedInput

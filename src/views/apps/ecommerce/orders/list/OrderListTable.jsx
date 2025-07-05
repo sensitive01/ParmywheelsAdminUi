@@ -2,15 +2,9 @@
 
 // React Imports
 import { useState, useEffect, useMemo } from 'react'
-
 import Link from 'next/link'
-
 import { useParams, useRouter } from 'next/navigation'
-
 import { useSession } from 'next-auth/react'
-
-// Next Imports
-
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -23,8 +17,15 @@ import TablePagination from '@mui/material/TablePagination'
 import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
-import Alert from '@mui/material/Alert';
+import Alert from '@mui/material/Alert'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
 
+// Icons
+import { Download, PictureAsPdf, GridOn } from '@mui/icons-material'
+import { AccountBalanceWallet, Receipt, Summarize, CalendarToday } from '@mui/icons-material'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -42,7 +43,6 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 
-
 // Component Imports
 import TableFilters from '../../products/list/TableFilters'
 import CustomAvatar from '@core/components/mui/Avatar'
@@ -52,21 +52,17 @@ import OptionMenu from '@core/components/option-menu'
 import { getInitials } from '@/utils/getInitials'
 import { getLocalizedUrl } from '@/utils/i18n'
 
-
-// ✅ Import Next.js router
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL
-
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
-
 export const stsChipColor = {
-  instant: { color: '#ff4d49', text: 'Instant' },       // Blue
-  subscription: { color: '#72e128', text: 'Subscription' }, // Green
-  schedule: { color: '#fdb528', text: 'Schedule' }      // Yellow
+  instant: { color: '#ff4d49', text: 'Instant' },
+  subscription: { color: '#72e128', text: 'Subscription' },
+  schedule: { color: '#fdb528', text: 'Schedule' }
 };
+
 export const statusChipColor = {
   completed: { color: 'success' },
   pending: { color: 'warning' },
@@ -95,7 +91,6 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
     const timeout = setTimeout(() => {
       onChange(value)
     }, debounce)
-
 
     return () => clearTimeout(timeout)
   }, [value])
@@ -128,13 +123,11 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
         return
       }
 
-      // Convert milliseconds to hours, minutes, seconds
       const diffSecs = Math.floor(diffMs / 1000)
       const hours = Math.floor(diffSecs / 3600)
       const minutes = Math.floor((diffSecs % 3600) / 60)
       const seconds = diffSecs % 60
 
-      // Format with leading zeros
       const formattedHours = hours.toString().padStart(2, '0')
       const formattedMinutes = minutes.toString().padStart(2, '0')
       const formattedSeconds = seconds.toString().padStart(2, '0')
@@ -152,7 +145,6 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
   )
 }
 
-
 const columnHelper = createColumnHelper()
 
 const OrderListTable = ({ orderData }) => {
@@ -162,17 +154,18 @@ const OrderListTable = ({ orderData }) => {
   const [globalFilter, setGlobalFilter] = useState('')
   const [filteredData, setFilteredData] = useState(data)
   const { lang: locale } = useParams()
-  const paypal = '/images/apps/ecommerce/paypal.png'
-  const mastercard = '/images/apps/ecommerce/mastercard.png'
   const { data: session } = useSession()
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter();
   const vendorId = session?.user?.id
+  
+  // Download menu state
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Using the /vendor/bookings endpoint instead of the vendor-specific one
         const response = await fetch(`${API_URL}/vendor/bookings`);
 
         if (!response.ok) {
@@ -183,8 +176,8 @@ const OrderListTable = ({ orderData }) => {
         console.log('Fetched bookings:', result);
 
         if (result && Array.isArray(result)) {
-          setData(result); // Set full data
-          setFilteredData(result); // Set initial filtered data to full data
+          setData(result);
+          setFilteredData(result);
         } else if (result && result.bookings && Array.isArray(result.bookings)) {
           setData(result.bookings);
           setFilteredData(result.bookings);
@@ -202,6 +195,133 @@ const OrderListTable = ({ orderData }) => {
 
     fetchData();
   }, []);
+
+  // Download menu handlers
+  const handleDownloadClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleDownloadClose = () => {
+    setAnchorEl(null);
+  };
+
+  const exportToExcel = () => {
+    if (!data || data.length === 0) return;
+    
+    // Get the visible columns from the table
+    const visibleColumns = [
+      'vehicleNumber',
+      'bookingDate',
+      'personName',
+      'sts',
+      'status',
+      'vehicleType'
+    ];
+    
+    // Create CSV content
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Add headers
+    const headers = [
+      'Vehicle Number',
+      'Booking Date & Time',
+      'Customer Name',
+      'Booking Type',
+      'Status',
+      'Vehicle Type'
+    ];
+    csvContent += headers.join(",") + "\r\n";
+    
+    // Add data rows
+    data.forEach(row => {
+      const rowData = [
+        `"${row.vehicleNumber}"`,
+        `"${row.bookingDate}, ${row.bookingTime}"`,
+        `"${row.personName}"`,
+        `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
+        `"${row.status}"`,
+        `"${row.vehicleType}"`
+      ];
+      csvContent += rowData.join(",") + "\r\n";
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `bookings_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    handleDownloadClose();
+  };
+
+  const exportToPDF = () => {
+    if (!data || data.length === 0) return;
+    
+    // Create a basic PDF using browser's print functionality
+    const printContent = `
+      <html>
+        <head>
+          <title>Bookings Report</title>
+          <style>
+            body { font-family: Arial; margin: 20px; }
+            h1 { color: #333; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .summary { margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Bookings Report</h1>
+            <div>
+              <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+              <p><strong>Total Bookings:</strong> ${data.length}</p>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Vehicle No.</th>
+                <th>Booking Date & Time</th>
+                <th>Customer</th>
+                <th>Booking Type</th>
+                <th>Status</th>
+                <th>Vehicle Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(booking => `
+                <tr>
+                  <td>${booking.vehicleNumber}</td>
+                  <td>${booking.bookingDate}, ${booking.bookingTime}</td>
+                  <td>${booking.personName}</td>
+                  <td>${stsChipColor[booking.sts?.toLowerCase()]?.text || booking.sts}</td>
+                  <td>${booking.status}</td>
+                  <td>${booking.vehicleType}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    
+    const win = window.open('', '_blank');
+    win.document.write(printContent);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 500);
+    
+    handleDownloadClose();
+  };
 
   const columns = useMemo(
     () => [
@@ -231,14 +351,12 @@ const OrderListTable = ({ orderData }) => {
         header: 'Booking Date & Time',
         cell: ({ row }) => {
           const formatDate = (dateStr) => {
-            if (!dateStr) return 'Invalid Date'; // Handle missing values
-            const [day, month, year] = dateStr.split('-'); // Extract day, month, year
-            const formattedDate = new Date(`${year}-${month}-${day}`).toDateString(); // Convert and format
+            if (!dateStr) return 'Invalid Date';
+            const [day, month, year] = dateStr.split('-');
+            const formattedDate = new Date(`${year}-${month}-${day}`).toDateString();
 
-
-            return formattedDate; // Example Output: "Sat Feb 08 2025"
+            return formattedDate;
           };
-
 
           return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -248,112 +366,15 @@ const OrderListTable = ({ orderData }) => {
           );
         }
       }),
-      // columnHelper.accessor('payableTime', {
-      //   header: 'Payable Time',
-      //   cell: ({ row }) => {
-      //     // Check booking status
-      //     const status = row.original.status?.toLowerCase()
-      //     const isParked = status === 'parked'
-      //     const isCompleted = status === 'completed'
-
-      //     // Show real-time timer for PARKED status
-      //     if (isParked) {
-      //       return (
-      //         <div className="flex items-center gap-2">
-      //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
-      //           <PayableTimeTimer 
-      //             parkedDate={row.original.parkedDate}
-      //             parkedTime={row.original.parkedTime}
-      //           />
-      //         </div>
-      //       )
-      //     }
-
-      //     // Show total time for COMPLETED status using exit vehicle data
-      //     if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
-      //       // Calculate and format the total parking duration
-      //       const calculateTotalTime = () => {
-      //         try {
-      //           // Parse the parking start time
-      //           const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
-      //           const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
-      //           let [startHours, startMinutes] = startTimePart.split(':').map(Number)
-
-      //           // Convert to 24-hour format if needed
-      //           if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
-      //             startHours += 12
-      //           } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
-      //             startHours = 0
-      //           }
-
-      //           // Create start date object
-      //           const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
-
-      //           // Parse the exit vehicle time
-      //           const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
-      //           const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
-      //           let [endHours, endMinutes] = endTimePart.split(':').map(Number)
-
-      //           // Convert to 24-hour format if needed
-      //           if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
-      //             endHours += 12
-      //           } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
-      //             endHours = 0
-      //           }
-
-      //           // Create end date object
-      //           const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
-
-      //           // Calculate difference in milliseconds
-      //           const diffMs = endTime - startTime
-
-      //           // Convert to days, hours, minutes
-      //           const diffSecs = Math.floor(diffMs / 1000)
-      //           const days = Math.floor(diffSecs / (3600 * 24))
-      //           const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
-      //           const minutes = Math.floor((diffSecs % 3600) / 60)
-
-      //           // Format the output
-      //           if (days > 0) {
-      //             return `${days}d ${hours}h ${minutes}m`
-      //           } else {
-      //             return `${hours}h ${minutes}m`
-      //           }
-      //         } catch (e) {
-      //           console.error("Error calculating total time:", e)
-      //           return 'N/A'
-      //         }
-      //       }
-
-      //       return (
-      //         <div className="flex items-center gap-2">
-      //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
-      //           <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
-      //             {calculateTotalTime()}
-      //           </Typography>
-      //         </div>
-      //       )
-      //     }
-
-      //     // Default case for other statuses
-      //     return <Typography>--:--:--</Typography>
-      //   }
-      // }),
-
       columnHelper.accessor('payableTime', {
         header: 'Payable Time',
         cell: ({ row }) => {
-          // Check booking status
-          const status = row.original.status?.toLowerCase()
-
-          // Return empty for completed status
+          const status = row.original.status?.toLowerCase();
           if (status === 'completed') {
-            return null
+            return null;
           }
 
-          const isParked = status === 'parked'
-
-          // Show real-time timer for PARKED status
+          const isParked = status === 'parked';
           if (isParked) {
             return (
               <div className="flex items-center gap-2">
@@ -363,25 +384,21 @@ const OrderListTable = ({ orderData }) => {
                   parkedTime={row.original.parkedTime}
                 />
               </div>
-            )
+            );
           }
 
-          // Default case for other statuses
-          return null
+          return null;
         }
       }),
-
       columnHelper.accessor('customerName', {
         header: 'Customer',
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            {/* Static Avatar Image */}
             <img
               src="https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/avatars/1.png"
               alt="Customer Avatar"
               className="w-8 h-8 rounded-full"
             />
-            {/* Customer Details */}
             <div className="flex flex-col">
               <Typography className="font-medium">{row.original.personName}</Typography>
               <Typography variant="body2">{row.original.mobileNumber}</Typography>
@@ -392,9 +409,8 @@ const OrderListTable = ({ orderData }) => {
       columnHelper.accessor('sts', {
         header: 'Booking Type',
         cell: ({ row }) => {
-          const stsKey = row.original.sts?.toLowerCase(); // Convert to lowercase for case insensitivity
-          const chipData = stsChipColor[stsKey] || { color: 'text.secondary', text: row.original.sts }; // Default text color
-
+          const stsKey = row.original.sts?.toLowerCase();
+          const chipData = stsChipColor[stsKey] || { color: 'text.secondary', text: row.original.sts };
 
           return (
             <Typography
@@ -409,9 +425,8 @@ const OrderListTable = ({ orderData }) => {
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const statusKey = row.original.status?.toLowerCase(); // Case-insensitive lookup
+          const statusKey = row.original.status?.toLowerCase();
           const chipData = statusChipColor[statusKey] || { color: 'default' };
-
 
           return (
             <Chip
@@ -419,7 +434,7 @@ const OrderListTable = ({ orderData }) => {
               variant="tonal"
               size="small"
               sx={chipData.color.startsWith('#') ? { backgroundColor: chipData.color, color: 'white' } : {}}
-              color={!chipData.color.startsWith('#') ? chipData.color : undefined} // Use predefined MUI colors if available
+              color={!chipData.color.startsWith('#') ? chipData.color : undefined}
             />
           );
         }
@@ -427,16 +442,15 @@ const OrderListTable = ({ orderData }) => {
       columnHelper.accessor('vehicleType', {
         header: 'Vehicle Type',
         cell: ({ row }) => {
-          const vehicleType = row.original.vehicleType?.toLowerCase(); // Case-insensitive match
+          const vehicleType = row.original.vehicleType?.toLowerCase();
 
           const vehicleIcons = {
-            car: { icon: 'ri-car-fill', color: '#ff4d49' }, // Blue for Car
-            bike: { icon: 'ri-motorbike-fill', color: '#72e128' }, // Green for Bike
-            default: { icon: 'ri-roadster-fill', color: '#282a42' } // Grey for Others
+            car: { icon: 'ri-car-fill', color: '#ff4d49' },
+            bike: { icon: 'ri-motorbike-fill', color: '#72e128' },
+            default: { icon: 'ri-roadster-fill', color: '#282a42' }
           };
 
           const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default;
-
 
           return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -462,8 +476,8 @@ const OrderListTable = ({ orderData }) => {
                       const selectedId = row.original._id;
 
                       if (selectedId) {
-                        console.log('Navigating to Order Details:', selectedId); // ✅ Debugging
-                        router.push(`/pages/bookingdetails/${selectedId}`); // ✅ Navigate with Next.js
+                        console.log('Navigating to Order Details:', selectedId);
+                        router.push(`/pages/bookingdetails/${selectedId}`);
                       } else {
                         console.error('⚠️ Booking ID is undefined!');
                       }
@@ -480,23 +494,17 @@ const OrderListTable = ({ orderData }) => {
 
                         if (!selectedId) {
                           console.error('⚠️ Booking ID is missing!');
-
                           return;
                         }
 
                         console.log('Attempting to delete Booking ID:', selectedId);
-
-                        // ✅ Show confirmation alert before deleting
                         const isConfirmed = window.confirm("Are you sure you want to delete this booking?");
 
                         if (!isConfirmed) {
                           console.log('Deletion cancelled');
-
                           return;
                         }
 
-
-                        // ✅ Call API to delete the booking
                         const response = await fetch(`${API_URL}/vendor/deletebooking/${selectedId}`, {
                           method: 'DELETE'
                         });
@@ -506,8 +514,6 @@ const OrderListTable = ({ orderData }) => {
                         }
 
                         console.log('✅ Booking Deleted:', selectedId);
-
-                        // ✅ Update the table after deletion
                         setData(prevData => prevData.filter(booking => booking._id !== selectedId));
                       } catch (error) {
                         console.error('Error deleting booking:', error);
@@ -527,7 +533,7 @@ const OrderListTable = ({ orderData }) => {
   );
 
   const table = useReactTable({
-    data: filteredData.length > 0 || globalFilter ? filteredData : data, // ✅ Fix applied here
+    data: filteredData.length > 0 || globalFilter ? filteredData : data,
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -554,21 +560,6 @@ const OrderListTable = ({ orderData }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   });
 
-  const getAvatar = params => {
-    const { avatar, customer } = params
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} skin='light' size={34} />
-    } else {
-      return (
-        <CustomAvatar skin='light' size={34}>
-          {getInitials(customer)}
-        </CustomAvatar>
-      )
-    }
-  }
-
-
   return (
     <Card>
       <CardHeader title='Filters' />
@@ -581,18 +572,44 @@ const OrderListTable = ({ orderData }) => {
           placeholder='Search Order'
           className='sm:is-auto'
         />
-        {/* <Button variant='outlined' color='secondary' startIcon={<i className='ri-upload-2-line' />}>
-          Export
-        </Button> */}
-        <Button
-          variant='contained'
-          component={Link}
-          href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
-          startIcon={<i className='ri-add-line' />}
-          className='max-sm:is-full is-auto'
-        >
-          New Booking
-        </Button>
+        
+        <div className="flex gap-2">
+          <Button
+            variant='outlined'
+            startIcon={<Download />}
+            onClick={handleDownloadClick}
+          >
+            Export
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleDownloadClose}
+          >
+            <MenuItem onClick={exportToExcel}>
+              <ListItemIcon>
+                <GridOn fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Export to Excel</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={exportToPDF}>
+              <ListItemIcon>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Export to PDF</ListItemText>
+            </MenuItem>
+          </Menu>
+
+          <Button
+            variant='contained'
+            component={Link}
+            href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
+            startIcon={<i className='ri-add-line' />}
+            className='max-sm:is-full is-auto'
+          >
+            New Booking
+          </Button>
+        </div>
       </CardContent>
       <div className='overflow-x-auto'>
         <table className={tableStyles.table}>
@@ -669,5 +686,3 @@ const OrderListTable = ({ orderData }) => {
 }
 
 export default OrderListTable
-
-
