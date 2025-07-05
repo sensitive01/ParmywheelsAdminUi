@@ -279,7 +279,7 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
                     <>
                         <Box sx={{ mb: 3 }}>
                             <Typography variant="h6" gutterBottom>
-                                Booking Transactions
+                                Bookings
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Total Records: {settlementData.length}

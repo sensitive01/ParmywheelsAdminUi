@@ -1446,7 +1446,7 @@ const SpaceListTable = () => {
     const router = useRouter()
     const [spaceLoading, setSpaceLoading] = useState({});
     const [spaceStatusMap, setSpaceStatusMap] = useState({});
-       const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
 
     const handleExportClick = (event) => {
@@ -1459,40 +1459,40 @@ const SpaceListTable = () => {
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     };
-const exportToExcel = () => {
-  const dataToExport = globalFilter ? filteredData : data;
-  if (!dataToExport.length) return;
-  
-  let csvContent = "data:text/csv;charset=utf-8,";
-  const headers = ["ID", "Name", "Address", "Status", "Subscription", "Parking Capacity"];
-  csvContent += headers.join(",") + "\r\n";
-  
-  dataToExport.forEach(space => {
-    const parkingEntries = space.parkingEntries?.map(e => `${e.type}:${e.count}`).join('; ') || '';
-    const row = [
-      `"${space.vendorId}"`, 
-      `"${space.vendorName}"`, 
-      `"${space.address}"`,
-      `"${space.status}"`,
-      `"${space.subscription === "true" ? 'Active' : 'Inactive'}"`,
-      `"${parkingEntries}"`
-    ];
-    csvContent += row.join(",") + "\r\n";
-  });
-  
-  const link = document.createElement("a");
-  link.setAttribute("href", encodeURI(csvContent));
-  link.setAttribute("download", `spaces_export_${new Date().toISOString().slice(0,10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+    const exportToExcel = () => {
+        const dataToExport = globalFilter ? filteredData : data;
+        if (!dataToExport.length) return;
 
-const exportToPDF = () => {
-  const dataToExport = globalFilter ? filteredData : data;
-  if (!dataToExport.length) return;
-  
-  const printContent = `
+        let csvContent = "data:text/csv;charset=utf-8,";
+        const headers = ["ID", "Name", "Address", "Status", "Subscription", "Parking Capacity"];
+        csvContent += headers.join(",") + "\r\n";
+
+        dataToExport.forEach(space => {
+            const parkingEntries = space.parkingEntries?.map(e => `${e.type}:${e.count}`).join('; ') || '';
+            const row = [
+                `"${space.vendorId}"`,
+                `"${space.vendorName}"`,
+                `"${space.address}"`,
+                `"${space.status}"`,
+                `"${space.subscription === "true" ? 'Active' : 'Inactive'}"`,
+                `"${parkingEntries}"`
+            ];
+            csvContent += row.join(",") + "\r\n";
+        });
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `spaces_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportToPDF = () => {
+        const dataToExport = globalFilter ? filteredData : data;
+        if (!dataToExport.length) return;
+
+        const printContent = `
     <html>
       <head><title>Spaces Export</title></head>
       <body>
@@ -1512,17 +1512,17 @@ const exportToPDF = () => {
                 <td>${parkingEntries}</td>
               </tr>
             `;
-          }).join('')}
+        }).join('')}
         </table>
       </body>
     </html>
   `;
-  
-  const win = window.open('', '_blank');
-  win.document.write(printContent);
-  win.document.close();
-  setTimeout(() => win.print(), 500);
-};
+
+        const win = window.open('', '_blank');
+        win.document.write(printContent);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+    };
 
     // Modal state
     const [modalOpen, setModalOpen] = useState(false);
@@ -1879,54 +1879,54 @@ const exportToPDF = () => {
         <Card>
             <CardHeader
                 title='Space Management'
-                action={
-                    <>
-                        <Button
-                            variant='contained'
-                            startIcon={<Download />}
-                            onClick={handleExportClick}
-                            sx={{ backgroundColor: '#329a73' }}
-                        >
-                            Export
-                        </Button>
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={openMenu}
-                            onClose={handleExportClose}
-                        >
-                            <MenuItem onClick={() => {
-                                exportToExcel();
-                                handleExportClose();
-                            }}>
-                                <ListItemIcon><GridOn fontSize="small" /></ListItemIcon>
-                                <ListItemText>Excel</ListItemText>
-                            </MenuItem>
-                            <MenuItem onClick={() => {
-                                exportToPDF();
-                                handleExportClose();
-                            }}>
-                                <ListItemIcon><PictureAsPdf fontSize="small" /></ListItemIcon>
-                                <ListItemText>PDF</ListItemText>
-                            </MenuItem>
-                        </Menu>
-                    </>
-                }
             />
             <Divider />
-            <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
+            <CardContent className='flex justify-between items-center gap-4 flex-wrap'>
                 <DebouncedInput
                     value={globalFilter ?? ''}
                     onChange={value => setGlobalFilter(String(value))}
                     placeholder='Search Spaces'
-                    className='sm:is-auto'
+                    className='flex-grow max-w-[400px]'
                 />
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setUserModalOpen(true)}
-                >
-                    Add My Space
-                </Button>
+
+                <div className='flex items-center gap-4'>
+                    <Button
+                        variant='contained'
+                        startIcon={<Download />}
+                        onClick={handleExportClick}
+                        sx={{ backgroundColor: '#329a73' }}
+                    >
+                        Downlaod
+                    </Button>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleExportClose}
+                    >
+                        <MenuItem onClick={() => {
+                            exportToExcel();
+                            handleExportClose();
+                        }}>
+                            <ListItemIcon><GridOn fontSize="small" /></ListItemIcon>
+                            <ListItemText>Excel</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                            exportToPDF();
+                            handleExportClose();
+                        }}>
+                            <ListItemIcon><PictureAsPdf fontSize="small" /></ListItemIcon>
+                            <ListItemText>PDF</ListItemText>
+                        </MenuItem>
+                    </Menu>
+
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setUserModalOpen(true)}
+                    >
+                        Add My Space
+                    </Button>
+                </div>
             </CardContent>
             <UserListModal
                 open={userModalOpen}
