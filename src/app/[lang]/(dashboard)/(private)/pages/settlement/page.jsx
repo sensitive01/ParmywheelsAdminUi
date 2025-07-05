@@ -175,16 +175,16 @@ const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
                 </Typography>
             ),
         },
-        {
-            field: 'orderid',
-            headerName: 'Order ID',
-            width: 180,
-            renderCell: (params) => (
-                <Typography style={{ color: '#666cff' }}>
-                    {params.value}
-                </Typography>
-            ),
-        },
+        // {
+        //     field: 'orderid',
+        //     headerName: 'Order ID',
+        //     width: 180,
+        //     renderCell: (params) => (
+        //         <Typography style={{ color: '#666cff' }}>
+        //             {params.value}
+        //         </Typography>
+        //     ),
+        // },
         {
             field: 'parkingamout',
             headerName: 'Parking Amount',
