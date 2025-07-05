@@ -29,6 +29,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility'
+import HistoryIcon from '@mui/icons-material/History';
 import CloseIcon from '@mui/icons-material/Close'
 import Checkbox from '@mui/material/Checkbox';
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -107,13 +108,214 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 
 const columnHelper = createColumnHelper()
 
+// Vendor Settlement History Modal Component
+const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
+    const [settlementHistory, setSettlementHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
+
+    const fetchSettlementHistory = async () => {
+        if (!vendorId || !open) return;
+
+        setLoading(true);
+        setError(null);
+        setSettlementHistory([]);
+
+        try {
+            const response = await fetch(`${API_URL}/vendor/fetchsettlement/${vendorId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result && result.message && Array.isArray(result.data)) {
+                setSettlementHistory(result.data);
+            } else {
+                setError('Received unexpected data format from server');
+            }
+        } catch (err) {
+            console.error("Failed to fetch settlement history:", err);
+            setError(err.message || "Failed to fetch settlement history");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSettlementHistory();
+    }, [vendorId, open]);
+
+    const formatCurrency = (value) => {
+        if (value === null || value === undefined || isNaN(value)) return '₹0.00';
+        return `₹${parseFloat(value).toFixed(2)}`;
+    };
+
+    const columns = [
+        {
+            field: 'serialNo',
+            headerName: 'S.No',
+            width: 80,
+            renderCell: (params) => (
+                params.api.getRowIndexRelativeToVisibleRows(params.id) + 1
+            ),
+        },
+        {
+            field: '_id',
+            headerName: 'settlement ID',
+            width: 220,
+            renderCell: (params) => (
+                <Typography variant="body2" style={{ color: '#666' }}>
+                    {params.value}
+                </Typography>
+            ),
+        },
+        {
+            field: 'orderid',
+            headerName: 'Order ID',
+            width: 180,
+            renderCell: (params) => (
+                <Typography style={{ color: '#666cff' }}>
+                    {params.value}
+                </Typography>
+            ),
+        },
+        {
+            field: 'parkingamout',
+            headerName: 'Parking Amount',
+            width: 150,
+            renderCell: (params) => formatCurrency(params.value),
+        },
+        {
+            field: 'platformfee',
+            headerName: 'Platform Fee',
+            width: 150,
+            renderCell: (params) => formatCurrency(params.value),
+        },
+        {
+            field: 'gst',
+            headerName: 'GST',
+            width: 120,
+            renderCell: (params) => formatCurrency(params.value),
+        },
+        {
+            field: 'tds',
+            headerName: 'TDS',
+            width: 120,
+            renderCell: (params) => {
+                const tdsValue = Array.isArray(params.value) ? params.value[0] : '0.00';
+                return formatCurrency(tdsValue);
+            },
+        },
+        {
+            field: 'payableammout',
+            headerName: 'Payable Amount',
+            width: 150,
+            renderCell: (params) => formatCurrency(params.value),
+        },
+        {
+            field: 'date',
+            headerName: 'Date',
+            width: 120,
+        },
+        {
+            field: 'time',
+            headerName: 'Time',
+            width: 120,
+        },
+        {
+            field: 'status',
+            headerName: 'Status',
+            width: 150,
+            renderCell: (params) => {
+                const status = params.value?.toLowerCase() || 'pending';
+                const statusMap = {
+                    completed: { color: 'success', label: 'Completed' },
+                    pending: { color: 'warning', label: 'Pending' },
+                    failed: { color: 'error', label: 'Failed' },
+                    processing: { color: 'info', label: 'Processing' },
+                    settled: { color: 'success', label: 'Settled' }
+                };
+
+                const currentStatus = statusMap[status] || statusMap.pending;
+                return (
+                    <Chip
+                        label={currentStatus.label}
+                        color={currentStatus.color}
+                        variant="outlined"
+                        size="small"
+                    />
+                );
+            },
+        },
+    ];
+
+    return (
+        <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
+            <DialogTitle>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Vendor Settlement History
+                    <IconButton aria-label="close" onClick={handleClose}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+            </DialogTitle>
+            <DialogContent dividers>
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                        <CircularProgress />
+                    </Box>
+                ) : error ? (
+                    <Alert severity="error">{error}</Alert>
+                ) : settlementHistory.length === 0 ? (
+                    <Box sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" gutterBottom>
+                            No settlement history records found
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            This vendor doesn't have any settlement history yet.
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Box sx={{ height: 500, width: '100%' }}>
+                        <DataGrid
+                            rows={settlementHistory}
+                            columns={columns}
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={setPaginationModel}
+                            pageSizeOptions={[10, 25, 50]}
+                            getRowId={(row) => row._id}
+                            sx={{
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: '#329a73',
+                                    color: 'black',
+                                },
+                            }}
+                            slots={{
+                                toolbar: GridToolbar,
+                            }}
+                        />
+                    </Box>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose} color="primary">Close</Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
 // Vendor Settlement Modal Component
 const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
     const [settlementData, setSettlementData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
-    const [pageSize, setPageSize] = useState(10);
     const [rowCount, setRowCount] = useState(0);
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -123,7 +325,7 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
     const [updateSuccess, setUpdateSuccess] = useState(false);
 
     // Fetch settlement data with pagination
-    const fetchSettlementData = async (page = 0, size = pageSize) => {
+    const fetchSettlementData = async (page = 0, size = paginationModel.pageSize) => {
         if (!vendorId || !open) return;
 
         setLoading(true);
@@ -134,10 +336,10 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
                 `${API_URL}/vendor/fetchvendorbookingrelease/${vendorId}?page=${page + 1}&limit=${size}`
             );
             const data = await response.json();
-            
+
             if (data.success && data.data) {
                 // Filter out invalid entries
-                const filteredData = data.data.filter(item => 
+                const filteredData = data.data.filter(item =>
                     item && (
                         parseFloat(item.amount || 0) !== 0 ||
                         parseFloat(item.totalamount || 0) !== 0 ||
@@ -214,7 +416,7 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
             .reduce(
                 (acc, item) => {
                     if (!item) return acc;
-                    
+
                     acc.amount += parseFloat(item.amount || 0);
                     acc.gstamount += parseFloat(item.gstamount || 0);
                     acc.totalamount += parseFloat(item.totalamount || 0);
@@ -238,7 +440,7 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
         return settlementData.reduce(
             (acc, item) => {
                 if (!item) return acc;
-                
+
                 acc.amount += parseFloat(item.amount || 0);
                 acc.gstamount += parseFloat(item.gstamount || 0);
                 acc.totalamount += parseFloat(item.totalamount || 0);
@@ -431,12 +633,12 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
                                 Settlement status updated successfully!
                             </Alert>
                         )}
-                        
+
                         <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                             <Typography variant="h6" gutterBottom>
                                 Summary Totals
                             </Typography>
-                            
+
                             {selectedRows.length > 0 ? (
                                 <>
                                     <Typography variant="subtitle2" sx={{ mb: 2 }}>
@@ -534,8 +736,8 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
             <DialogActions>
                 <Button onClick={handleClose} color="primary">Close</Button>
                 {selectedRows.length > 0 && (
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="primary"
                         onClick={handleUpdateSettlement}
                         disabled={updateLoading}
@@ -561,17 +763,27 @@ const VendorListTable = () => {
     const [vendorLoading, setVendorLoading] = useState({});
     const [vendorStatusMap, setVendorStatusMap] = useState({});
 
-    // Modal state
-    const [modalOpen, setModalOpen] = useState(false);
+    // Modal states
+    const [settlementModalOpen, setSettlementModalOpen] = useState(false);
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [selectedVendorId, setSelectedVendorId] = useState(null);
 
-    const handleOpenModal = (vendorId) => {
+    const handleOpenSettlementModal = (vendorId) => {
         setSelectedVendorId(vendorId);
-        setModalOpen(true);
+        setSettlementModalOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setModalOpen(false);
+    const handleCloseSettlementModal = () => {
+        setSettlementModalOpen(false);
+    };
+
+    const handleOpenHistoryModal = (vendorId) => {
+        setSelectedVendorId(vendorId);
+        setHistoryModalOpen(true);
+    };
+
+    const handleCloseHistoryModal = () => {
+        setHistoryModalOpen(false);
     };
 
     const fetchVendors = async () => {
@@ -764,9 +976,19 @@ const VendorListTable = () => {
                                 size="small"
                                 color="primary"
                                 startIcon={<VisibilityIcon />}
-                                onClick={() => handleOpenModal(row.original._id)}
+                                onClick={() => handleOpenSettlementModal(row.original._id)}
                             >
                                 View
+                            </Button>
+
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                color="secondary"
+                                startIcon={<HistoryIcon />}
+                                onClick={() => handleOpenHistoryModal(row.original._id)}
+                            >
+                                Vendor Payouts
                             </Button>
 
                             <Button
@@ -930,8 +1152,15 @@ const VendorListTable = () => {
 
             {/* Vendor Settlement Modal */}
             <VendorSettlementModal
-                open={modalOpen}
-                handleClose={handleCloseModal}
+                open={settlementModalOpen}
+                handleClose={handleCloseSettlementModal}
+                vendorId={selectedVendorId}
+            />
+
+            {/* Vendor Settlement History Modal */}
+            <VendorSettlementHistoryModal
+                open={historyModalOpen}
+                handleClose={handleCloseHistoryModal}
                 vendorId={selectedVendorId}
             />
         </Card>
