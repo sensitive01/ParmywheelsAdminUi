@@ -206,6 +206,19 @@ const VendorSettlementModal = ({ open, handleClose, vendorId }) => {
                     {formatCurrency(params.value)}
                 </Typography>
             )
+        },
+          {
+            field: 'settlementStatus',
+            headerName: 'Settlement Status',
+            width: 180,
+            renderCell: (params) => (
+                <Chip
+                    label="Pending"
+                    color="warning"
+                    variant="outlined"
+                    size="small"
+                />
+            )
         }
     ];
 
