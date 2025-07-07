@@ -150,8 +150,8 @@
 //   )
 // }
 
-// const calculateTotalTime = (parkedDate, parkedTime, exitDate, exitTime) => {
-//   if (!parkedDate || !parkedTime || !exitDate || !exitTime) return '';
+// const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
+//   if (!parkedDate || !parkedTime || !exitDate || !exitTime) return 'N/A';
 
 //   try {
 //     // Parse start time
@@ -179,26 +179,48 @@
 //     }
 
 //     // Create Date objects
-//     const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`);
-//     const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`);
+//     const startTime = new Date(
+//       parseInt(startYear),
+//       parseInt(startMonth) - 1,
+//       parseInt(startDay),
+//       startHours,
+//       startMinutes
+//     );
 
-//     // Calculate difference
+//     const endTime = new Date(
+//       parseInt(endYear),
+//       parseInt(endMonth) - 1,
+//       parseInt(endDay),
+//       endHours,
+//       endMinutes
+//     );
+
+//     // Calculate difference in milliseconds
 //     const diffMs = endTime - startTime;
-//     const diffSecs = Math.floor(diffMs / 1000);
-//     const hours = Math.floor(diffSecs / 3600);
-//     const minutes = Math.floor((diffSecs % 3600) / 60);
 
-//     // Only return if we have valid numbers
-//     if (!isNaN(hours) && !isNaN(minutes)) {
-//       return `${hours}h ${minutes}m`;
+//     if (diffMs < 0) {
+//       return 'Invalid time range';
 //     }
-//     return '';
+
+//     // Calculate days, hours, minutes, seconds
+//     const diffSecs = Math.floor(diffMs / 1000);
+//     const days = Math.floor(diffSecs / (3600 * 24));
+//     const hours = Math.floor((diffSecs % (3600 * 24)) / 3600);
+//     const minutes = Math.floor((diffSecs % 3600) / 60);
+//     const seconds = diffSecs % 60;
+
+//     // Format the duration
+//     const formattedDays = days > 0 ? `${days}d ` : '';
+//     const formattedHours = hours.toString().padStart(2, '0');
+//     const formattedMinutes = minutes.toString().padStart(2, '0');
+//     const formattedSeconds = seconds.toString().padStart(2, '0');
+
+//     return `${formattedDays}${formattedHours}h ${formattedMinutes}m ${formattedSeconds}s`;
 //   } catch (e) {
-//     console.error("Error calculating total time:", e);
-//     return '';
+//     console.error("Error calculating duration:", e);
+//     return 'N/A';
 //   }
 // };
-
 // const columnHelper = createColumnHelper()
 
 // const OrderListTable = ({ orderData }) => {
@@ -291,7 +313,7 @@
 //     const dataToExport = selectedVendor ? filteredData : data;
 //     if (!dataToExport || dataToExport.length === 0) return;
 
-//     // Get the visible columns from the table
+//     // Get the visible columns (excluding payableTime)
 //     const visibleColumns = [
 //       'vehicleNumber',
 //       'bookingDate',
@@ -299,13 +321,14 @@
 //       'sts',
 //       'status',
 //       'vehicleType',
-//       'amount'
+//       'amount',
+//       'duration'  // Keep duration
 //     ];
 
 //     // Create CSV content
 //     let csvContent = "data:text/csv;charset=utf-8,";
 
-//     // Add headers
+//     // Add headers (excluding Payable Time)
 //     const headers = [
 //       'S.No',
 //       'Vehicle Number',
@@ -314,12 +337,24 @@
 //       'Booking Type',
 //       'Status',
 //       'Vehicle Type',
-//       'Amount (₹)'
+//       'Amount (₹)',
+//       'Duration'  // Keep duration
 //     ];
 //     csvContent += headers.join(",") + "\r\n";
 
-//     // Add data rows with serial numbers
+//     // Add data rows
 //     dataToExport.forEach((row, index) => {
+//       // Calculate duration for completed bookings
+//       let duration = '';
+//       if (row.status?.toLowerCase() === 'completed') {
+//         duration = calculateTotalDuration(
+//           row.parkedDate,
+//           row.parkedTime,
+//           row.exitvehicledate,
+//           row.exitvehicletime
+//         );
+//       }
+
 //       const rowData = [
 //         index + 1,
 //         `"${row.vehicleNumber}"`,
@@ -328,7 +363,8 @@
 //         `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
 //         `"${row.status}"`,
 //         `"${row.vehicleType}"`,
-//         `"${row.amount || 'N/A'}"`
+//         `"${row.amount || 'N/A'}"`,
+//         `"${duration}"`  // Keep duration
 //       ];
 //       csvContent += rowData.join(",") + "\r\n";
 //     });
@@ -358,50 +394,56 @@
 //       return sum + (parseInt(booking.amount) || 0);
 //     }, 0);
 
-//     // Create a basic PDF using browser's print functionality
+//     // Create PDF content (removed Payable Time column)
 //     const printContent = `
-//       <html>
-//         <head>
-//           <title>Bookings Report</title>
-//           <style>
-//             body { font-family: Arial; margin: 20px; }
-//             h1 { color: #333; }
-//             .report-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-//             .vendor-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-//             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-//             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-//             th { background-color: #f2f2f2; }
-//             .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-//             .summary { margin-bottom: 20px; }
-//             .total-amount { font-weight: bold; margin-top: 20px; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="header">
-//             <h1>Bookings Report</h1>
-//             <div>
-//               <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
-//               <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
-//             </div>
-//           </div>
+//     <html>
+//       <head>
+//         <title>Bookings Report</title>
+//         <style>
+//           body { font-family: Arial; margin: 20px; }
+//           h1 { color: #333; }
+//           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+//           th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+//           th { background-color: #f2f2f2; }
+//           .total-amount { font-weight: bold; margin-top: 20px; }
+//         </style>
+//       </head>
+//       <body>
+//         <h1>Bookings Report</h1>
+//         <div>
+//           <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+//           <p><strong>Vendor:</strong> ${vendorName}</p>
+//           <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
+//         </div>
+        
+//         <table>
+//           <thead>
+//             <tr>
+//               <th>S.No</th>
+//               <th>Vehicle No.</th>
+//               <th>Booking Date & Time</th>
+//               <th>Customer</th>
+//               <th>Booking Type</th>
+//               <th>Status</th>
+//               <th>Vehicle Type</th>
+//               <th>Amount (₹)</th>
+//               <th>Duration</th> <!-- Keep Duration -->
+//             </tr>
+//           </thead>
+//           <tbody>
+//             ${dataToExport.map((booking, index) => {
+//       // Calculate duration for completed bookings
+//       let duration = '';
+//       if (booking.status?.toLowerCase() === 'completed') {
+//         duration = calculateTotalDuration(
+//           booking.parkedDate,
+//           booking.parkedTime,
+//           booking.exitvehicledate,
+//           booking.exitvehicletime
+//         );
+//       }
 
-//           <div class="vendor-name">Vendor: ${vendorName}</div>
-
-//           <table>
-//             <thead>
-//               <tr>
-//                 <th>S.No</th>
-//                 <th>Vehicle No.</th>
-//                 <th>Booking Date & Time</th>
-//                 <th>Customer</th>
-//                 <th>Booking Type</th>
-//                 <th>Status</th>
-//                 <th>Vehicle Type</th>
-//                 <th>Amount (₹)</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               ${dataToExport.map((booking, index) => `
+//       return `
 //                 <tr>
 //                   <td>${index + 1}</td>
 //                   <td>${booking.vehicleNumber}</td>
@@ -411,17 +453,19 @@
 //                   <td>${booking.status}</td>
 //                   <td>${booking.vehicleType}</td>
 //                   <td>${booking.amount || 'N/A'}</td>
+//                   <td>${duration}</td> <!-- Keep Duration -->
 //                 </tr>
-//               `).join('')}
-//             </tbody>
-//           </table>
-
-//           <div class="total-amount">
-//             Total Amount: ₹${totalAmount.toLocaleString()}
-//           </div>
-//         </body>
-//       </html>
-//     `;
+//               `;
+//     }).join('')}
+//           </tbody>
+//         </table>
+        
+//         <div class="total-amount">
+//           Total Amount: ₹${totalAmount.toLocaleString()}
+//         </div>
+//       </body>
+//     </html>
+//   `;
 
 //     const win = window.open('', '_blank');
 //     win.document.write(printContent);
@@ -474,32 +518,8 @@
 //         cell: ({ row }) => {
 //           const status = row.original.status?.toLowerCase();
 
-//           // For completed status, show total time
-//           if (status === 'completed') {
-//             const totalTime = calculateTotalTime(
-//               row.original.parkedDate,
-//               row.original.parkedTime,
-//               row.original.exitvehicledate,
-//               row.original.exitvehicletime
-//             );
-
-//             // Only render if we have a valid time
-//             if (totalTime) {
-//               return (
-//                 <div className="flex items-center gap-2">
-//                   <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
-//                   <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
-//                     {totalTime}
-//                   </Typography>
-//                 </div>
-//               );
-//             }
-//             return null;
-//           }
-
-//           // For parked status, show real-time timer
-//           const isParked = status === 'parked';
-//           if (isParked) {
+//           // Only show for parked status
+//           if (status === 'parked') {
 //             return (
 //               <div className="flex items-center gap-2">
 //                 <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
@@ -508,6 +528,30 @@
 //                   parkedTime={row.original.parkedTime}
 //                 />
 //               </div>
+//             );
+//           }
+
+//           return null;
+//         }
+//       }),
+//       columnHelper.accessor('duration', {
+//         header: 'Duration',
+//         cell: ({ row }) => {
+//           const status = row.original.status?.toLowerCase();
+
+//           // Only show duration for completed bookings
+//           if (status === 'completed') {
+//             const duration = calculateTotalDuration(
+//               row.original.parkedDate,
+//               row.original.parkedTime,
+//               row.original.exitvehicledate,
+//               row.original.exitvehicletime
+//             );
+
+//             return (
+//               <Typography sx={{ fontWeight: 500, color: '#666CFF' }}>
+//                 {duration}
+//               </Typography>
 //             );
 //           }
 
@@ -738,7 +782,7 @@
 //             startIcon={<Download />}
 //             onClick={handleDownloadClick}
 //           >
-//             Export
+//             Downlaod
 //           </Button>
 //           <Menu
 //             anchorEl={anchorEl}
@@ -766,7 +810,7 @@
 //             startIcon={<i className='ri-add-line' />}
 //             className='max-sm:is-full is-auto'
 //           >
-//             New Booking
+//             New Bking
 //           </Button>
 //         </div>
 //       </CardContent>
@@ -1022,7 +1066,7 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
     // Convert to 24-hour format
     if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
       startHours += 12;
-    } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
+    } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === '12') {
       startHours = 0;
     }
 
@@ -1034,7 +1078,7 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
     // Convert to 24-hour format
     if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
       endHours += 12;
-    } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
+    } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === '12') {
       endHours = 0;
     }
 
@@ -1081,6 +1125,7 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
     return 'N/A';
   }
 };
+
 const columnHelper = createColumnHelper()
 
 const OrderListTable = ({ orderData }) => {
@@ -1099,6 +1144,14 @@ const OrderListTable = ({ orderData }) => {
   // Download menu state
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    vehicleType: '',
+    sts: '',
+    status: '',
+    bookingDate: ''
+  })
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -1119,7 +1172,7 @@ const OrderListTable = ({ orderData }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null); // Reset error state before new fetch
+        setError(null);
         const response = await fetch(`${API_URL}/vendor/bookings`);
 
         if (!response.ok) {
@@ -1140,7 +1193,7 @@ const OrderListTable = ({ orderData }) => {
         }
       } catch (error) {
         console.error('Error fetching booking data:', error);
-        setError(error.message); // Set error state
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -1150,15 +1203,42 @@ const OrderListTable = ({ orderData }) => {
     fetchData();
   }, []);
 
-  // Filter data based on selected vendor
+  // Apply filters whenever data, selectedVendor, or filters change
   useEffect(() => {
-    if (selectedVendor) {
-      const filtered = data.filter(booking => booking.vendorId === selectedVendor);
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(data);
-    }
-  }, [selectedVendor, data]);
+    const applyFilters = () => {
+      let result = [...data];
+      
+      // First filter by vendor if selected
+      if (selectedVendor) {
+        result = result.filter(booking => booking.vendorId === selectedVendor);
+      }
+      
+      // Then apply other filters
+      if (filters.vehicleType) {
+        result = result.filter(booking => booking.vehicleType === filters.vehicleType);
+      }
+      if (filters.sts) {
+        result = result.filter(booking => booking.sts === filters.sts);
+      }
+      if (filters.status) {
+        result = result.filter(booking => booking.status === filters.status);
+      }
+      if (filters.bookingDate) {
+        result = result.filter(booking => booking.bookingDate === filters.bookingDate);
+      }
+      
+      setFilteredData(result);
+    };
+
+    applyFilters();
+  }, [data, selectedVendor, filters]);
+
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   // Download menu handlers
   const handleDownloadClick = (event) => {
@@ -1170,7 +1250,7 @@ const OrderListTable = ({ orderData }) => {
   };
 
   const exportToExcel = () => {
-    const dataToExport = selectedVendor ? filteredData : data;
+    const dataToExport = filteredData;
     if (!dataToExport || dataToExport.length === 0) return;
 
     // Get the visible columns (excluding payableTime)
@@ -1182,7 +1262,7 @@ const OrderListTable = ({ orderData }) => {
       'status',
       'vehicleType',
       'amount',
-      'duration'  // Keep duration
+      'duration'
     ];
 
     // Create CSV content
@@ -1198,13 +1278,12 @@ const OrderListTable = ({ orderData }) => {
       'Status',
       'Vehicle Type',
       'Amount (₹)',
-      'Duration'  // Keep duration
+      'Duration'
     ];
     csvContent += headers.join(",") + "\r\n";
 
     // Add data rows
     dataToExport.forEach((row, index) => {
-      // Calculate duration for completed bookings
       let duration = '';
       if (row.status?.toLowerCase() === 'completed') {
         duration = calculateTotalDuration(
@@ -1224,7 +1303,7 @@ const OrderListTable = ({ orderData }) => {
         `"${row.status}"`,
         `"${row.vehicleType}"`,
         `"${row.amount || 'N/A'}"`,
-        `"${duration}"`  // Keep duration
+        `"${duration}"`
       ];
       csvContent += rowData.join(",") + "\r\n";
     });
@@ -1242,7 +1321,7 @@ const OrderListTable = ({ orderData }) => {
   };
 
   const exportToPDF = () => {
-    const dataToExport = selectedVendor ? filteredData : data;
+    const dataToExport = filteredData;
     if (!dataToExport || dataToExport.length === 0) return;
 
     const vendorName = selectedVendor
@@ -1287,23 +1366,22 @@ const OrderListTable = ({ orderData }) => {
               <th>Status</th>
               <th>Vehicle Type</th>
               <th>Amount (₹)</th>
-              <th>Duration</th> <!-- Keep Duration -->
+              <th>Duration</th>
             </tr>
           </thead>
           <tbody>
             ${dataToExport.map((booking, index) => {
-      // Calculate duration for completed bookings
-      let duration = '';
-      if (booking.status?.toLowerCase() === 'completed') {
-        duration = calculateTotalDuration(
-          booking.parkedDate,
-          booking.parkedTime,
-          booking.exitvehicledate,
-          booking.exitvehicletime
-        );
-      }
+              let duration = '';
+              if (booking.status?.toLowerCase() === 'completed') {
+                duration = calculateTotalDuration(
+                  booking.parkedDate,
+                  booking.parkedTime,
+                  booking.exitvehicledate,
+                  booking.exitvehicletime
+                );
+              }
 
-      return `
+              return `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${booking.vehicleNumber}</td>
@@ -1313,10 +1391,10 @@ const OrderListTable = ({ orderData }) => {
                   <td>${booking.status}</td>
                   <td>${booking.vehicleType}</td>
                   <td>${booking.amount || 'N/A'}</td>
-                  <td>${duration}</td> <!-- Keep Duration -->
+                  <td>${duration}</td>
                 </tr>
               `;
-    }).join('')}
+            }).join('')}
           </tbody>
         </table>
         
@@ -1624,7 +1702,11 @@ const OrderListTable = ({ orderData }) => {
               ))}
             </Select>
           </FormControl>
-          <TableFilters setData={setFilteredData} bookingData={data} />
+          <TableFilters 
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            bookingData={selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data}
+          />
         </div>
       </CardContent>
       <Divider />
@@ -1642,7 +1724,7 @@ const OrderListTable = ({ orderData }) => {
             startIcon={<Download />}
             onClick={handleDownloadClick}
           >
-            Downlaod
+            Download
           </Button>
           <Menu
             anchorEl={anchorEl}
