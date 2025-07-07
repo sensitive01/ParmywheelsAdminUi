@@ -301,33 +301,47 @@ const OrderListTable = ({ orderData }) => {
 
   // Apply filters whenever data, selectedVendor, or filters change
   useEffect(() => {
-    const applyFilters = () => {
-      let result = [...data];
-      
-      // First filter by vendor if selected
-      if (selectedVendor) {
-        result = result.filter(booking => booking.vendorId === selectedVendor);
-      }
-      
-      // Then apply other filters
-      if (filters.vehicleType) {
-        result = result.filter(booking => booking.vehicleType === filters.vehicleType);
-      }
-      if (filters.sts) {
-        result = result.filter(booking => booking.sts === filters.sts);
-      }
-      if (filters.status) {
-        result = result.filter(booking => booking.status === filters.status);
-      }
-      if (filters.bookingDate) {
-        result = result.filter(booking => booking.bookingDate === filters.bookingDate);
-      }
-      
-      setFilteredData(result.length > 0 ? result : []);
-    };
+  const applyFilters = () => {
+    let filteredResults = [...data]; // Renamed to filteredResults to avoid confusion
+    
+    // First filter by vendor if selected
+    if (selectedVendor) {
+      filteredResults = filteredResults.filter(booking => booking.vendorId === selectedVendor);
+    }
+    
+    // Then apply other filters
+    if (filters.vehicleType) {
+      filteredResults = filteredResults.filter(booking => booking.vehicleType === filters.vehicleType);
+    }
+    if (filters.sts) {
+      filteredResults = filteredResults.filter(booking => booking.sts === filters.sts);
+    }
+    if (filters.status) {
+      filteredResults = filteredResults.filter(booking => booking.status === filters.status);
+    }
+    if (filters.bookingDate) {
+      // Convert both dates to YYYY-MM-DD format for comparison
+      filteredResults = filteredResults.filter(booking => {
+        const bookingDateParts = booking.bookingDate.split('-');
+        if (bookingDateParts.length !== 3) return false;
+        
+        // Reformat booking date to YYYY-MM-DD
+        const formattedBookingDate = `${bookingDateParts[2]}-${bookingDateParts[1]}-${bookingDateParts[0]}`;
+        
+        // Reformat filter date to YYYY-MM-DD (assuming it's in DD-MM-YYYY format)
+        const filterDateParts = filters.bookingDate.split('-');
+        if (filterDateParts.length !== 3) return false;
+        const formattedFilterDate = `${filterDateParts[2]}-${filterDateParts[1]}-${filterDateParts[0]}`;
+        
+        return formattedBookingDate === formattedFilterDate;
+      });
+    }
+    
+    setFilteredData(filteredResults.length > 0 ? filteredResults : []);
+  };
 
-    applyFilters();
-  }, [data, selectedVendor, filters]);
+  applyFilters();
+}, [data, selectedVendor, filters]);
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({
