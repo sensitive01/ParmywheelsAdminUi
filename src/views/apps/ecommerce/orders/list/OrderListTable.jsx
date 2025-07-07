@@ -356,88 +356,131 @@ const OrderListTable = ({ orderData }) => {
     setAnchorEl(null);
   };
 
-  const exportToExcel = () => {
-    // Use filteredData if we have a vendor selected, otherwise use all data
-    const dataToExport = selectedVendor ? filteredData : data;
-    if (!dataToExport || dataToExport.length === 0) {
-      alert('No data to export');
-      return;
+ const exportToExcel = () => {
+  // Get data filtered by ALL current filters (vendor + date + others)
+  const filteredByVendor = selectedVendor 
+    ? data.filter(booking => booking.vendorId === selectedVendor)
+    : data;
+
+  const filteredByAll = filteredByVendor.filter(booking => {
+    // Apply date filter if present
+    if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
+      return false;
+    }
+    // Apply other filters if present
+    if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
+      return false;
+    }
+    if (filters.sts && booking.sts !== filters.sts) {
+      return false;
+    }
+    if (filters.status && booking.status !== filters.status) {
+      return false;
+    }
+    return true;
+  });
+
+  if (!filteredByAll || filteredByAll.length === 0) {
+    alert('No data to export with current filters');
+    return;
+  }
+
+  // Rest of your Excel export code...
+  let csvContent = "data:text/csv;charset=utf-8,";
+
+  const headers = [
+    'S.No',
+    'Vehicle Number',
+    'Booking Date & Time',
+    'Customer Name',
+    'Booking Type',
+    'Status',
+    'Vehicle Type',
+    'Amount (₹)',
+    'Duration'
+  ];
+  csvContent += headers.join(",") + "\r\n";
+
+  filteredByAll.forEach((row, index) => {
+    let duration = '';
+    if (row.status?.toLowerCase() === 'completed') {
+      duration = calculateTotalDuration(
+        row.parkedDate,
+        row.parkedTime,
+        row.exitvehicledate,
+        row.exitvehicletime
+      );
     }
 
-    // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,";
-
-    // Add headers (excluding Payable Time)
-    const headers = [
-      'S.No',
-      'Vehicle Number',
-      'Booking Date & Time',
-      'Customer Name',
-      'Booking Type',
-      'Status',
-      'Vehicle Type',
-      'Amount (₹)',
-      'Duration'
+    const rowData = [
+      index + 1,
+      `"${row.vehicleNumber}"`,
+      `"${row.bookingDate}, ${row.bookingTime}"`,
+      `"${row.personName}"`,
+      `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
+      `"${row.status}"`,
+      `"${row.vehicleType}"`,
+      `"${row.amount || 'N/A'}"`,
+      `"${duration}"`
     ];
-    csvContent += headers.join(",") + "\r\n";
+    csvContent += rowData.join(",") + "\r\n";
+  });
 
-    // Add data rows
-    dataToExport.forEach((row, index) => {
-      let duration = '';
-      if (row.status?.toLowerCase() === 'completed') {
-        duration = calculateTotalDuration(
-          row.parkedDate,
-          row.parkedTime,
-          row.exitvehicledate,
-          row.exitvehicletime
-        );
-      }
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  const vendorName = selectedVendor 
+    ? vendors.find(v => v._id === selectedVendor)?.vendorName 
+    : 'all_vendors';
+  const fileName = `bookings_${vendorName}_${filters.bookingDate || 'all_dates'}_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-      const rowData = [
-        index + 1,
-        `"${row.vehicleNumber}"`,
-        `"${row.bookingDate}, ${row.bookingTime}"`,
-        `"${row.personName}"`,
-        `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
-        `"${row.status}"`,
-        `"${row.vehicleType}"`,
-        `"${row.amount || 'N/A'}"`,
-        `"${duration}"`
-      ];
-      csvContent += rowData.join(",") + "\r\n";
-    });
+  handleDownloadClose();
+};
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    const vendorName = vendors.find(v => v._id === selectedVendor)?.vendorName || 'all';
-    link.setAttribute("download", `bookings_${vendorName}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+const exportToPDF = () => {
+  // Get data filtered by ALL current filters (vendor + date + others)
+  const filteredByVendor = selectedVendor 
+    ? data.filter(booking => booking.vendorId === selectedVendor)
+    : data;
 
-    handleDownloadClose();
-  };
-
-  const exportToPDF = () => {
-    // Use filteredData if we have a vendor selected, otherwise use all data
-    const dataToExport = selectedVendor ? filteredData : data;
-    if (!dataToExport || dataToExport.length === 0) {
-      alert('No data to export');
-      return;
+  const filteredByAll = filteredByVendor.filter(booking => {
+    // Apply date filter if present
+    if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
+      return false;
     }
+    // Apply other filters if present
+    if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
+      return false;
+    }
+    if (filters.sts && booking.sts !== filters.sts) {
+      return false;
+    }
+    if (filters.status && booking.status !== filters.status) {
+      return false;
+    }
+    return true;
+  });
 
-    const vendorName = selectedVendor
-      ? vendors.find(v => v._id === selectedVendor)?.vendorName
-      : 'All Vendors';
+  if (!filteredByAll || filteredByAll.length === 0) {
+    alert('No data to export with current filters');
+    return;
+  }
 
-    // Calculate total amount
-    const totalAmount = dataToExport.reduce((sum, booking) => {
-      return sum + (parseInt(booking.amount) || 0);
-    }, 0);
+  const vendorName = selectedVendor
+    ? vendors.find(v => v._id === selectedVendor)?.vendorName
+    : 'All Vendors';
 
-    // Create PDF content (removed Payable Time column)
-    const printContent = `
+  // Calculate total amount
+  const totalAmount = filteredByAll.reduce((sum, booking) => {
+    return sum + (parseInt(booking.amount) || 0);
+  }, 0);
+
+  // Rest of your PDF export code...
+  const printContent = `
     <html>
       <head>
         <title>Bookings Report</title>
@@ -448,14 +491,19 @@ const OrderListTable = ({ orderData }) => {
           th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
           th { background-color: #f2f2f2; }
           .total-amount { font-weight: bold; margin-top: 20px; }
+          .filter-info { margin-bottom: 20px; }
         </style>
       </head>
       <body>
         <h1>Bookings Report</h1>
-        <div>
+        <div class="filter-info">
           <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
           <p><strong>Vendor:</strong> ${vendorName}</p>
-          <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
+          ${filters.bookingDate ? `<p><strong>Booking Date:</strong> ${filters.bookingDate}</p>` : ''}
+          ${filters.vehicleType ? `<p><strong>Vehicle Type:</strong> ${filters.vehicleType}</p>` : ''}
+          ${filters.sts ? `<p><strong>Booking Type:</strong> ${filters.sts}</p>` : ''}
+          ${filters.status ? `<p><strong>Status:</strong> ${filters.status}</p>` : ''}
+          <p><strong>Total Bookings:</strong> ${filteredByAll.length}</p>
         </div>
         
         <table>
@@ -473,7 +521,7 @@ const OrderListTable = ({ orderData }) => {
             </tr>
           </thead>
           <tbody>
-            ${dataToExport.map((booking, index) => {
+            ${filteredByAll.map((booking, index) => {
               let duration = '';
               if (booking.status?.toLowerCase() === 'completed') {
                 duration = calculateTotalDuration(
@@ -508,17 +556,17 @@ const OrderListTable = ({ orderData }) => {
     </html>
   `;
 
-    const win = window.open('', '_blank');
-    win.document.write(printContent);
-    win.document.close();
-    win.focus();
-    setTimeout(() => {
-      win.print();
-      win.close();
-    }, 500);
+  const win = window.open('', '_blank');
+  win.document.write(printContent);
+  win.document.close();
+  win.focus();
+  setTimeout(() => {
+    win.print();
+    win.close();
+  }, 500);
 
-    handleDownloadClose();
-  };
+  handleDownloadClose();
+};
 
   const columns = useMemo(
     () => [
