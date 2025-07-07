@@ -384,9 +384,9 @@
 //               <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
 //             </div>
 //           </div>
-          
+
 //           <div class="vendor-name">Vendor: ${vendorName}</div>
-          
+
 //           <table>
 //             <thead>
 //               <tr>
@@ -415,7 +415,7 @@
 //               `).join('')}
 //             </tbody>
 //           </table>
-          
+
 //           <div class="total-amount">
 //             Total Amount: ₹${totalAmount.toLocaleString()}
 //           </div>
@@ -1046,7 +1046,7 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
       startHours,
       startMinutes
     );
-    
+
     const endTime = new Date(
       parseInt(endYear),
       parseInt(endMonth) - 1,
@@ -1057,7 +1057,7 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
 
     // Calculate difference in milliseconds
     const diffMs = endTime - startTime;
-    
+
     if (diffMs < 0) {
       return 'Invalid time range';
     }
@@ -1173,7 +1173,7 @@ const OrderListTable = ({ orderData }) => {
     const dataToExport = selectedVendor ? filteredData : data;
     if (!dataToExport || dataToExport.length === 0) return;
 
-    // Get the visible columns from the table
+    // Get the visible columns (excluding payableTime)
     const visibleColumns = [
       'vehicleNumber',
       'bookingDate',
@@ -1181,13 +1181,14 @@ const OrderListTable = ({ orderData }) => {
       'sts',
       'status',
       'vehicleType',
-      'amount'
+      'amount',
+      'duration'  // Keep duration
     ];
 
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,";
 
-    // Add headers
+    // Add headers (excluding Payable Time)
     const headers = [
       'S.No',
       'Vehicle Number',
@@ -1196,12 +1197,24 @@ const OrderListTable = ({ orderData }) => {
       'Booking Type',
       'Status',
       'Vehicle Type',
-      'Amount (₹)'
+      'Amount (₹)',
+      'Duration'  // Keep duration
     ];
     csvContent += headers.join(",") + "\r\n";
 
-    // Add data rows with serial numbers
+    // Add data rows
     dataToExport.forEach((row, index) => {
+      // Calculate duration for completed bookings
+      let duration = '';
+      if (row.status?.toLowerCase() === 'completed') {
+        duration = calculateTotalDuration(
+          row.parkedDate,
+          row.parkedTime,
+          row.exitvehicledate,
+          row.exitvehicletime
+        );
+      }
+
       const rowData = [
         index + 1,
         `"${row.vehicleNumber}"`,
@@ -1210,7 +1223,8 @@ const OrderListTable = ({ orderData }) => {
         `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
         `"${row.status}"`,
         `"${row.vehicleType}"`,
-        `"${row.amount || 'N/A'}"`
+        `"${row.amount || 'N/A'}"`,
+        `"${duration}"`  // Keep duration
       ];
       csvContent += rowData.join(",") + "\r\n";
     });
@@ -1240,50 +1254,56 @@ const OrderListTable = ({ orderData }) => {
       return sum + (parseInt(booking.amount) || 0);
     }, 0);
 
-    // Create a basic PDF using browser's print functionality
+    // Create PDF content (removed Payable Time column)
     const printContent = `
-      <html>
-        <head>
-          <title>Bookings Report</title>
-          <style>
-            body { font-family: Arial; margin: 20px; }
-            h1 { color: #333; }
-            .report-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-            .vendor-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-            .summary { margin-bottom: 20px; }
-            .total-amount { font-weight: bold; margin-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Bookings Report</h1>
-            <div>
-              <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
-              <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
-            </div>
-          </div>
-          
-          <div class="vendor-name">Vendor: ${vendorName}</div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th>Vehicle No.</th>
-                <th>Booking Date & Time</th>
-                <th>Customer</th>
-                <th>Booking Type</th>
-                <th>Status</th>
-                <th>Vehicle Type</th>
-                <th>Amount (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dataToExport.map((booking, index) => `
+    <html>
+      <head>
+        <title>Bookings Report</title>
+        <style>
+          body { font-family: Arial; margin: 20px; }
+          h1 { color: #333; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .total-amount { font-weight: bold; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <h1>Bookings Report</h1>
+        <div>
+          <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>Vendor:</strong> ${vendorName}</p>
+          <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Vehicle No.</th>
+              <th>Booking Date & Time</th>
+              <th>Customer</th>
+              <th>Booking Type</th>
+              <th>Status</th>
+              <th>Vehicle Type</th>
+              <th>Amount (₹)</th>
+              <th>Duration</th> <!-- Keep Duration -->
+            </tr>
+          </thead>
+          <tbody>
+            ${dataToExport.map((booking, index) => {
+      // Calculate duration for completed bookings
+      let duration = '';
+      if (booking.status?.toLowerCase() === 'completed') {
+        duration = calculateTotalDuration(
+          booking.parkedDate,
+          booking.parkedTime,
+          booking.exitvehicledate,
+          booking.exitvehicletime
+        );
+      }
+
+      return `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${booking.vehicleNumber}</td>
@@ -1293,17 +1313,19 @@ const OrderListTable = ({ orderData }) => {
                   <td>${booking.status}</td>
                   <td>${booking.vehicleType}</td>
                   <td>${booking.amount || 'N/A'}</td>
+                  <td>${duration}</td> <!-- Keep Duration -->
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          
-          <div class="total-amount">
-            Total Amount: ₹${totalAmount.toLocaleString()}
-          </div>
-        </body>
-      </html>
-    `;
+              `;
+    }).join('')}
+          </tbody>
+        </table>
+        
+        <div class="total-amount">
+          Total Amount: ₹${totalAmount.toLocaleString()}
+        </div>
+      </body>
+    </html>
+  `;
 
     const win = window.open('', '_blank');
     win.document.write(printContent);
@@ -1355,7 +1377,7 @@ const OrderListTable = ({ orderData }) => {
         header: 'Payable Time',
         cell: ({ row }) => {
           const status = row.original.status?.toLowerCase();
-          
+
           // Only show for parked status
           if (status === 'parked') {
             return (
@@ -1368,7 +1390,7 @@ const OrderListTable = ({ orderData }) => {
               </div>
             );
           }
-          
+
           return null;
         }
       }),
@@ -1376,7 +1398,7 @@ const OrderListTable = ({ orderData }) => {
         header: 'Duration',
         cell: ({ row }) => {
           const status = row.original.status?.toLowerCase();
-          
+
           // Only show duration for completed bookings
           if (status === 'completed') {
             const duration = calculateTotalDuration(
@@ -1392,7 +1414,7 @@ const OrderListTable = ({ orderData }) => {
               </Typography>
             );
           }
-          
+
           return null;
         }
       }),
