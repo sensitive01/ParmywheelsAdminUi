@@ -22,6 +22,9 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
 
 // Icons
 import { Download, PictureAsPdf, GridOn } from '@mui/icons-material'
@@ -153,6 +156,8 @@ const OrderListTable = ({ orderData }) => {
   const [loading, setLoading] = useState(true)
   const [globalFilter, setGlobalFilter] = useState('')
   const [filteredData, setFilteredData] = useState(data)
+  const [vendors, setVendors] = useState([])
+  const [selectedVendor, setSelectedVendor] = useState('')
   const { lang: locale } = useParams()
   const { data: session } = useSession()
   const router = useRouter();
@@ -163,6 +168,21 @@ const OrderListTable = ({ orderData }) => {
   const open = Boolean(anchorEl)
 
   useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const response = await fetch(`${API_URL}/vendor/all-vendors`);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        const result = await response.json();
+        if (result && Array.isArray(result.data)) {
+          setVendors(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+      }
+    };
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -193,8 +213,19 @@ const OrderListTable = ({ orderData }) => {
       }
     };
 
+    fetchVendors();
     fetchData();
   }, []);
+
+  // Filter data based on selected vendor
+  useEffect(() => {
+    if (selectedVendor) {
+      const filtered = data.filter(booking => booking.vendorId === selectedVendor);
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data);
+    }
+  }, [selectedVendor, data]);
 
   // Download menu handlers
   const handleDownloadClick = (event) => {
@@ -206,7 +237,8 @@ const OrderListTable = ({ orderData }) => {
   };
 
   const exportToExcel = () => {
-    if (!data || data.length === 0) return;
+    const dataToExport = selectedVendor ? filteredData : data;
+    if (!dataToExport || dataToExport.length === 0) return;
     
     // Get the visible columns from the table
     const visibleColumns = [
@@ -223,6 +255,7 @@ const OrderListTable = ({ orderData }) => {
     
     // Add headers
     const headers = [
+      'S.No',
       'Vehicle Number',
       'Booking Date & Time',
       'Customer Name',
@@ -232,9 +265,10 @@ const OrderListTable = ({ orderData }) => {
     ];
     csvContent += headers.join(",") + "\r\n";
     
-    // Add data rows
-    data.forEach(row => {
+    // Add data rows with serial numbers
+    dataToExport.forEach((row, index) => {
       const rowData = [
+        index + 1,
         `"${row.vehicleNumber}"`,
         `"${row.bookingDate}, ${row.bookingTime}"`,
         `"${row.personName}"`,
@@ -248,7 +282,8 @@ const OrderListTable = ({ orderData }) => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `bookings_${new Date().toISOString().slice(0,10)}.csv`);
+    const vendorName = vendors.find(v => v._id === selectedVendor)?.vendorName || 'all';
+    link.setAttribute("download", `bookings_${vendorName}_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -257,7 +292,12 @@ const OrderListTable = ({ orderData }) => {
   };
 
   const exportToPDF = () => {
-    if (!data || data.length === 0) return;
+    const dataToExport = selectedVendor ? filteredData : data;
+    if (!dataToExport || dataToExport.length === 0) return;
+    
+    const vendorName = selectedVendor 
+      ? vendors.find(v => v._id === selectedVendor)?.vendorName 
+      : 'All Vendors';
     
     // Create a basic PDF using browser's print functionality
     const printContent = `
@@ -267,6 +307,8 @@ const OrderListTable = ({ orderData }) => {
           <style>
             body { font-family: Arial; margin: 20px; }
             h1 { color: #333; }
+            .report-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+            .vendor-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
@@ -279,13 +321,16 @@ const OrderListTable = ({ orderData }) => {
             <h1>Bookings Report</h1>
             <div>
               <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
-              <p><strong>Total Bookings:</strong> ${data.length}</p>
+              <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
             </div>
           </div>
+          
+          <div class="vendor-name">Vendor: ${vendorName}</div>
           
           <table>
             <thead>
               <tr>
+                <th>S.No</th>
                 <th>Vehicle No.</th>
                 <th>Booking Date & Time</th>
                 <th>Customer</th>
@@ -295,8 +340,9 @@ const OrderListTable = ({ orderData }) => {
               </tr>
             </thead>
             <tbody>
-              ${data.map(booking => `
+              ${dataToExport.map((booking, index) => `
                 <tr>
+                  <td>${index + 1}</td>
                   <td>${booking.vehicleNumber}</td>
                   <td>${booking.bookingDate}, ${booking.bookingTime}</td>
                   <td>${booking.personName}</td>
@@ -326,21 +372,12 @@ const OrderListTable = ({ orderData }) => {
   const columns = useMemo(
     () => [
       {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
+        id: 'serialNumber',
+        header: 'S.No',
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
+          <Typography>
+            {row.index + 1}
+          </Typography>
         )
       },
       columnHelper.accessor('vehicleNumber', {
@@ -563,7 +600,38 @@ const OrderListTable = ({ orderData }) => {
   return (
     <Card>
       <CardHeader title='Filters' />
-      <TableFilters setData={setFilteredData} bookingData={data} />
+      <CardContent className='flex flex-col gap-4'>
+        <div className='flex flex-col sm:flex-row gap-4'>
+          <FormControl fullWidth size='small' sx={{ maxWidth: 550 }}>
+            <InputLabel id='vendor-select-label'>Vendor</InputLabel>
+            <Select
+              labelId='vendor-select-label'
+              id='vendor-select'
+              value={selectedVendor}
+              label='Vendor'
+              onChange={(e) => setSelectedVendor(e.target.value)}
+               sx={{ 
+          minWidth: 200,
+          height: 53, 
+          '& .MuiSelect-select': {
+            paddingTop: '12px',
+            paddingBottom: '12px'
+          }
+        }}
+            >
+              <MenuItem value=''>
+                <em>All Vendors</em>
+              </MenuItem>
+              {vendors.map((vendor) => (
+                <MenuItem key={vendor._id} value={vendor._id}>
+                  {vendor.vendorName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TableFilters setData={setFilteredData} bookingData={data} />
+        </div>
+      </CardContent>
       <Divider />
       <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
         <DebouncedInput
