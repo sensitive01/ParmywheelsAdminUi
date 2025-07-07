@@ -301,47 +301,42 @@ const OrderListTable = ({ orderData }) => {
 
   // Apply filters whenever data, selectedVendor, or filters change
   useEffect(() => {
-  const applyFilters = () => {
-    let filteredResults = [...data]; // Renamed to filteredResults to avoid confusion
-    
-    // First filter by vendor if selected
-    if (selectedVendor) {
-      filteredResults = filteredResults.filter(booking => booking.vendorId === selectedVendor);
-    }
-    
-    // Then apply other filters
-    if (filters.vehicleType) {
-      filteredResults = filteredResults.filter(booking => booking.vehicleType === filters.vehicleType);
-    }
-    if (filters.sts) {
-      filteredResults = filteredResults.filter(booking => booking.sts === filters.sts);
-    }
-    if (filters.status) {
-      filteredResults = filteredResults.filter(booking => booking.status === filters.status);
-    }
-    if (filters.bookingDate) {
-      // Convert both dates to YYYY-MM-DD format for comparison
-      filteredResults = filteredResults.filter(booking => {
-        const bookingDateParts = booking.bookingDate.split('-');
-        if (bookingDateParts.length !== 3) return false;
-        
-        // Reformat booking date to YYYY-MM-DD
-        const formattedBookingDate = `${bookingDateParts[2]}-${bookingDateParts[1]}-${bookingDateParts[0]}`;
-        
-        // Reformat filter date to YYYY-MM-DD (assuming it's in DD-MM-YYYY format)
-        const filterDateParts = filters.bookingDate.split('-');
-        if (filterDateParts.length !== 3) return false;
-        const formattedFilterDate = `${filterDateParts[2]}-${filterDateParts[1]}-${filterDateParts[0]}`;
-        
-        return formattedBookingDate === formattedFilterDate;
-      });
-    }
-    
-    setFilteredData(filteredResults.length > 0 ? filteredResults : []);
-  };
+    const applyFilters = () => {
+      let filteredResults = [...data];
 
-  applyFilters();
-}, [data, selectedVendor, filters]);
+      // First filter by vendor if selected
+      if (selectedVendor) {
+        filteredResults = filteredResults.filter(booking => booking.vendorId === selectedVendor);
+      }
+
+      // Then apply other filters
+      if (filters.vehicleType) {
+        filteredResults = filteredResults.filter(booking => booking.vehicleType === filters.vehicleType);
+      }
+      if (filters.sts) {
+        filteredResults = filteredResults.filter(booking => booking.sts === filters.sts);
+      }
+      if (filters.status) {
+        filteredResults = filteredResults.filter(booking => booking.status === filters.status);
+      }
+      if (filters.bookingDate) {
+        // Normalize the filter date to DD-MM-YYYY format
+        const normalizedFilterDate = filters.bookingDate;
+
+        filteredResults = filteredResults.filter(booking => {
+          // Ensure booking date is in DD-MM-YYYY format
+          const bookingDate = booking.bookingDate; // Assuming it's already in DD-MM-YYYY format
+
+          // Compare dates directly after normalizing both to same format
+          return bookingDate === normalizedFilterDate;
+        });
+      }
+
+      setFilteredData(filteredResults.length > 0 ? filteredResults : []);
+    };
+
+    applyFilters();
+  }, [data, selectedVendor, filters]);
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({
@@ -369,132 +364,140 @@ const OrderListTable = ({ orderData }) => {
   const handleDownloadClose = () => {
     setAnchorEl(null);
   };
-
- const exportToExcel = () => {
-  // Get data filtered by ALL current filters (vendor + date + others)
-  const filteredByVendor = selectedVendor 
-    ? data.filter(booking => booking.vendorId === selectedVendor)
-    : data;
-
-  const filteredByAll = filteredByVendor.filter(booking => {
-    // Apply date filter if present
-    if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
-      return false;
-    }
-    // Apply other filters if present
-    if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
-      return false;
-    }
-    if (filters.sts && booking.sts !== filters.sts) {
-      return false;
-    }
-    if (filters.status && booking.status !== filters.status) {
-      return false;
-    }
-    return true;
-  });
-
-  if (!filteredByAll || filteredByAll.length === 0) {
-    alert('No data to export with current filters');
-    return;
-  }
-
-  // Rest of your Excel export code...
-  let csvContent = "data:text/csv;charset=utf-8,";
-
-  const headers = [
-    'S.No',
-    'Vehicle Number',
-    'Booking Date & Time',
-    'Customer Name',
-    'Booking Type',
-    'Status',
-    'Vehicle Type',
-    'Amount (₹)',
-    'Duration'
-  ];
-  csvContent += headers.join(",") + "\r\n";
-
-  filteredByAll.forEach((row, index) => {
-    let duration = '';
-    if (row.status?.toLowerCase() === 'completed') {
-      duration = calculateTotalDuration(
-        row.parkedDate,
-        row.parkedTime,
-        row.exitvehicledate,
-        row.exitvehicletime
-      );
-    }
-
-    const rowData = [
-      index + 1,
-      `"${row.vehicleNumber}"`,
-      `"${row.bookingDate}, ${row.bookingTime}"`,
-      `"${row.personName}"`,
-      `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
-      `"${row.status}"`,
-      `"${row.vehicleType}"`,
-      `"${row.amount || 'N/A'}"`,
-      `"${duration}"`
-    ];
-    csvContent += rowData.join(",") + "\r\n";
-  });
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  const vendorName = selectedVendor 
-    ? vendors.find(v => v._id === selectedVendor)?.vendorName 
-    : 'all_vendors';
-  const fileName = `bookings_${vendorName}_${filters.bookingDate || 'all_dates'}_${new Date().toISOString().slice(0, 10)}.csv`;
-  link.setAttribute("download", fileName);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  handleDownloadClose();
+// Convert from DD-MM-YYYY to DD/MM/YYYY for display
+const formatDisplayDate = (dateStr) => {
+  return dateStr.replace(/-/g, '/');
 };
 
-const exportToPDF = () => {
-  // Get data filtered by ALL current filters (vendor + date + others)
-  const filteredByVendor = selectedVendor 
-    ? data.filter(booking => booking.vendorId === selectedVendor)
-    : data;
+// Convert from DD/MM/YYYY to DD-MM-YYYY for filtering
+const formatFilterDate = (dateStr) => {
+  return dateStr.replace(/\//g, '-');
+};
+  const exportToExcel = () => {
+    // Get data filtered by ALL current filters (vendor + date + others)
+    const filteredByVendor = selectedVendor
+      ? data.filter(booking => booking.vendorId === selectedVendor)
+      : data;
 
-  const filteredByAll = filteredByVendor.filter(booking => {
-    // Apply date filter if present
-    if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
-      return false;
+    const filteredByAll = filteredByVendor.filter(booking => {
+      // Apply date filter if present
+      if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
+        return false;
+      }
+      // Apply other filters if present
+      if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
+        return false;
+      }
+      if (filters.sts && booking.sts !== filters.sts) {
+        return false;
+      }
+      if (filters.status && booking.status !== filters.status) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!filteredByAll || filteredByAll.length === 0) {
+      alert('No data to export with current filters');
+      return;
     }
-    // Apply other filters if present
-    if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
-      return false;
+
+    // Rest of your Excel export code...
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    const headers = [
+      'S.No',
+      'Vehicle Number',
+      'Booking Date & Time',
+      'Customer Name',
+      'Booking Type',
+      'Status',
+      'Vehicle Type',
+      'Amount (₹)',
+      'Duration'
+    ];
+    csvContent += headers.join(",") + "\r\n";
+
+    filteredByAll.forEach((row, index) => {
+      let duration = '';
+      if (row.status?.toLowerCase() === 'completed') {
+        duration = calculateTotalDuration(
+          row.parkedDate,
+          row.parkedTime,
+          row.exitvehicledate,
+          row.exitvehicletime
+        );
+      }
+
+      const rowData = [
+        index + 1,
+        `"${row.vehicleNumber}"`,
+        `"${row.bookingDate}, ${row.bookingTime}"`,
+        `"${row.personName}"`,
+        `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
+        `"${row.status}"`,
+        `"${row.vehicleType}"`,
+        `"${row.amount || 'N/A'}"`,
+        `"${duration}"`
+      ];
+      csvContent += rowData.join(",") + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const vendorName = selectedVendor
+      ? vendors.find(v => v._id === selectedVendor)?.vendorName
+      : 'all_vendors';
+    const fileName = `bookings_${vendorName}_${filters.bookingDate || 'all_dates'}_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    handleDownloadClose();
+  };
+
+  const exportToPDF = () => {
+    // Get data filtered by ALL current filters (vendor + date + others)
+    const filteredByVendor = selectedVendor
+      ? data.filter(booking => booking.vendorId === selectedVendor)
+      : data;
+
+    const filteredByAll = filteredByVendor.filter(booking => {
+      // Apply date filter if present
+      if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
+        return false;
+      }
+      // Apply other filters if present
+      if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
+        return false;
+      }
+      if (filters.sts && booking.sts !== filters.sts) {
+        return false;
+      }
+      if (filters.status && booking.status !== filters.status) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!filteredByAll || filteredByAll.length === 0) {
+      alert('No data to export with current filters');
+      return;
     }
-    if (filters.sts && booking.sts !== filters.sts) {
-      return false;
-    }
-    if (filters.status && booking.status !== filters.status) {
-      return false;
-    }
-    return true;
-  });
 
-  if (!filteredByAll || filteredByAll.length === 0) {
-    alert('No data to export with current filters');
-    return;
-  }
+    const vendorName = selectedVendor
+      ? vendors.find(v => v._id === selectedVendor)?.vendorName
+      : 'All Vendors';
 
-  const vendorName = selectedVendor
-    ? vendors.find(v => v._id === selectedVendor)?.vendorName
-    : 'All Vendors';
+    // Calculate total amount
+    const totalAmount = filteredByAll.reduce((sum, booking) => {
+      return sum + (parseInt(booking.amount) || 0);
+    }, 0);
 
-  // Calculate total amount
-  const totalAmount = filteredByAll.reduce((sum, booking) => {
-    return sum + (parseInt(booking.amount) || 0);
-  }, 0);
-
-  // Rest of your PDF export code...
-  const printContent = `
+    // Rest of your PDF export code...
+    const printContent = `
     <html>
       <head>
         <title>Bookings Report</title>
@@ -536,17 +539,17 @@ const exportToPDF = () => {
           </thead>
           <tbody>
             ${filteredByAll.map((booking, index) => {
-              let duration = '';
-              if (booking.status?.toLowerCase() === 'completed') {
-                duration = calculateTotalDuration(
-                  booking.parkedDate,
-                  booking.parkedTime,
-                  booking.exitvehicledate,
-                  booking.exitvehicletime
-                );
-              }
+      let duration = '';
+      if (booking.status?.toLowerCase() === 'completed') {
+        duration = calculateTotalDuration(
+          booking.parkedDate,
+          booking.parkedTime,
+          booking.exitvehicledate,
+          booking.exitvehicletime
+        );
+      }
 
-              return `
+      return `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${booking.vehicleNumber}</td>
@@ -559,7 +562,7 @@ const exportToPDF = () => {
                   <td>${duration}</td>
                 </tr>
               `;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
         
@@ -570,17 +573,17 @@ const exportToPDF = () => {
     </html>
   `;
 
-  const win = window.open('', '_blank');
-  win.document.write(printContent);
-  win.document.close();
-  win.focus();
-  setTimeout(() => {
-    win.print();
-    win.close();
-  }, 500);
+    const win = window.open('', '_blank');
+    win.document.write(printContent);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 500);
 
-  handleDownloadClose();
-};
+    handleDownloadClose();
+  };
 
   const columns = useMemo(
     () => [
@@ -603,9 +606,7 @@ const exportToPDF = () => {
           const formatDate = (dateStr) => {
             if (!dateStr) return 'Invalid Date';
             const [day, month, year] = dateStr.split('-');
-            const formattedDate = new Date(`${year}-${month}-${day}`).toDateString();
-
-            return formattedDate;
+            return `${day}/${month}/${year}`; // Format as DD/MM/YYYY
           };
 
           return (
@@ -867,7 +868,7 @@ const exportToPDF = () => {
               ))}
             </Select>
           </FormControl>
-          <TableFilters 
+          <TableFilters
             filters={filters}
             onFilterChange={handleFilterChange}
             bookingData={selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data}
