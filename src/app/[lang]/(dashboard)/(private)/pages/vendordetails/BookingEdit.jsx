@@ -153,107 +153,189 @@
 //   // Use provided vendorId prop or fallback to session user id
 //   const effectiveVendorId = vendorId || session?.user?.id
 
+//   // Function to parse date and time from booking
+//   const parseBookingDateTime = (booking) => {
+//     if (!booking.bookingDate || !booking.bookingTime) return null;
+
+//     try {
+//       const [day, month, year] = booking.bookingDate.split('-');
+//       const [timePart, ampm] = booking.bookingTime.split(' ');
+//       let [hours, minutes] = timePart.split(':').map(Number);
+
+//       if (ampm && ampm.toUpperCase() === 'PM' && hours !== 12) {
+//         hours += 12;
+//       } else if (ampm && ampm.toUpperCase() === 'AM' && hours === 12) {
+//         hours = 0;
+//       }
+
+//       return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
+//     } catch (e) {
+//       console.error("Error parsing booking datetime:", e);
+//       return null;
+//     }
+//   };
+
+//   // Function to cancel a booking
+//   const cancelBooking = async (bookingId) => {
+//     try {
+//       const response = await fetch(`${API_URL}/vendor/cancelbooking/${bookingId}`, {
+//         method: 'PUT',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//       });
+
+//       if (!response.ok) {
+//         throw new Error('Failed to cancel booking');
+//       }
+
+//       return true;
+//     } catch (error) {
+//       console.error('Error cancelling booking:', error);
+//       return false;
+//     }
+//   };
+
+//   // Function to check and update bookings for auto-cancellation
+//   const checkAndUpdateBookings = async () => {
+//     try {
+//       const now = new Date();
+      
+//       // Create a copy of the current data to avoid direct state mutation
+//       const updatedBookings = [...data];
+//       let needsUpdate = false;
+
+//       for (const booking of updatedBookings) {
+//         try {
+//           // Skip if not pending or approved
+//           const status = booking.status?.toLowerCase();
+//           if (status !== 'pending' && status !== 'approved') {
+//             continue;
+//           }
+
+//           const bookingDateTime = parseBookingDateTime(booking);
+//           if (!bookingDateTime) continue;
+
+//           // Check if the booking time has passed by more than 10 minutes
+//           const tenMinutesAfterBooking = new Date(bookingDateTime.getTime() + 10 * 60000);
+          
+//           if (now > tenMinutesAfterBooking) {
+//             // Update locally first for immediate UI feedback
+//             booking.status = 'cancelled';
+//             needsUpdate = true;
+            
+//             // Send cancellation request to server
+//             await cancelBooking(booking._id);
+//             console.log(`Booking ${booking._id} has been auto-cancelled`);
+//           }
+//         } catch (e) {
+//           console.error(`Error processing booking ${booking._id}:`, e);
+//         }
+//       }
+
+//       if (needsUpdate) {
+//         setData(updatedBookings);
+//         setFilteredData(updatedBookings);
+//       }
+//     } catch (e) {
+//       console.error('Error in auto-cancellation check:', e);
+//     }
+//   };
+
 //   const fetchData = async () => {
 //     if (!effectiveVendorId) {
-//       setLoading(false)
-//       setError("Vendor ID not available")
-//       return
+//       setLoading(false);
+//       setError("Vendor ID not available");
+//       return;
 //     }
 
 //     try {
-//       setLoading(true)
-//       setError(null)
-//       console.log(`Fetching bookings from: ${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`)
-//       const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`)
+//       setLoading(true);
+//       setError(null);
+//       console.log(`Fetching bookings from: ${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`);
+//       const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`);
 
 //       if (!response.ok) {
-//         throw new Error('Failed to fetch bookings')
+//         throw new Error('Failed to fetch bookings');
 //       }
 
-//       const result = await response.json()
+//       const result = await response.json();
 
 //       if (result && result.bookings) {
 //         const filteredBookings = result.bookings.filter(booking =>
 //           ["pending", "approved", "cancelled", "parked", "completed"]
 //             .includes(booking.status?.toLowerCase() || "")
-//         )
+//         );
 
 //         // Sort bookings by creation date (latest first)
-//         // First, try to get the creation timestamp if it exists
 //         const sortedBookings = filteredBookings.sort((a, b) => {
-//           // First try to use createdAt field if it exists
 //           if (a.createdAt && b.createdAt) {
-//             return new Date(b.createdAt) - new Date(a.createdAt)
+//             return new Date(b.createdAt) - new Date(a.createdAt);
 //           }
 
-//           // Fall back to booking date and time if createdAt doesn't exist
 //           try {
-//             // Parse booking date for a
-//             const parseBookingDateTime = (booking) => {
-//               if (!booking.bookingDate || !booking.bookingTime) return new Date(0)
+//             const dateA = parseBookingDateTime(a);
+//             const dateB = parseBookingDateTime(b);
 
-//               const [day, month, year] = booking.bookingDate.split('-')
-//               const [timePart, ampm] = booking.bookingTime.split(' ')
-//               let [hours, minutes] = timePart.split(':').map(Number)
-
-//               if (ampm && ampm.toUpperCase() === 'PM' && hours !== 12) {
-//                 hours += 12
-//               } else if (ampm && ampm.toUpperCase() === 'AM' && hours === 12) {
-//                 hours = 0
-//               }
-
-//               return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`)
+//             if (dateA && dateB) {
+//               return dateB - dateA;
 //             }
-
-//             const dateA = parseBookingDateTime(a)
-//             const dateB = parseBookingDateTime(b)
-
-//             return dateB - dateA
-//           } catch (e) {
-//             // If all else fails, sort by ID if available (assuming newer IDs are larger)
+            
 //             if (a._id && b._id) {
-//               return b._id.localeCompare(a._id)
+//               return b._id.localeCompare(a._id);
 //             }
-//             return 0
+//             return 0;
+//           } catch (e) {
+//             return 0;
 //           }
-//         })
+//         });
 
-//         setData(sortedBookings)
-//         setFilteredData(sortedBookings)
+//         setData(sortedBookings);
+//         setFilteredData(sortedBookings);
+        
+//         // After fetching data, check for bookings that need auto-cancellation
+//         await checkAndUpdateBookings();
 //       } else {
-//         setData([])
-//         setFilteredData([])
+//         setData([]);
+//         setFilteredData([]);
 //       }
 //     } catch (error) {
-//       console.error("Error fetching bookings:", error)
-//       setError(error.message)
+//       console.error("Error fetching bookings:", error);
+//       setError(error.message);
 //     } finally {
-//       setLoading(false)
+//       setLoading(false);
 //     }
-//   }
+//   };
 
 //   useEffect(() => {
-//     fetchData()
-//   }, [effectiveVendorId])
+//     fetchData();
+    
+//     // Set up interval to check for auto-cancellation every minute
+//     const intervalId = setInterval(() => {
+//       checkAndUpdateBookings();
+//     }, 60000); // Check every minute
+
+//     return () => clearInterval(intervalId);
+//   }, [effectiveVendorId]);
 
 //   // Apply global filter
-  // useEffect(() => {
-  //   if (globalFilter) {
-  //     const lowercasedFilter = globalFilter.toLowerCase()
-  //     const filtered = data.filter(item => {
-  //       return (
-  //         (item.vehicleNumber && item.vehicleNumber.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.personName && item.personName.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.mobileNumber && item.mobileNumber.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.vehicleType && item.vehicleType.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.status && item.status.toLowerCase().includes(lowercasedFilter))
-  //       )
-  //     })
-  //     setFilteredData(filtered)
-  //   } else {
-  //     setFilteredData(data)
-  //   }
-  // }, [globalFilter, data])
+//   useEffect(() => {
+//     if (globalFilter) {
+//       const lowercasedFilter = globalFilter.toLowerCase()
+//       const filtered = data.filter(item => {
+//         return (
+//           (item.vehicleNumber && item.vehicleNumber.toLowerCase().includes(lowercasedFilter)) ||
+//           (item.personName && item.personName.toLowerCase().includes(lowercasedFilter)) ||
+//           (item.mobileNumber && item.mobileNumber.toLowerCase().includes(lowercasedFilter)) ||
+//           (item.vehicleType && item.vehicleType.toLowerCase().includes(lowercasedFilter)) ||
+//           (item.status && item.status.toLowerCase().includes(lowercasedFilter))
+//         )
+//       })
+//       setFilteredData(filtered)
+//     } else {
+//       setFilteredData(data)
+//     }
+//   }, [globalFilter, data])
 
 //   const columns = useMemo(
 //     () => [
@@ -335,95 +417,126 @@
 //           )
 //         }
 //       }),
-//       columnHelper.accessor('payableTime', {
+//       // columnHelper.accessor('payableTime', {
+//       //   header: 'Payable Time',
+//       //   cell: ({ row }) => {
+//       //     // Check booking status
+//       //     const status = row.original.status?.toLowerCase()
+//       //     const isParked = status === 'parked'
+//       //     const isCompleted = status === 'completed'
+
+//       //     // Show real-time timer for PARKED status
+//       //     if (isParked) {
+//       //       return (
+//       //         <div className="flex items-center gap-2">
+//       //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
+//       //           <PayableTimeTimer
+//       //             parkedDate={row.original.parkedDate}
+//       //             parkedTime={row.original.parkedTime}
+//       //           />
+//       //         </div>
+//       //       )
+//       //     }
+
+//       //     // Show total time for COMPLETED status using exit vehicle data
+//       //     if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
+//       //       // Calculate and format the total parking duration
+//       //       const calculateTotalTime = () => {
+//       //         try {
+//       //           // Parse the parking start time
+//       //           const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
+//       //           const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
+//       //           let [startHours, startMinutes] = startTimePart.split(':').map(Number)
+
+//       //           // Convert to 24-hour format if needed
+//       //           if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
+//       //             startHours += 12
+//       //           } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
+//       //             startHours = 0
+//       //           }
+
+//       //           // Create start date object
+//       //           const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
+
+//       //           // Parse the exit vehicle time
+//       //           const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
+//       //           const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
+//       //           let [endHours, endMinutes] = endTimePart.split(':').map(Number)
+
+//       //           // Convert to 24-hour format if needed
+//       //           if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
+//       //             endHours += 12
+//       //           } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
+//       //             endHours = 0
+//       //           }
+
+//       //           // Create end date object
+//       //           const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
+
+//       //           // Calculate difference in milliseconds
+//       //           const diffMs = endTime - startTime
+
+//       //           // Convert to days, hours, minutes
+//       //           const diffSecs = Math.floor(diffMs / 1000)
+//       //           const days = Math.floor(diffSecs / (3600 * 24))
+//       //           const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
+//       //           const minutes = Math.floor((diffSecs % 3600) / 60)
+
+//       //           // Format the output
+//       //           if (days > 0) {
+//       //             return `${days}d ${hours}h ${minutes}m`
+//       //           } else {
+//       //             return `${hours}h ${minutes}m`
+//       //           }
+//       //         } catch (e) {
+//       //           console.error("Error calculating total time:", e)
+//       //           return 'N/A'
+//       //         }
+//       //       }
+
+//       //       return (
+//       //         <div className="flex items-center gap-2">
+//       //           <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
+//       //           <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
+//       //             {calculateTotalTime()}
+//       //           </Typography>
+//       //         </div>
+//       //       )
+//       //     }
+
+//       //     // Default case for other statuses
+//       //     return <Typography>--:--:--</Typography>
+//       //   }
+//       // }),
+     
+//        columnHelper.accessor('payableTime', {
 //         header: 'Payable Time',
 //         cell: ({ row }) => {
 //           // Check booking status
 //           const status = row.original.status?.toLowerCase()
+          
+//           // Return empty for completed status
+//           if (status === 'completed') {
+//             return null
+//           }
+          
 //           const isParked = status === 'parked'
-//           const isCompleted = status === 'completed'
-
+          
 //           // Show real-time timer for PARKED status
 //           if (isParked) {
 //             return (
 //               <div className="flex items-center gap-2">
 //                 <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
-//                 <PayableTimeTimer
+//                 <PayableTimeTimer 
 //                   parkedDate={row.original.parkedDate}
 //                   parkedTime={row.original.parkedTime}
 //                 />
 //               </div>
 //             )
 //           }
-
-//           // Show total time for COMPLETED status using exit vehicle data
-//           if (isCompleted && row.original.exitvehicledate && row.original.exitvehicletime) {
-//             // Calculate and format the total parking duration
-//             const calculateTotalTime = () => {
-//               try {
-//                 // Parse the parking start time
-//                 const [startDay, startMonth, startYear] = row.original.parkedDate.split('-')
-//                 const [startTimePart, startAmpm] = row.original.parkedTime.split(' ')
-//                 let [startHours, startMinutes] = startTimePart.split(':').map(Number)
-
-//                 // Convert to 24-hour format if needed
-//                 if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
-//                   startHours += 12
-//                 } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
-//                   startHours = 0
-//                 }
-
-//                 // Create start date object
-//                 const startTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
-
-//                 // Parse the exit vehicle time
-//                 const [endDay, endMonth, endYear] = row.original.exitvehicledate.split('-')
-//                 const [endTimePart, endAmpm] = row.original.exitvehicletime.split(' ')
-//                 let [endHours, endMinutes] = endTimePart.split(':').map(Number)
-
-//                 // Convert to 24-hour format if needed
-//                 if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
-//                   endHours += 12
-//                 } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
-//                   endHours = 0
-//                 }
-
-//                 // Create end date object
-//                 const endTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
-
-//                 // Calculate difference in milliseconds
-//                 const diffMs = endTime - startTime
-
-//                 // Convert to days, hours, minutes
-//                 const diffSecs = Math.floor(diffMs / 1000)
-//                 const days = Math.floor(diffSecs / (3600 * 24))
-//                 const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
-//                 const minutes = Math.floor((diffSecs % 3600) / 60)
-
-//                 // Format the output
-//                 if (days > 0) {
-//                   return `${days}d ${hours}h ${minutes}m`
-//                 } else {
-//                   return `${hours}h ${minutes}m`
-//                 }
-//               } catch (e) {
-//                 console.error("Error calculating total time:", e)
-//                 return 'N/A'
-//               }
-//             }
-
-//             return (
-//               <div className="flex items-center gap-2">
-//                 <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
-//                 <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
-//                   {calculateTotalTime()}
-//                 </Typography>
-//               </div>
-//             )
-//           }
-
+          
 //           // Default case for other statuses
-//           return <Typography>--:--:--</Typography>
+//           return null
 //         }
 //       }),
 //       columnHelper.accessor('customerName', {
@@ -696,6 +809,7 @@
 
 
 
+
 'use client'
 
 // React Imports
@@ -747,6 +861,7 @@ import tableStyles from '@core/styles/table.module.css'
 import ActionStatusButton from './ActionStatusButton'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
+const VENDORS_API_URL = 'https://pmwapis.parkmywheels.com/vendor/all-vendors'
 
 export const stsChipColor = {
   instant: { color: '#ff4d49', text: 'Instant' },
@@ -837,6 +952,7 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
 
 const columnHelper = createColumnHelper()
 
+
 const BookingEdit = ({ vendorId }) => {
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState([])
@@ -847,9 +963,40 @@ const BookingEdit = ({ vendorId }) => {
   const { lang: locale } = useParams()
   const { data: session } = useSession()
   const router = useRouter()
+  const [vendors, setVendors] = useState([])
+  const [vendorName, setVendorName] = useState('')
 
   // Use provided vendorId prop or fallback to session user id
   const effectiveVendorId = vendorId || session?.user?.id
+
+  // Fetch vendors data
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const response = await fetch(VENDORS_API_URL)
+        if (!response.ok) {
+          throw new Error('Failed to fetch vendors')
+        }
+        const result = await response.json()
+        if (result && result.data) {
+          setVendors(result.data)
+        }
+      } catch (error) {
+        console.error("Error fetching vendors:", error)
+      }
+    }
+    fetchVendors()
+  }, [])
+
+  // Set vendor name when vendors data or effectiveVendorId changes
+  useEffect(() => {
+    if (effectiveVendorId && vendors.length > 0) {
+      const vendor = vendors.find(v => v.vendorId === effectiveVendorId)
+      if (vendor) {
+        setVendorName(vendor.vendorName)
+      }
+    }
+  }, [effectiveVendorId, vendors])
 
   // Function to parse date and time from booking
   const parseBookingDateTime = (booking) => {
@@ -1416,7 +1563,8 @@ const BookingEdit = ({ vendorId }) => {
 
   return (
     <Card sx={{ mt: 6 }}>
-      <CardHeader title='Booking Management' />
+      <CardHeader 
+        title={vendorName ? `Booking Vendor - ${vendorName}` : 'Booking Management'} />
       <Divider />
       <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
         <DebouncedInput
