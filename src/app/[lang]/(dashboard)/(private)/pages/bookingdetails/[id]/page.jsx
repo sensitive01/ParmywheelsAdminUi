@@ -441,7 +441,7 @@ const BookingDetailView = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                        {statusKey === 'completed' && bookingData.parkedDate && bookingData.parkedTime && 
+                        {/* {statusKey === 'completed' && bookingData.parkedDate && bookingData.parkedTime && 
                           bookingData.exitvehicledate && bookingData.exitvehicletime && (
                           <TableRow>
                             <TableCell component="th" sx={{ fontWeight: 500 }}>Total Duration</TableCell>
@@ -457,7 +457,7 @@ const BookingDetailView = () => {
                               </Typography>
                             </TableCell>
                           </TableRow>
-                        )}
+                        )} */}
                         {bookingData.hour && bookingData.hour !== '00:00:00' && (
                           <TableRow>
                             <TableCell component="th" sx={{ fontWeight: 500 }}>Hours</TableCell>
