@@ -698,7 +698,7 @@ const SubscriptionForm = () => {
     }
 
     try {
-      const response = await axios.post('https://pmwapis.parkmywheels.com/admin/subscription', {
+      const response = await axios.post('https://api.parkmywheels.com/admin/subscription', {
         userId: subscriptionDetails.userId,
         planId: subscriptionDetails.planId,
         planTitle: subscriptionDetails.planTitle,

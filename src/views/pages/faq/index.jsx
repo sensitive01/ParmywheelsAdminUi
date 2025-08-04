@@ -54,9 +54,9 @@ const Dashboard = () => {
 
   const fetchSummaryData = async () => {
     try {
-      const response = await fetch('https://pmwapis.parkmywheels.com/admin/fetchallbookingtransactions');
+      const response = await fetch('https://api.parkmywheels.com/admin/fetchallbookingtransactions');
       const data = await response.json();
-      
+
       if (data.success) {
         setSummaryData(data.data);
       }
@@ -88,20 +88,20 @@ const Dashboard = () => {
 
   const exportToExcel = () => {
     if (!summaryData) return;
-    
+
     // Get filtered vendors based on current selection
-    const vendorsToExport = filter.vendor === 'all' 
-      ? summaryData.vendors 
+    const vendorsToExport = filter.vendor === 'all'
+      ? summaryData.vendors
       : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
-    
+
     if (vendorsToExport.length === 0) return;
-    
+
     let csvContent = "data:text/csv;charset=utf-8,";
-    
+
     // Add headers
     const headers = ["Vendor Name", "Bookings", "Total Amount", "Platform Fee %", "Receivable"];
     csvContent += headers.join(",") + "\r\n";
-    
+
     // Add data rows
     vendorsToExport.forEach(vendor => {
       const row = [
@@ -113,37 +113,34 @@ const Dashboard = () => {
       ];
       csvContent += row.join(",") + "\r\n";
     });
-    
+
     // Add summary row
-    csvContent += `"${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}",${
-      vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)
-    },${
-      vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)
-    },,${
-      vendorsToExport.reduce((sum, v) => sum + v.totalReceivable, 0)
-    }\r\n`;
-    
+    csvContent += `"${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}",${vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)
+      },${vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)
+      },,${vendorsToExport.reduce((sum, v) => sum + v.totalReceivable, 0)
+      }\r\n`;
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `transactions_${filter.vendor === 'all' ? 'all_vendors' : 'vendor_' + filter.vendor}_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", `transactions_${filter.vendor === 'all' ? 'all_vendors' : 'vendor_' + filter.vendor}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     handleDownloadClose();
   };
 
   const exportToPDF = () => {
     if (!summaryData) return;
-    
+
     // Get filtered vendors based on current selection
-    const vendorsToExport = filter.vendor === 'all' 
-      ? summaryData.vendors 
+    const vendorsToExport = filter.vendor === 'all'
+      ? summaryData.vendors
       : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
-    
+
     if (vendorsToExport.length === 0) return;
-    
+
     // Create a basic PDF using browser's print functionality
     const printContent = `
       <html>
@@ -193,7 +190,7 @@ const Dashboard = () => {
         </body>
       </html>
     `;
-    
+
     const win = window.open('', '_blank');
     win.document.write(printContent);
     win.document.close();
@@ -202,7 +199,7 @@ const Dashboard = () => {
       win.print();
       win.close();
     }, 500);
-    
+
     handleDownloadClose();
   };
 
@@ -232,7 +229,7 @@ const Dashboard = () => {
           <Tab label="Transaction" icon={<Summarize />} iconPosition="start" />
           <Tab label="Payouts Details" />
         </Tabs>
-        
+
         <Button
           variant="contained"
           startIcon={<Download />}
@@ -309,13 +306,13 @@ const Dashboard = () => {
               <MenuItem value="all">All Vendors</MenuItem>
               {summaryData?.vendors.map((vendor) => (
                 <MenuItem key={vendor.vendorId} value={vendor.vendorId}>
-                  {vendor.vendorName} 
+                  {vendor.vendorName}
                   {vendor.bookingCount === 0 && (
-                    <Chip 
-                      label="No transactions" 
-                      size="small" 
-                      sx={{ ml: 1 }} 
-                      variant="outlined" 
+                    <Chip
+                      label="No transactions"
+                      size="small"
+                      sx={{ ml: 1 }}
+                      variant="outlined"
                     />
                   )}
                 </MenuItem>
@@ -378,7 +375,7 @@ const Dashboard = () => {
             <Grid container spacing={2}>
               {filteredVendors.map((vendor) => (
                 <Grid item xs={12} sm={6} md={4} key={vendor.vendorId}>
-                  <Card sx={{ 
+                  <Card sx={{
                     opacity: vendor.bookingCount === 0 ? 0.7 : 1,
                     border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
                   }}>
@@ -386,10 +383,10 @@ const Dashboard = () => {
                       <Typography variant="h6">
                         {vendor.vendorName}
                         {vendor.bookingCount === 0 && (
-                          <Chip 
-                            label="No transactions" 
-                            size="small" 
-                            sx={{ ml: 1 }} 
+                          <Chip
+                            label="No transactions"
+                            size="small"
+                            sx={{ ml: 1 }}
                             color="default"
                             variant="outlined"
                           />
@@ -435,7 +432,7 @@ const Dashboard = () => {
               <Grid container spacing={3}>
                 {filteredVendors.map((vendor) => (
                   <Grid item xs={12} key={vendor.vendorId}>
-                    <Card sx={{ 
+                    <Card sx={{
                       opacity: vendor.bookingCount === 0 ? 0.7 : 1,
                       border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
                     }}>
@@ -443,10 +440,10 @@ const Dashboard = () => {
                         <Typography variant="h6">
                           {vendor.vendorName}
                           {vendor.bookingCount === 0 && (
-                            <Chip 
-                              label="No transactions" 
-                              size="small" 
-                              sx={{ ml: 1 }} 
+                            <Chip
+                              label="No transactions"
+                              size="small"
+                              sx={{ ml: 1 }}
                               color="default"
                               variant="outlined"
                             />

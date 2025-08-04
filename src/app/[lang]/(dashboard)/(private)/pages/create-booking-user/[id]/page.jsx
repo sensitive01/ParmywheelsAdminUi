@@ -15,7 +15,7 @@ import {
   TextField,
   Button,
   IconButton,
-  Radio,  
+  Radio,
   RadioGroup,
   FormControlLabel,
   FormControl,
@@ -184,12 +184,12 @@ const steps = [
 ]
 
 export default function ParkingBooking() {
-   const router = useRouter() 
+  const router = useRouter()
   const API_URL = process.env.NEXT_PUBLIC_API_URL
   const { data: session } = useSession()
   const params = useParams()
   const userId = params?.id // Get userId from URL
-  
+
   // Vendor selection state
   const [vendors, setVendors] = useState([])
   const [selectedVendor, setSelectedVendor] = useState('')
@@ -217,7 +217,7 @@ export default function ParkingBooking() {
   const [carType, setCarType] = useState('')
   const [personName, setPersonName] = useState('')
   const [mobileNumber, setMobileNumber] = useState('')
-  const [subscriptionType, setSubscriptionType] = useState('Monthly') 
+  const [subscriptionType, setSubscriptionType] = useState('Monthly')
   const [loading, setLoading] = useState(false)
   const [alert, setAlert] = useState({ show: false, message: '', type: 'success' })
   const [errors, setErrors] = useState({})
@@ -254,7 +254,7 @@ export default function ParkingBooking() {
       const fetchUserData = async () => {
         setUserLoading(true)
         try {
-          const response = await axios.get(`https://pmwapis.parkmywheels.com/get-userdata?id=${userId}`)
+          const response = await axios.get(`https://api.parkmywheels.com/get-userdata?id=${userId}`)
           if (response.data.success) {
             setUserData(response.data.data)
             // Pre-fill the personal info fields for all booking types
@@ -277,7 +277,7 @@ export default function ParkingBooking() {
     const fetchVendors = async () => {
       setVendorLoading(true)
       try {
-        const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/all-vendors')
+        const response = await axios.get('https://api.parkmywheels.com/vendor/all-vendors')
         const vendorNames = response.data.data.map(vendor => ({
           id: vendor.vendorId,
           name: vendor.vendorName
@@ -299,7 +299,7 @@ export default function ParkingBooking() {
       const fetchUserVehicles = async () => {
         setVehicleLoading(true)
         try {
-          const response = await axios.get(`https://pmwapis.parkmywheels.com/get-vehicle-slot?id=${userId}`)
+          const response = await axios.get(`https://api.parkmywheels.com/get-vehicle-slot?id=${userId}`)
           setVehicles(response.data.vehicles || [])
           setVehicleLoading(false)
         } catch (error) {
@@ -318,19 +318,19 @@ export default function ParkingBooking() {
     const hours = now.getHours().toString().padStart(2, '0')
     const minutes = now.getMinutes().toString().padStart(2, '0')
     const timeString = `${hours}:${minutes}`
-    
+
     setParkingDate(dateString)
     setParkingTime(timeString)
     setMinDate(dateString)
     setMinTime(timeString)
-    
+
     return { dateString, timeString }
   }
 
   useEffect(() => {
     // Initialize with current time
     updateCurrentDateTime()
-    
+
     // Set up interval to update time every second
     timerRef.current = setInterval(() => {
       if (['Instant', 'Schedule', 'Subscription'].includes(sts)) {
@@ -338,7 +338,7 @@ export default function ParkingBooking() {
         updateMinTentativeDateTime(dateString, timeString)
       }
     }, 1000) // Update every second
-  
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -352,7 +352,7 @@ export default function ParkingBooking() {
 
   const updateMinTentativeDateTime = (date = parkingDate, time = parkingTime) => {
     if (!date || !time) return
-    
+
     const dateTimeString = `${date}T${time}`
     setMinTentativeDateTime(dateTimeString)
 
@@ -394,7 +394,7 @@ export default function ParkingBooking() {
     }
   }
 
-  const handleBack = () => {  
+  const handleBack = () => {
     setActiveStep((prev) => prev - 1)
   }
 
@@ -406,7 +406,7 @@ export default function ParkingBooking() {
       const formattedTime = formatTimeTo12Hour(parkingTime)
       const formattedBookingDate = formatToDDMMYYYY(new Date().toISOString())
       const formattedBookingTime = formatTimeTo12Hour(new Date().toTimeString().substring(0, 5))
-      
+
       const payload = {
         vendorId: selectedVendor,
         vendorName: selectedVendorName,
@@ -432,12 +432,12 @@ export default function ParkingBooking() {
       }
 
       const response = await axios.post(`${API_URL}/vendor/createbooking`, payload)
-      
+
       showNotification('New Booking Created', {
         body: `${vehicleType} booking for ${vehicleNumber} created successfully`,
         tag: 'new-booking'
       })
-      
+
       createBookingNotification({
         vehicleType,
         vehicleNumber,
@@ -499,11 +499,11 @@ export default function ParkingBooking() {
       setSubscriptionType('Monthly')
     }
   }
-  
+
   const handleParkingDateChange = (e) => {
     const selectedDate = e.target.value
     setParkingDate(selectedDate)
-    
+
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
       if (selectedDate === today) {
@@ -519,10 +519,10 @@ export default function ParkingBooking() {
       }
     }
   }
-  
+
   const handleParkingTimeChange = (e) => {
     const selectedTime = e.target.value
-    
+
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
       if (parkingDate === today && selectedTime < minTime) {
@@ -534,14 +534,14 @@ export default function ParkingBooking() {
         return
       }
     }
-    
+
     setParkingTime(selectedTime)
   }
 
   const handleVendorChange = (e) => {
     const selectedId = e.target.value
     setSelectedVendor(selectedId)
-    
+
     const vendor = vendors.find(v => v.id === selectedId)
     if (vendor) {
       setSelectedVendorName(vendor.name)
@@ -637,7 +637,7 @@ export default function ParkingBooking() {
             ))}
           </RadioGroup>
         </Grid>
-        
+
         <Grid item xs={12}>
           <FormControl fullWidth error={!!errors.vehicleNumber}>
             <InputLabel>Select Vehicle</InputLabel>
@@ -668,7 +668,7 @@ export default function ParkingBooking() {
             )}
           </FormControl>
         </Grid>
-        
+
         {sts !== 'Subscription' && (
           <Grid item xs={12}>
             <BookingTypeToggle>
@@ -688,7 +688,7 @@ export default function ParkingBooking() {
             </BookingTypeToggle>
           </Grid>
         )}
-        
+
         {sts === 'Subscription' && (
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={!!errors.subscriptionType}>
@@ -725,8 +725,8 @@ export default function ParkingBooking() {
             error={!!errors.parkingDate}
             helperText={errors.parkingDate}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ 
-              min: sts === 'Instant' ? minDate : undefined 
+            inputProps={{
+              min: sts === 'Instant' ? minDate : undefined
             }}
           />
         </Grid>
@@ -741,8 +741,8 @@ export default function ParkingBooking() {
             error={!!errors.parkingTime}
             helperText={errors.parkingTime}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ 
-              min: (sts === 'Instant' && parkingDate === minDate) ? minTime : undefined 
+            inputProps={{
+              min: (sts === 'Instant' && parkingDate === minDate) ? minTime : undefined
             }}
           />
         </Grid>

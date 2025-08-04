@@ -200,7 +200,7 @@
 //   const checkAndUpdateBookings = async () => {
 //     try {
 //       const now = new Date();
-      
+
 //       // Create a copy of the current data to avoid direct state mutation
 //       const updatedBookings = [...data];
 //       let needsUpdate = false;
@@ -218,12 +218,12 @@
 
 //           // Check if the booking time has passed by more than 10 minutes
 //           const tenMinutesAfterBooking = new Date(bookingDateTime.getTime() + 10 * 60000);
-          
+
 //           if (now > tenMinutesAfterBooking) {
 //             // Update locally first for immediate UI feedback
 //             booking.status = 'cancelled';
 //             needsUpdate = true;
-            
+
 //             // Send cancellation request to server
 //             await cancelBooking(booking._id);
 //             console.log(`Booking ${booking._id} has been auto-cancelled`);
@@ -280,7 +280,7 @@
 //             if (dateA && dateB) {
 //               return dateB - dateA;
 //             }
-            
+
 //             if (a._id && b._id) {
 //               return b._id.localeCompare(a._id);
 //             }
@@ -292,7 +292,7 @@
 
 //         setData(sortedBookings);
 //         setFilteredData(sortedBookings);
-        
+
 //         // After fetching data, check for bookings that need auto-cancellation
 //         await checkAndUpdateBookings();
 //       } else {
@@ -309,7 +309,7 @@
 
 //   useEffect(() => {
 //     fetchData();
-    
+
 //     // Set up interval to check for auto-cancellation every minute
 //     const intervalId = setInterval(() => {
 //       checkAndUpdateBookings();
@@ -508,20 +508,20 @@
 //       //     return <Typography>--:--:--</Typography>
 //       //   }
 //       // }),
-     
+
 //        columnHelper.accessor('payableTime', {
 //         header: 'Payable Time',
 //         cell: ({ row }) => {
 //           // Check booking status
 //           const status = row.original.status?.toLowerCase()
-          
+
 //           // Return empty for completed status
 //           if (status === 'completed') {
 //             return null
 //           }
-          
+
 //           const isParked = status === 'parked'
-          
+
 //           // Show real-time timer for PARKED status
 //           if (isParked) {
 //             return (
@@ -534,7 +534,7 @@
 //               </div>
 //             )
 //           }
-          
+
 //           // Default case for other statuses
 //           return null
 //         }
@@ -861,7 +861,7 @@ import tableStyles from '@core/styles/table.module.css'
 import ActionStatusButton from './ActionStatusButton'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
-const VENDORS_API_URL = 'https://pmwapis.parkmywheels.com/vendor/all-vendors'
+const VENDORS_API_URL = 'https://api.parkmywheels.com/vendor/all-vendors'
 
 export const stsChipColor = {
   instant: { color: '#ff4d49', text: 'Instant' },
@@ -1045,7 +1045,7 @@ const BookingEdit = ({ vendorId }) => {
   const checkAndUpdateBookings = async () => {
     try {
       const now = new Date();
-      
+
       // Create a copy of the current data to avoid direct state mutation
       const updatedBookings = [...data];
       let needsUpdate = false;
@@ -1063,12 +1063,12 @@ const BookingEdit = ({ vendorId }) => {
 
           // Check if the booking time has passed by more than 10 minutes
           const tenMinutesAfterBooking = new Date(bookingDateTime.getTime() + 10 * 60000);
-          
+
           if (now > tenMinutesAfterBooking) {
             // Update locally first for immediate UI feedback
             booking.status = 'cancelled';
             needsUpdate = true;
-            
+
             // Send cancellation request to server
             await cancelBooking(booking._id);
             console.log(`Booking ${booking._id} has been auto-cancelled`);
@@ -1125,7 +1125,7 @@ const BookingEdit = ({ vendorId }) => {
             if (dateA && dateB) {
               return dateB - dateA;
             }
-            
+
             if (a._id && b._id) {
               return b._id.localeCompare(a._id);
             }
@@ -1137,7 +1137,7 @@ const BookingEdit = ({ vendorId }) => {
 
         setData(sortedBookings);
         setFilteredData(sortedBookings);
-        
+
         // After fetching data, check for bookings that need auto-cancellation
         await checkAndUpdateBookings();
       } else {
@@ -1154,7 +1154,7 @@ const BookingEdit = ({ vendorId }) => {
 
   useEffect(() => {
     fetchData();
-    
+
     // Set up interval to check for auto-cancellation every minute
     const intervalId = setInterval(() => {
       checkAndUpdateBookings();
@@ -1353,33 +1353,33 @@ const BookingEdit = ({ vendorId }) => {
       //     return <Typography>--:--:--</Typography>
       //   }
       // }),
-     
-       columnHelper.accessor('payableTime', {
+
+      columnHelper.accessor('payableTime', {
         header: 'Payable Time',
         cell: ({ row }) => {
           // Check booking status
           const status = row.original.status?.toLowerCase()
-          
+
           // Return empty for completed status
           if (status === 'completed') {
             return null
           }
-          
+
           const isParked = status === 'parked'
-          
+
           // Show real-time timer for PARKED status
           if (isParked) {
             return (
               <div className="flex items-center gap-2">
                 <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
-                <PayableTimeTimer 
+                <PayableTimeTimer
                   parkedDate={row.original.parkedDate}
                   parkedTime={row.original.parkedTime}
                 />
               </div>
             )
           }
-          
+
           // Default case for other statuses
           return null
         }
@@ -1563,7 +1563,7 @@ const BookingEdit = ({ vendorId }) => {
 
   return (
     <Card sx={{ mt: 6 }}>
-      <CardHeader 
+      <CardHeader
         title={vendorName ? `Booking Vendor - ${vendorName}` : 'Booking Management'} />
       <Divider />
       <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>

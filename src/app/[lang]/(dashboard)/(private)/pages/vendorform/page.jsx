@@ -49,7 +49,7 @@ const VendorSignupForm = () => {
         formDataToSend.append("image", formData.image);
       }
 
-      const response = await axios.post("https://pmwapis.parkmywheels.com/vendor/signup", formDataToSend, {
+      const response = await axios.post("https://api.parkmywheels.com/vendor/signup", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

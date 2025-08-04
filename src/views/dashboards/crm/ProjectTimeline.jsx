@@ -15,7 +15,7 @@ import { useTheme } from '@mui/material/styles'
 // Components Imports
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
-const API_URL = process.env.NEXT_PUBLIC_API_URL 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 // Styled Component Imports
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
 
@@ -39,19 +39,19 @@ const KycTimeline = () => {
         const summaryResponse = await fetch(`${API_URL}/admin/kyc-summary`)
         if (!summaryResponse.ok) throw new Error('Failed to fetch summary data')
         const summaryData = await summaryResponse.json()
-        
+
         // Fetch detailed KYC data
-        const detailsResponse = await fetch('https://pmwapis.parkmywheels.com/vendor/getallkyc')
+        const detailsResponse = await fetch('https://api.parkmywheels.com/vendor/getallkyc')
         if (!detailsResponse.ok) throw new Error('Failed to fetch detailed KYC data')
         const detailsData = await detailsResponse.json()
-        
+
         // Process detailed data to count statuses
         const verifiedCount = detailsData.data.filter(item => item.status === "Verified").length
         const notVerifiedCount = detailsData.data.filter(item => item.status === "Not Verified").length
-        
+
         // Process monthly data for chart
         const monthlyData = processMonthlyData(detailsData.data)
-        
+
         setKycData({
           count: summaryData.count,
           verified: verifiedCount,
@@ -70,22 +70,22 @@ const KycTimeline = () => {
     // Helper function to process monthly data
     const processMonthlyData = (kycItems) => {
       const monthlyCounts = {}
-      
+
       kycItems.forEach(item => {
         const date = new Date(item.createdAt)
         const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-        
+
         if (!monthlyCounts[monthYear]) {
           monthlyCounts[monthYear] = { verified: 0, notVerified: 0 }
         }
-        
+
         if (item.status === "Verified") {
           monthlyCounts[monthYear].verified++
         } else {
           monthlyCounts[monthYear].notVerified++
         }
       })
-      
+
       return Object.entries(monthlyCounts).map(([month, counts]) => ({
         month,
         ...counts
@@ -142,7 +142,7 @@ const KycTimeline = () => {
       type: 'category',
       categories: kycData.monthlyData.map(item => item.month),
       labels: {
-        formatter: function(val) {
+        formatter: function (val) {
           return val
         }
       }
@@ -201,17 +201,17 @@ const KycTimeline = () => {
     <Card>
       <Grid container>
         <Grid size={{ xs: 12, sm: 8 }} className='max-sm:border-be sm:border-ie'>
-          <CardHeader 
-            title='Monthly KYC Applications' 
-            subheader={`Trend over last ${kycData.totalMonths} months`} 
+          <CardHeader
+            title='Monthly KYC Applications'
+            subheader={`Trend over last ${kycData.totalMonths} months`}
           />
           <CardContent>
-            <AppReactApexCharts 
+            <AppReactApexCharts
               height={350}
-              width='100%' 
-              type='bar' 
-              series={series} 
-              options={chartOptions} 
+              width='100%'
+              type='bar'
+              series={series}
+              options={chartOptions}
             />
           </CardContent>
         </Grid>
@@ -219,7 +219,7 @@ const KycTimeline = () => {
           <CardHeader
             title='Verification Summary'
             subheader={`From ${kycData.monthlyData[0]?.month || ''} to ${kycData.monthlyData[kycData.monthlyData.length - 1]?.month || ''}`}
-            // action={<OptionMenu options={['Refresh', 'Export', 'Share']} />}
+          // action={<OptionMenu options={['Refresh', 'Export', 'Share']} />}
           />
           <CardContent className='flex flex-grow flex-col justify-center gap-6'>
             <div className='flex items-center gap-3'>

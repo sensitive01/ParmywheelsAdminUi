@@ -184,7 +184,7 @@ const steps = [
 export default function ParkingBooking() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL
   const { data: session } = useSession()
-  
+
   // Vendor selection state
   const [vendors, setVendors] = useState([])
   const [selectedVendor, setSelectedVendor] = useState('')
@@ -201,7 +201,7 @@ export default function ParkingBooking() {
   const [carType, setCarType] = useState('')
   const [personName, setPersonName] = useState('')
   const [mobileNumber, setMobileNumber] = useState('')
-  const [subscriptionType, setSubscriptionType] = useState('Monthly') 
+  const [subscriptionType, setSubscriptionType] = useState('Monthly')
   const [loading, setLoading] = useState(false)
   const [alert, setAlert] = useState({ show: false, message: '', type: 'success' })
   const [errors, setErrors] = useState({})
@@ -237,7 +237,7 @@ export default function ParkingBooking() {
     const fetchVendors = async () => {
       setVendorLoading(true)
       try {
-        const response = await axios.get('https://pmwapis.parkmywheels.com/vendor/all-vendors')
+        const response = await axios.get('https://api.parkmywheels.com/vendor/all-vendors')
         const vendorNames = response.data.data.map(vendor => ({
           id: vendor.vendorId,
           name: vendor.vendorName
@@ -259,19 +259,19 @@ export default function ParkingBooking() {
     const hours = now.getHours().toString().padStart(2, '0')
     const minutes = now.getMinutes().toString().padStart(2, '0')
     const timeString = `${hours}:${minutes}`
-    
+
     setParkingDate(dateString)
     setParkingTime(timeString)
     setMinDate(dateString)
     setMinTime(timeString)
-    
+
     return { dateString, timeString }
   }
 
   useEffect(() => {
     // Initialize with current time
     updateCurrentDateTime()
-    
+
     // Set up interval to update time every second
     timerRef.current = setInterval(() => {
       if (['Instant', 'Schedule', 'Subscription'].includes(sts)) {
@@ -279,7 +279,7 @@ export default function ParkingBooking() {
         updateMinTentativeDateTime(dateString, timeString)
       }
     }, 1000) // Update every second
-  
+
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -293,7 +293,7 @@ export default function ParkingBooking() {
 
   const updateMinTentativeDateTime = (date = parkingDate, time = parkingTime) => {
     if (!date || !time) return
-    
+
     const dateTimeString = `${date}T${time}`
     setMinTentativeDateTime(dateTimeString)
 
@@ -347,7 +347,7 @@ export default function ParkingBooking() {
       const formattedTime = formatTimeTo12Hour(parkingTime)
       const formattedBookingDate = formatToDDMMYYYY(new Date().toISOString())
       const formattedBookingTime = formatTimeTo12Hour(new Date().toTimeString().substring(0, 5))
-      
+
       const payload = {
         vendorId: selectedVendor,
         personName,
@@ -369,12 +369,12 @@ export default function ParkingBooking() {
       }
 
       const response = await axios.post(`${API_URL}/vendor/createbooking`, payload)
-      
+
       showNotification('New Booking Created', {
         body: `${vehicleType} booking for ${vehicleNumber} created successfully`,
         tag: 'new-booking'
       })
-      
+
       createBookingNotification({
         vehicleType,
         vehicleNumber,
@@ -433,11 +433,11 @@ export default function ParkingBooking() {
       setSubscriptionType('Monthly')
     }
   }
-  
+
   const handleParkingDateChange = (e) => {
     const selectedDate = e.target.value
     setParkingDate(selectedDate)
-    
+
     // Only enforce time validation for Instant booking
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
@@ -454,10 +454,10 @@ export default function ParkingBooking() {
       }
     }
   }
-  
+
   const handleParkingTimeChange = (e) => {
     const selectedTime = e.target.value
-    
+
     // Only restrict time selection for Instant booking
     if (sts === 'Instant') {
       const today = new Date().toISOString().split('T')[0]
@@ -470,7 +470,7 @@ export default function ParkingBooking() {
         return
       }
     }
-    
+
     setParkingTime(selectedTime)
   }
 
@@ -574,11 +574,11 @@ export default function ParkingBooking() {
             helperText={errors.vehicleNumber}
             placeholder="Enter vehicle number"
             inputProps={{
-              style: { textTransform: 'uppercase' }  
+              style: { textTransform: 'uppercase' }
             }}
           />
         </Grid>
-        
+
         {sts !== 'Subscription' && (
           <Grid item xs={12}>
             <BookingTypeToggle>
@@ -598,7 +598,7 @@ export default function ParkingBooking() {
             </BookingTypeToggle>
           </Grid>
         )}
-        
+
         {sts === 'Subscription' && (
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={!!errors.subscriptionType}>
@@ -635,8 +635,8 @@ export default function ParkingBooking() {
             error={!!errors.parkingDate}
             helperText={errors.parkingDate}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ 
-              min: sts === 'Instant' ? minDate : undefined 
+            inputProps={{
+              min: sts === 'Instant' ? minDate : undefined
             }}
           />
         </Grid>
@@ -651,8 +651,8 @@ export default function ParkingBooking() {
             error={!!errors.parkingTime}
             helperText={errors.parkingTime}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ 
-              min: (sts === 'Instant' && parkingDate === minDate) ? minTime : undefined 
+            inputProps={{
+              min: (sts === 'Instant' && parkingDate === minDate) ? minTime : undefined
             }}
           />
         </Grid>
@@ -690,26 +690,26 @@ export default function ParkingBooking() {
             placeholder="Enter your full name"
           />
         </Grid>
-            <Grid item xs={12} md={6}>
-  <TextField
-    fullWidth
-    label="Mobile Number"
-    value={mobileNumber}
-    onChange={(e) => {
-      const input = e.target.value;
-      if (/^\d{0,10}$/.test(input)) {
-        setMobileNumber(input);
-      }
-    }}
-    error={!!errors.mobileNumber}
-    helperText={errors.mobileNumber}
-    placeholder="Enter your mobile number"
-    InputProps={{
-      startAdornment: <InputAdornment position="start">+91</InputAdornment>,
-      inputMode: 'numeric'
-    }}
-  />
-</Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Mobile Number"
+            value={mobileNumber}
+            onChange={(e) => {
+              const input = e.target.value;
+              if (/^\d{0,10}$/.test(input)) {
+                setMobileNumber(input);
+              }
+            }}
+            error={!!errors.mobileNumber}
+            helperText={errors.mobileNumber}
+            placeholder="Enter your mobile number"
+            InputProps={{
+              startAdornment: <InputAdornment position="start">+91</InputAdornment>,
+              inputMode: 'numeric'
+            }}
+          />
+        </Grid>
       </Grid>
     </Box>
   )

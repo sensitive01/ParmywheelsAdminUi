@@ -405,17 +405,63 @@ const formatFilterDate = (dateStr) => {
     // Rest of your Excel export code...
     let csvContent = "data:text/csv;charset=utf-8,";
 
+    // const headers = [
+    //   'S.No',
+    //   'Vehicle Number',
+    //   'Booking Date & Time',
+    //   'Customer Name',
+    //   'Booking Type',
+    //   'Status',
+    //   'Vehicle Type',
+    //   'Amount (₹)',
+    //   'Duration'
+    // ];
+
     const headers = [
-      'S.No',
-      'Vehicle Number',
-      'Booking Date & Time',
-      'Customer Name',
-      'Booking Type',
-      'Status',
-      'Vehicle Type',
-      'Amount (₹)',
-      'Duration'
-    ];
+  'S.No',
+  'Vehicle Number',
+  'Booking Date & Time',
+  'Customer Name',
+  'Booking Type',
+  'Status',
+  'Vehicle Type',
+  'Amount (₹)',
+  'Duration',
+  'Parked Date',
+  'Parked Time',
+  'Exit Date',
+  'Exit Time'
+];
+csvContent += headers.join(",") + "\r\n";
+
+filteredByAll.forEach((row, index) => {
+  let duration = '';
+  if (row.status?.toLowerCase() === 'completed') {
+    duration = calculateTotalDuration(
+      row.parkedDate,
+      row.parkedTime,
+      row.exitvehicledate,
+      row.exitvehicletime
+    );
+  }
+
+  const rowData = [
+    index + 1,
+    `"${row.vehicleNumber}"`,
+    `"${row.bookingDate}, ${row.bookingTime}"`,
+    `"${row.personName}"`,
+    `"${stsChipColor[row.sts?.toLowerCase()]?.text || row.sts}"`,
+    `"${row.status}"`,
+    `"${row.vehicleType}"`,
+    `"${row.amount || 'N/A'}"`,
+    `"${duration}"`,
+    `"${row.parkedDate || 'N/A'}"`,
+    `"${row.parkedTime || 'N/A'}"`,
+    `"${row.exitvehicledate || 'N/A'}"`,
+    `"${row.exitvehicletime || 'N/A'}"`
+  ];
+  csvContent += rowData.join(",") + "\r\n";
+});
     csvContent += headers.join(",") + "\r\n";
 
     filteredByAll.forEach((row, index) => {
@@ -497,48 +543,128 @@ const formatFilterDate = (dateStr) => {
     }, 0);
 
     // Rest of your PDF export code...
-    const printContent = `
-    <html>
-      <head>
-        <title>Bookings Report</title>
-        <style>
-          body { font-family: Arial; margin: 20px; }
-          h1 { color: #333; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; }
-          .total-amount { font-weight: bold; margin-top: 20px; }
-          .filter-info { margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <h1>Bookings Report</h1>
-        <div class="filter-info">
-          <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
-          <p><strong>Vendor:</strong> ${vendorName}</p>
-          ${filters.bookingDate ? `<p><strong>Booking Date:</strong> ${filters.bookingDate}</p>` : ''}
-          ${filters.vehicleType ? `<p><strong>Vehicle Type:</strong> ${filters.vehicleType}</p>` : ''}
-          ${filters.sts ? `<p><strong>Booking Type:</strong> ${filters.sts}</p>` : ''}
-          ${filters.status ? `<p><strong>Status:</strong> ${filters.status}</p>` : ''}
-          <p><strong>Total Bookings:</strong> ${filteredByAll.length}</p>
-        </div>
+  //   const printContent = `
+  //   <html>
+  //     <head>
+  //       <title>Bookings Report</title>
+  //       <style>
+  //         body { font-family: Arial; margin: 20px; }
+  //         h1 { color: #333; }
+  //         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  //         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  //         th { background-color: #f2f2f2; }
+  //         .total-amount { font-weight: bold; margin-top: 20px; }
+  //         .filter-info { margin-bottom: 20px; }
+  //       </style>
+  //     </head>
+  //     <body>
+  //       <h1>Bookings Report</h1>
+  //       <div class="filter-info">
+  //         <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+  //         <p><strong>Vendor:</strong> ${vendorName}</p>
+  //         ${filters.bookingDate ? `<p><strong>Booking Date:</strong> ${filters.bookingDate}</p>` : ''}
+  //         ${filters.vehicleType ? `<p><strong>Vehicle Type:</strong> ${filters.vehicleType}</p>` : ''}
+  //         ${filters.sts ? `<p><strong>Booking Type:</strong> ${filters.sts}</p>` : ''}
+  //         ${filters.status ? `<p><strong>Status:</strong> ${filters.status}</p>` : ''}
+  //         <p><strong>Total Bookings:</strong> ${filteredByAll.length}</p>
+  //       </div>
         
-        <table>
-          <thead>
-            <tr>
-              <th>S.No</th>
-              <th>Vehicle No.</th>
-              <th>Booking Date & Time</th>
-              <th>Customer</th>
-              <th>Booking Type</th>
-              <th>Status</th>
-              <th>Vehicle Type</th>
-              <th>Amount (₹)</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filteredByAll.map((booking, index) => {
+  //       <table>
+  //         <thead>
+  //           <tr>
+  //             <th>S.No</th>
+  //             <th>Vehicle No.</th>
+  //             <th>Booking Date & Time</th>
+  //             <th>Customer</th>
+  //             <th>Booking Type</th>
+  //             <th>Status</th>
+  //             <th>Vehicle Type</th>
+  //             <th>Amount (₹)</th>
+  //             <th>Duration</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           ${filteredByAll.map((booking, index) => {
+  //     let duration = '';
+  //     if (booking.status?.toLowerCase() === 'completed') {
+  //       duration = calculateTotalDuration(
+  //         booking.parkedDate,
+  //         booking.parkedTime,
+  //         booking.exitvehicledate,
+  //         booking.exitvehicletime
+  //       );
+  //     }
+
+  //     return `
+  //               <tr>
+  //                 <td>${index + 1}</td>
+  //                 <td>${booking.vehicleNumber}</td>
+  //                 <td>${booking.bookingDate}, ${booking.bookingTime}</td>
+  //                 <td>${booking.personName}</td>
+  //                 <td>${stsChipColor[booking.sts?.toLowerCase()]?.text || booking.sts}</td>
+  //                 <td>${booking.status}</td>
+  //                 <td>${booking.vehicleType}</td>
+  //                 <td>${booking.amount || 'N/A'}</td>
+  //                 <td>${duration}</td>
+  //               </tr>
+  //             `;
+  //   }).join('')}
+  //         </tbody>
+  //       </table>
+        
+  //       <div class="total-amount">
+  //         Total Amount: ₹${totalAmount.toLocaleString()}
+  //       </div>
+  //     </body>
+  //   </html>
+  // `;
+
+      const printContent = `
+<html>
+  <head>
+    <title>Bookings Report</title>
+    <style>
+      body { font-family: Arial; margin: 20px; }
+      h1 { color: #333; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .total-amount { font-weight: bold; margin-top: 20px; }
+      .filter-info { margin-bottom: 20px; }
+    </style>
+  </head>
+  <body>
+    <h1>Bookings Report</h1>
+    <div class="filter-info">
+      <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+      <p><strong>Vendor:</strong> ${vendorName}</p>
+      ${filters.bookingDate ? `<p><strong>Booking Date:</strong> ${filters.bookingDate}</p>` : ''}
+      ${filters.vehicleType ? `<p><strong>Vehicle Type:</strong> ${filters.vehicleType}</p>` : ''}
+      ${filters.sts ? `<p><strong>Booking Type:</strong> ${filters.sts}</p>` : ''}
+      ${filters.status ? `<p><strong>Status:</strong> ${filters.status}</p>` : ''}
+      <p><strong>Total Bookings:</strong> ${filteredByAll.length}</p>
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Vehicle No.</th>
+          <th>Booking Date & Time</th>
+          <th>Customer</th>
+          <th>Booking Type</th>
+          <th>Status</th>
+          <th>Vehicle Type</th>
+          <th>Amount (₹)</th>
+          <th>Duration</th>
+          <th>Parked Date</th>
+          <th>Parked Time</th>
+          <th>Exit Date</th>
+          <th>Exit Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filteredByAll.map((booking, index) => {
       let duration = '';
       if (booking.status?.toLowerCase() === 'completed') {
         duration = calculateTotalDuration(
@@ -550,29 +676,32 @@ const formatFilterDate = (dateStr) => {
       }
 
       return `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${booking.vehicleNumber}</td>
-                  <td>${booking.bookingDate}, ${booking.bookingTime}</td>
-                  <td>${booking.personName}</td>
-                  <td>${stsChipColor[booking.sts?.toLowerCase()]?.text || booking.sts}</td>
-                  <td>${booking.status}</td>
-                  <td>${booking.vehicleType}</td>
-                  <td>${booking.amount || 'N/A'}</td>
-                  <td>${duration}</td>
-                </tr>
-              `;
+            <tr>
+              <td>${index + 1}</td>
+              <td>${booking.vehicleNumber}</td>
+              <td>${booking.bookingDate}, ${booking.bookingTime}</td>
+              <td>${booking.personName}</td>
+              <td>${stsChipColor[booking.sts?.toLowerCase()]?.text || booking.sts}</td>
+              <td>${booking.status}</td>
+              <td>${booking.vehicleType}</td>
+              <td>${booking.amount || 'N/A'}</td>
+              <td>${duration}</td>
+              <td>${booking.parkedDate || 'N/A'}</td>
+              <td>${booking.parkedTime || 'N/A'}</td>
+              <td>${booking.exitvehicledate || 'N/A'}</td>
+              <td>${booking.exitvehicletime || 'N/A'}</td>
+            </tr>
+          `;
     }).join('')}
-          </tbody>
-        </table>
-        
-        <div class="total-amount">
-          Total Amount: ₹${totalAmount.toLocaleString()}
-        </div>
-      </body>
-    </html>
-  `;
-
+      </tbody>
+    </table>
+    
+    <div class="total-amount">
+      Total Amount: ₹${totalAmount.toLocaleString()}
+    </div>
+  </body>
+</html>
+`;
     const win = window.open('', '_blank');
     win.document.write(printContent);
     win.document.close();

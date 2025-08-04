@@ -146,7 +146,7 @@ const UserDataTable = () => {
 
   const fetchUsers = () => {
     setLoading(true);
-    axios.get('https://pmwapis.parkmywheels.com/admin/allusers')
+    axios.get('https://api.parkmywheels.com/admin/allusers')
       .then(response => {
         setUsers(response.data.users);
         setFilteredUsers(response.data.users);
@@ -229,7 +229,7 @@ const UserDataTable = () => {
     setLoadingSpaces(true);
     setSpaceError(null);
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/fetchspace/${userId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/fetchspace/${userId}`);
       setVendorSpaces(response.data.data || []);
     } catch (error) {
       console.error('Error fetching vendor spaces:', error);
@@ -246,7 +246,7 @@ const UserDataTable = () => {
     setHoursLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/fetchbusinesshours/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/fetchbusinesshours/${vendorId}`);
       const data = response.data;
 
       // Make sure we have the expected data structure
@@ -283,7 +283,7 @@ const UserDataTable = () => {
     setAmenitiesLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/getamenitiesdata/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/getamenitiesdata/${vendorId}`);
       const data = response.data;
 
       if (data?.AmenitiesData?.amenities) {
@@ -300,7 +300,7 @@ const UserDataTable = () => {
     if (!vendorId) return;
     setServicesLoading(true);
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/getamenitiesdata/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/getamenitiesdata/${vendorId}`);
       const data = response.data;
 
       if (data?.AmenitiesData?.parkingEntries) {
@@ -339,7 +339,7 @@ const UserDataTable = () => {
     setBankDetailsLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/getbankdetails/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/getbankdetails/${vendorId}`);
       const data = response.data;
 
       if (data?.BankDetails) {
@@ -358,7 +358,7 @@ const UserDataTable = () => {
     setMeetingsLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/fetchmeeting/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/fetchmeeting/${vendorId}`);
       const data = response.data;
 
       if (data?.meetings) {
@@ -378,7 +378,7 @@ const UserDataTable = () => {
 
     try {
       const response = await axios.get(
-        `https://pmwapis.parkmywheels.com/vendor/fetchbookingtransaction/${vendorId}?startDate=${transactionDates.start}&endDate=${transactionDates.end}`
+        `https://api.parkmywheels.com/vendor/fetchbookingtransaction/${vendorId}?startDate=${transactionDates.start}&endDate=${transactionDates.end}`
       );
 
       if (response.data?.data?.bookings) {
@@ -405,7 +405,7 @@ const UserDataTable = () => {
     setBookingsLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/fetchbookingsbyvendorid/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/fetchbookingsbyvendorid/${vendorId}`);
 
       if (response.data?.bookings) {
         const sortedBookings = response.data.bookings.sort((a, b) => {
@@ -428,7 +428,7 @@ const UserDataTable = () => {
     setChargesLoading(true);
 
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/getchargesdata/${vendorId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/getchargesdata/${vendorId}`);
       const data = response.data;
 
       if (data?.vendor?.charges) {
@@ -459,7 +459,7 @@ const UserDataTable = () => {
 
     setVehiclesLoading(true);
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/get-vehicle-slot?id=${userId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/get-vehicle-slot?id=${userId}`);
       setVehicles(response.data.vehicles || []);
     } catch (error) {
       console.error('Error fetching user vehicles:', error);
@@ -473,7 +473,7 @@ const UserDataTable = () => {
 
     setUserBookingsLoading(true);
     try {
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/getbookinguserid/${userId}`);
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/getbookinguserid/${userId}`);
       setUserBookings(response.data.bookings || []);
     } catch (error) {
       console.error('Error fetching user bookings:', error);
@@ -526,7 +526,7 @@ const UserDataTable = () => {
       formData.append('vehicleNo', newVehicleData.vehicleNo);
 
       const response = await axios.post(
-        `https://pmwapis.parkmywheels.com/add-vehicle?id=${selectedUser.uuid}`,
+        `https://api.parkmywheels.com/add-vehicle?id=${selectedUser.uuid}`,
         formData,
         {
           headers: {
@@ -568,7 +568,7 @@ const UserDataTable = () => {
     setDeleteVehicleLoading(true);
     try {
       const response = await axios.delete(
-        `https://pmwapis.parkmywheels.com/deletevehicle?vehicleId=${vehicleToDelete._id}`
+        `https://api.parkmywheels.com/deletevehicle?vehicleId=${vehicleToDelete._id}`
       );
 
       setSuccessSnackbar({
@@ -654,7 +654,7 @@ const UserDataTable = () => {
 
     setDeleteLoading(true);
     try {
-      const response = await axios.delete(`https://pmwapis.parkmywheels.com/admin/deleteuser/${userToDelete.uuid}`);
+      const response = await axios.delete(`https://api.parkmywheels.com/admin/deleteuser/${userToDelete.uuid}`);
 
       setDeleteDialogOpen(false);
       setUserToDelete(null);
@@ -737,7 +737,7 @@ const UserDataTable = () => {
 
     try {
       const { confirmPassword, ...submissionData } = formData;
-      const response = await axios.post("https://pmwapis.parkmywheels.com/signup", submissionData);
+      const response = await axios.post("https://api.parkmywheels.com/signup", submissionData);
 
       alert(response.data.message);
       handleDrawerClose();
@@ -815,7 +815,7 @@ const UserDataTable = () => {
 
     try {
       const response = await axios.put(
-        `https://pmwapis.parkmywheels.com/updatebookingbyid/${selectedBooking._id}`,
+        `https://api.parkmywheels.com/updatebookingbyid/${selectedBooking._id}`,
         {
           parkingDate: selectedBooking.parkingDate,
           parkingTime: selectedBooking.parkingTime
@@ -854,7 +854,7 @@ const UserDataTable = () => {
 
     try {
       const response = await axios.put(
-        `https://pmwapis.parkmywheels.com/updatebookingbyid/${booking._id}`,
+        `https://api.parkmywheels.com/updatebookingbyid/${booking._id}`,
         { status: 'Cancelled' }
       );
 

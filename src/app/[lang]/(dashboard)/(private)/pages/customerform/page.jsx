@@ -29,7 +29,7 @@
 //         formDataToSend.append(key, formData[key]);
 //       });
 
-//       await axios.post('https://pmwapis.parkmywheels.com/signup', formDataToSend, {
+//       await axios.post('https://api.parkmywheels.com/signup', formDataToSend, {
 //         headers: { 'Content-Type': 'multipart/form-data' }
 //       });
 //       alert('User registered successfully!');
@@ -94,7 +94,7 @@ const SignupForm = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("https://pmwapis.parkmywheels.com/signup", formData);
+      const response = await axios.post("https://api.parkmywheels.com/signup", formData);
 
       alert(response.data.message);
       router.push("/en/apps/ecommerce/customers/list");

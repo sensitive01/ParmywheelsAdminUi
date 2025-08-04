@@ -60,7 +60,7 @@ const UserUpdate = ({ params }) => {
     const fetchUserData = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://pmwapis.parkmywheels.com/fetchuser/${userId}`);
+            const response = await axios.get(`https://api.parkmywheels.com/fetchuser/${userId}`);
             const userData = response.data.user;
             setOriginalUser(userData);
             setFormData({
@@ -101,7 +101,7 @@ const UserUpdate = ({ params }) => {
 
         try {
             const response = await axios.put(
-                `https://pmwapis.parkmywheels.com/userupdate/${userId}`,
+                `https://api.parkmywheels.com/userupdate/${userId}`,
                 formData
             );
 

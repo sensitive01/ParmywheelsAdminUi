@@ -204,7 +204,7 @@
 // // // Util Imports
 // // import { getInitials } from '@/utils/getInitials'
 // // // API URL
-// // const API_URL = 'https://pmwapis.parkmywheels.com/vendor/'
+// // const API_URL = 'https://api.parkmywheels.com/vendor/'
 // // // Formats the chat data into a structured format for display.
 // // const formatChatData = (chats, profileUser) => {
 // //   const formattedChatData = []
@@ -278,7 +278,7 @@
 // //   const fetchChats = async () => {
 // //     if (!vendorId) return
 // //     try {
-// //       const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/gethelpvendor/679b353946ad64e8db173b93`)
+// //       const response = await axios.get(`https://api.parkmywheels.com/vendor/gethelpvendor/679b353946ad64e8db173b93`)
 // //       if (response.status === 200) {
 // //         setChats(response.data.helpRequests) // Update state with fetched chats
 // //       }
@@ -462,7 +462,7 @@
 //   const fetchMessages = async () => {
 //     try {
 //       setLoading(true)
-//       const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
+//       const response = await axios.get(`https://api.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
 //       const helpRequests = response.data.helpRequests || []
 //       // Extract messages from chatbox arrays
 //       const extractedMessages = helpRequests.flatMap(request =>
@@ -628,7 +628,7 @@
 //   const fetchMessages = async () => {
 //     try {
 //       setLoading(true)
-//       const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
+//       const response = await axios.get(`https://api.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
 //       const helpRequests = response.data.helpRequests || []
 //       const extractedMessages = helpRequests.flatMap(request =>
 //         request.chatbox.map(chat => ({
@@ -793,7 +793,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
   const fetchMessages = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`https://pmwapis.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
+      const response = await axios.get(`https://api.parkmywheels.com/vendor/gethelpvendor/${activeUser.id}`)
       const helpRequests = response.data.helpRequests || []
 
       const extractedMessages = helpRequests.flatMap(request =>

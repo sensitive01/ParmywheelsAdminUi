@@ -7,7 +7,7 @@
 // // import DialogTitle from "@mui/material/DialogTitle";
 // // import TextField from "@mui/material/TextField";
 
-// // const API_URL = "https://pmwapis.parkmywheels.com/vendor";
+// // const API_URL = "https://api.parkmywheels.com/vendor";
 
 // // const BookingActionButton = ({ bookingId, currentStatus, onUpdate }) => {
 // //     const [status, setStatus] = useState(currentStatus);
@@ -112,7 +112,7 @@
 // import DialogTitle from "@mui/material/DialogTitle";
 // import TextField from "@mui/material/TextField";
 
-// const API_URL = "https://pmwapis.parkmywheels.com/vendor";
+// const API_URL = "https://api.parkmywheels.com/vendor";
 
 // const BookingActionButton = ({ bookingId, currentStatus, onUpdate }) => {
 //     const [status, setStatus] = useState(currentStatus);
@@ -225,7 +225,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 
-const API_URL = "https://pmwapis.parkmywheels.com/vendor";
+const API_URL = "https://api.parkmywheels.com/vendor";
 
 const BookingActionButton = ({ bookingId, currentStatus, onUpdate }) => {
     const [status, setStatus] = useState(currentStatus);
