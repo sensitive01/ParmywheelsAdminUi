@@ -76,7 +76,6 @@ const KycDataTable = () => {
           }
         })
       )
-
       setKycData(formattedData)
     } catch (error) {
       setSnackbar({
