@@ -25,8 +25,8 @@ import '@/app/globals.css'
 import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
-  title: 'Park My Wheels - Parking Management',
-  description: 'Park My Wheels - Parking Management'
+  title: 'ParkMyWheels - Best Parking Management Solution Provider in India',
+  description: 'ParkMyWheels - Best Parking Management Solution Provider in India'
 }
 
 const RootLayout = async props => {

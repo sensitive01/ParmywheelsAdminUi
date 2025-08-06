@@ -25,11 +25,7 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableRow from '@mui/material/TableRow'
-
-
 import CustomAvatar from '@core/components/mui/Avatar'
-
-
 import { getLocalizedUrl } from '@/utils/i18n'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -52,7 +48,6 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
   if (!startDate || !startTime || !endDate || !endTime) return 'N/A'
   
   try {
-
     const [startDay, startMonth, startYear] = startDate.split('-')
     const [startTimePart, startAmpm] = startTime.split(' ')
     let [startHours, startMinutes] = startTimePart.split(':').map(Number)
@@ -63,7 +58,6 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
       startHours = 0
     }
     
-
     const startDateTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
 
     const [endDay, endMonth, endYear] = endDate.split('-')
@@ -80,13 +74,11 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
 
     const diffMs = endDateTime - startDateTime
     
-
     const diffSecs = Math.floor(diffMs / 1000)
     const days = Math.floor(diffSecs / (3600 * 24))
     const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
     const minutes = Math.floor((diffSecs % 3600) / 60)
     
-
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`
     } else {
@@ -170,8 +162,8 @@ const BookingDetailView = () => {
         
         const result = await response.json()
         
-        if (result && result.booking) {
-          setBookingData(result.booking)
+        if (result && result.data) {
+          setBookingData(result.data)
         } else {
           throw new Error('Booking not found')
         }
@@ -185,7 +177,6 @@ const BookingDetailView = () => {
     
     fetchBookingDetails()
   }, [id])
-
 
   const getVehicleIcon = (vehicleType) => {
     if (!vehicleType) return 'ri-roadster-fill'
@@ -239,7 +230,7 @@ const BookingDetailView = () => {
     return (
       <Card>
         <CardContent>
-          <Alert severity="info">Booking not found</Alert>
+          <Alert severity="info">No booking data available</Alert>
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
             <Button 
               variant="contained" 
@@ -441,23 +432,6 @@ const BookingDetailView = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                        {/* {statusKey === 'completed' && bookingData.parkedDate && bookingData.parkedTime && 
-                          bookingData.exitvehicledate && bookingData.exitvehicletime && (
-                          <TableRow>
-                            <TableCell component="th" sx={{ fontWeight: 500 }}>Total Duration</TableCell>
-                            <TableCell sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <i className="ri-time-line" style={{ fontSize: '16px', color: '#72e128' }}></i>
-                              <Typography sx={{ fontWeight: 500, color: '#72e128' }}>
-                                {calculateDuration(
-                                  bookingData.parkedDate, 
-                                  bookingData.parkedTime, 
-                                  bookingData.exitvehicledate, 
-                                  bookingData.exitvehicletime
-                                )}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        )} */}
                         {bookingData.hour && bookingData.hour !== '00:00:00' && (
                           <TableRow>
                             <TableCell component="th" sx={{ fontWeight: 500 }}>Hours</TableCell>
@@ -471,19 +445,6 @@ const BookingDetailView = () => {
                     </Table>
                   </TableContainer>
                 </Grid>
-
-                {bookingData.additionalData && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                      Additional Information
-                    </Typography>
-                    <Paper variant="outlined" sx={{ p: 3 }}>
-                      <Typography variant="body2">
-                        {bookingData.additionalData}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                )}
               </Grid>
             </CardContent>
           </Card>
@@ -496,10 +457,11 @@ const BookingDetailView = () => {
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
                 <CustomAvatar 
-                  src="/images/avatars/1.png" 
-                  skin='light' 
-                  sx={{ width: 80, height: 80, mb: 2 }}
-                />
+                  skin='light'
+                  sx={{ width: 80, height: 80, mb: 2, fontSize: '2.5rem' }}
+                >
+                  <i className="ri-user-3-line" />
+                </CustomAvatar>
                 <Typography variant="h6">
                   {bookingData.personName || 'Unknown Customer'}
                 </Typography>

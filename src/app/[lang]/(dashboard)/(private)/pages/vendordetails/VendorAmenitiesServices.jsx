@@ -53,6 +53,7 @@ const VendorAmenitiesServices = ({ vendorId }) => {
   const [customAmenityDialogOpen, setCustomAmenityDialogOpen] = useState(false)
   const [customAmenityInput, setCustomAmenityInput] = useState('')
   const [amenitiesList, setAmenitiesList] = useState(amenitiesWithIcons)
+  const [noAmenitiesFound, setNoAmenitiesFound] = useState(false)
   
   const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -86,9 +87,17 @@ const VendorAmenitiesServices = ({ vendorId }) => {
 
   const fetchAmenitiesData = async () => {
     setIsLoading(true)
+    setNoAmenitiesFound(false)
 
     try {
       const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorId}`)
+      
+      if (response.status === 404) {
+        setNoAmenitiesFound(true)
+        setAmenities([])
+        setParkingEntries([{ amount: '', text: '' }])
+        return
+      }
       
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`)
@@ -154,7 +163,6 @@ const VendorAmenitiesServices = ({ vendorId }) => {
     return parkingEntries.every(entry => entry.text.trim() && entry.amount)
   }
 
-  // Function to update amenities only
   const updateAmenities = async () => {
     try {
       const amenitiesPayload = {
@@ -190,7 +198,6 @@ const VendorAmenitiesServices = ({ vendorId }) => {
     }
   }
   
-  // Function to update parking entries only
   const updateParkingEntries = async () => {
     try {
       // Validate parking entries
@@ -311,6 +318,12 @@ const VendorAmenitiesServices = ({ vendorId }) => {
         titleTypographyProps={{ color: 'common.white' }}
       />
       <CardContent>
+        {noAmenitiesFound ? (
+          <Alert severity="info" sx={{ mb: 4 }}>
+            No amenities found for this vendor. You can add them below.
+          </Alert>
+        ) : null}
+        
         <Grid container spacing={6}>
           <Grid item xs={12} sx={{ mt: 6}}>
             <FormControl fullWidth>

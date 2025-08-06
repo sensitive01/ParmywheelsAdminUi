@@ -1,12 +1,11 @@
+
 'use client'
 
 // React Imports
 import { useRef, useState } from 'react'
 
-
 // Next Imports
 import { useParams, useRouter } from 'next/navigation'
-
 
 // MUI Imports
 import { styled } from '@mui/material/styles'
@@ -25,13 +24,11 @@ import Button from '@mui/material/Button'
 // Third-party Imports
 import { signOut, useSession } from 'next-auth/react'
 
-
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
-
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -78,14 +75,10 @@ const UserDropdown = () => {
       await signOut({ callbackUrl: process.env.NEXT_PUBLIC_APP_URL })
     } catch (error) {
       console.error(error)
-
-      // Show above error in a toast like following
-      // toastService.error((err as Error).message)
     }
   }
 
-  
-return (
+  return (
     <>
       <Badge
         ref={anchorRef}
@@ -123,38 +116,37 @@ return (
             >
               <ClickAwayListener onClickAway={e => handleDropdownClose(e)}>
                 <MenuList>
-                  {/* <div className='flex items-center plb-2 pli-4 gap-2' tabIndex={-1}>
-                    <Avatar alt={session?.user?.name || ''} src={session?.user?.image || ''} />
-                    <div className='flex items-start flex-col'>
-                      <Typography variant='body2' className='font-medium' color='text.primary'>
-                        {session?.user?.name || ''}
-                      </Typography>
-                      <Typography variant='caption'>{session?.user?.email || ''}</Typography>
-                    </div>
-                  </div> */}
                   <Divider className='mlb-1' />
-                  {/* <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, '/pages/user-profile')}>
-                    <i className='ri-user-3-line' />
-                    <Typography color='text.primary'>My Profile</Typography>
-                  </MenuItem> */}
-                <div className='flex items-center plb-1.5 pli-4'>
-                  <Button
-                    fullWidth
-                    variant='contained'
-                    color='error'
-                    size='small'
-                    endIcon={<i className='ri-logout-box-r-line' />}
-                    onClick={handleUserLogout}
-                  >
-                    Logout 
-                  </Button>
-                </div>
-              </MenuList>
-            </ClickAwayListener>
-          </Paper>
+                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/account-settings`)}>
+                    <i className='ri-user-settings-line' />
+                    <Typography color='text.primary'>Account Settings</Typography>
+                  </MenuItem>
+                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/notifications`)}>
+                    <i className='ri-notification-3-line' />
+                    <Typography color='text.primary'>Notifications</Typography>
+                  </MenuItem>
+                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/search`)}>
+                    <i className='ri-search-line' />
+                    <Typography color='text.primary'>Search</Typography>
+                  </MenuItem>
+                   <div className='flex items-center plb-1.5 pli-4'>
+                    <Button
+                      fullWidth
+                      variant='contained'
+                      color='error'
+                      size='small'
+                      endIcon={<i className='ri-logout-box-r-line' />}
+                      onClick={handleUserLogout}
+                    >
+                      Logout 
+                    </Button>
+                  </div>
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
           </Fade>
         )}
-    </Popper >
+      </Popper>
     </>
   )
 }

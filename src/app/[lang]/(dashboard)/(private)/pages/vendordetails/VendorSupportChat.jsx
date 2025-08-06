@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import axios from 'axios'
 
-
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -84,7 +83,6 @@ const VendorSupportChat = ({ vendorId }) => {
           );
           setSelectedRequest(sortedRequests[0]);
           fetchChatData(sortedRequests[0]._id);
-
         } else {
           setLoading(false)
         }
@@ -93,11 +91,6 @@ const VendorSupportChat = ({ vendorId }) => {
       }
     } catch (error) {
       console.error('Error fetching help requests:', error)
-      setSnackbar({
-        open: true,
-        message: 'Failed to load support requests',
-        severity: 'error'
-      })
       setLoading(false)
     }
   }
@@ -111,14 +104,12 @@ const VendorSupportChat = ({ vendorId }) => {
 
       if (response.status === 200) {
         setChatMessages(response.data.chatbox || [])
+      } else {
+        setChatMessages([])
       }
     } catch (error) {
       console.error('Error fetching chat data:', error)
-      setSnackbar({
-        open: true,
-        message: 'Failed to load chat messages',
-        severity: 'error'
-      })
+      setChatMessages([])
     } finally {
       setLoading(false)
     }
@@ -127,10 +118,10 @@ const VendorSupportChat = ({ vendorId }) => {
   const handleCompleteRequest = async (requestId) => {
     try {
       setCompletingId(requestId)
-const response = await axios.patch(
-  `${API_URL}/admin/adminclosechat/${selectedRequest._id}`,
-  { adminId: session?.user?.id } 
-);
+      const response = await axios.patch(
+        `${API_URL}/admin/adminclosechat/${selectedRequest._id}`,
+        { adminId: session?.user?.id } 
+      );
 
       if (response.status === 200) {
         setSnackbar({
@@ -139,7 +130,6 @@ const response = await axios.patch(
           severity: 'success'
         })
 
-        // Update the request in state
         setHelpRequests(prev =>
           prev.map(req =>
             req._id === requestId
@@ -148,7 +138,6 @@ const response = await axios.patch(
           )
         )
 
-        // Update selected request if it's the one being completed
         if (selectedRequest?._id === requestId) {
           setSelectedRequest(prev => ({
             ...prev,
@@ -432,9 +421,17 @@ const response = await axios.patch(
                         <CircularProgress />
                       </Box>
                     ) : chatMessages.length === 0 ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                        <Typography color="text.secondary">
-                          No messages yet. Start the conversation!
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        height: '100%',
+                        backgroundColor: '#e8f5e9',
+                        borderRadius: 1,
+                        p: 3
+                      }}>
+                        <Typography color="#2e7d32" fontWeight="bold">
+                          Chat not found
                         </Typography>
                       </Box>
                     ) : (

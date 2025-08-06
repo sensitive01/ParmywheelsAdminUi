@@ -8,10 +8,11 @@
         "logistics": "Logistics",
         "frontPages": "Front Pages",
         "landing": "Landing",
-        "pricing": "Premium Plan",
+        "pricing": "Plans",
         "kyconboarding": "KYC Onboarding Process",
-        "settlement": "Settlement",
-        "myspace": "My Space",
+        "subscribers": "Subscribers",
+        "settlement": "Settlements",
+        "myspace": "My Space List",
         "payment": "Payment",
         "checkout": "Checkout",
         "helpCenter": "Help Center",
@@ -19,10 +20,11 @@
         "apps": "Parking Vendors",
         "dashboard": "Dashboard",
         "products": "Parking Vendors",
+        "vendor": "Vendors",
         "list": "List",
         "add": "Add",
         "category": "Category",
-        "orders": "Booking",
+        "orders": "Bookings",
         "details": "Details",
         "customers": "Customers",
         "manageReviews": "Manage Reviews",
@@ -107,6 +109,8 @@
         "menuLevel2": "Menu Level 2",
         "menuLevel3": "Menu Level 3",
         "disabledMenu": "Disabled Menu",
-        "vendoradd": "Vendor"
+        "vendoradd": "Vendor",
+        "otherservices": "Other Services",
+        "Premiumplans": "Premium Plans"
     }
 }
