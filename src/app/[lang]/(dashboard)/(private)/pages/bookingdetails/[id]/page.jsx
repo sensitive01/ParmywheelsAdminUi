@@ -46,7 +46,7 @@ export const statusChipColor = {
 
 const calculateDuration = (startDate, startTime, endDate, endTime) => {
   if (!startDate || !startTime || !endDate || !endTime) return 'N/A'
-  
+
   try {
     const [startDay, startMonth, startYear] = startDate.split('-')
     const [startTimePart, startAmpm] = startTime.split(' ')
@@ -57,7 +57,7 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
     } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
       startHours = 0
     }
-    
+
     const startDateTime = new Date(`${startYear}-${startMonth}-${startDay}T${startHours}:${startMinutes}:00`)
 
     const [endDay, endMonth, endYear] = endDate.split('-')
@@ -73,12 +73,12 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
     const endDateTime = new Date(`${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}:00`)
 
     const diffMs = endDateTime - startDateTime
-    
+
     const diffSecs = Math.floor(diffMs / 1000)
     const days = Math.floor(diffSecs / (3600 * 24))
     const hours = Math.floor((diffSecs % (3600 * 24)) / 3600)
     const minutes = Math.floor((diffSecs % 3600) / 60)
-    
+
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`
     } else {
@@ -92,7 +92,7 @@ const calculateDuration = (startDate, startTime, endDate, endTime) => {
 
 const formatDateDisplay = (dateStr) => {
   if (!dateStr) return 'N/A'
-  
+
   try {
     if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
       return new Date(dateStr).toLocaleDateString('en-US', {
@@ -100,7 +100,7 @@ const formatDateDisplay = (dateStr) => {
         month: 'short',
         year: 'numeric'
       })
-    } 
+    }
     else if (dateStr.includes('-')) {
       const [day, month, year] = dateStr.split('-')
       return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
@@ -109,7 +109,7 @@ const formatDateDisplay = (dateStr) => {
         year: 'numeric'
       })
     }
-    
+
     return dateStr
   } catch (e) {
     console.error("Date parsing error:", e, dateStr)
@@ -155,13 +155,13 @@ const BookingDetailView = () => {
         setError(null)
 
         const response = await fetch(`${API_URL}/vendor/getbooking/${id}`)
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch booking details')
         }
-        
+
         const result = await response.json()
-        
+
         if (result && result.data) {
           setBookingData(result.data)
         } else {
@@ -174,27 +174,27 @@ const BookingDetailView = () => {
         setLoading(false)
       }
     }
-    
+
     fetchBookingDetails()
   }, [id])
 
   const getVehicleIcon = (vehicleType) => {
     if (!vehicleType) return 'ri-roadster-fill'
-    
+
     const type = vehicleType.toLowerCase()
     if (type === 'car') return 'ri-car-fill'
     if (type === 'bike') return 'ri-motorbike-fill'
-    
+
     return 'ri-roadster-fill'
   }
 
   const getVehicleIconColor = (vehicleType) => {
     if (!vehicleType) return '#282a42'
-    
+
     const type = vehicleType.toLowerCase()
     if (type === 'car') return '#ff4d49'
     if (type === 'bike') return '#72e128'
-    
+
     return '#282a42'
   }
 
@@ -212,10 +212,10 @@ const BookingDetailView = () => {
         <CardContent>
           <Alert severity="error">{error}</Alert>
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-            <Button 
-              variant="contained" 
-              component={Link} 
-              href={getLocalizedUrl('/apps/ecommerce/products/list', locale)}
+            <Button
+              variant="contained"
+              component={Link}
+              href={getLocalizedUrl('/apps/parking/vendors/list', locale)}
               startIcon={<i className="ri-arrow-left-line" />}
             >
               Back to Booking List
@@ -232,10 +232,10 @@ const BookingDetailView = () => {
         <CardContent>
           <Alert severity="info">No booking data available</Alert>
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-            <Button 
-              variant="contained" 
-              component={Link} 
-              href={getLocalizedUrl('/apps/ecommerce/products/list', locale)}
+            <Button
+              variant="contained"
+              component={Link}
+              href={getLocalizedUrl('/apps/parking/vendors/list', locale)}
               startIcon={<i className="ri-arrow-left-line" />}
             >
               Back to Booking List
@@ -256,10 +256,10 @@ const BookingDetailView = () => {
     <>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h3">Booking Details</Typography>
-        <Button 
-          variant="outlined" 
-          component={Link} 
-          href={getLocalizedUrl('/apps/ecommerce/products/list', locale)}
+        <Button
+          variant="outlined"
+          component={Link}
+          href={getLocalizedUrl('/apps/parking/vendors/list', locale)}
           startIcon={<i className="ri-arrow-left-line" />}
         >
           Back to Booking List
@@ -273,9 +273,9 @@ const BookingDetailView = () => {
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <CustomAvatar 
-                      skin='light' 
-                      color='primary' 
+                    <CustomAvatar
+                      skin='light'
+                      color='primary'
                       sx={{ mr: 2.5, width: 60, height: 60, fontSize: '2rem' }}
                     >
                       <i className={getVehicleIcon(bookingData.vehicleType)} style={{ color: getVehicleIconColor(bookingData.vehicleType) }}></i>
@@ -289,17 +289,17 @@ const BookingDetailView = () => {
                           label={bookingData.status || 'N/A'}
                           variant="tonal"
                           size="small"
-                          sx={statusChipProps.color.startsWith('#') ? { 
-                            backgroundColor: statusChipProps.color, 
-                            color: 'white' 
+                          sx={statusChipProps.color.startsWith('#') ? {
+                            backgroundColor: statusChipProps.color,
+                            color: 'white'
                           } : {}}
                           color={!statusChipProps.color.startsWith('#') ? statusChipProps.color : undefined}
                         />
                         <Typography
-                          sx={{ 
-                            color: stsChipProps.color, 
-                            fontWeight: 500, 
-                            display: 'flex', 
+                          sx={{
+                            color: stsChipProps.color,
+                            fontWeight: 500,
+                            display: 'flex',
                             alignItems: 'center',
                             fontSize: '0.875rem'
                           }}
@@ -456,7 +456,7 @@ const BookingDetailView = () => {
             <Divider />
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                <CustomAvatar 
+                <CustomAvatar
                   skin='light'
                   sx={{ width: 80, height: 80, mb: 2, fontSize: '2.5rem' }}
                 >
@@ -471,11 +471,11 @@ const BookingDetailView = () => {
                   </Typography>
                 )}
               </Box>
-              
+
               <Divider sx={{ mb: 3 }} />
             </CardContent>
           </Card>
-          
+
           <Card sx={{ mt: 3 }}>
             <CardHeader title="Booking Status" />
             <Divider />
@@ -487,9 +487,9 @@ const BookingDetailView = () => {
                     label={bookingData.status || 'N/A'}
                     variant="tonal"
                     size="small"
-                    sx={statusChipProps.color.startsWith('#') ? { 
-                      backgroundColor: statusChipProps.color, 
-                      color: 'white' 
+                    sx={statusChipProps.color.startsWith('#') ? {
+                      backgroundColor: statusChipProps.color,
+                      color: 'white'
                     } : {}}
                     color={!statusChipProps.color.startsWith('#') ? statusChipProps.color : undefined}
                   />

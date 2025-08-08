@@ -74,17 +74,13 @@ const HorizontalMenu = ({ dictionary }) => {
         <MenuItem href={`/${locale}/dashboards/crm`} icon={<i className='ri-home-smile-line' />}>
           {dictionary['navigation'].dashboards}
         </MenuItem>
-         <MenuItem href={`/${locale}/apps/ecommerce/products/list`}>{dictionary['navigation'].vendor}</MenuItem>
-        {/* <SubMenu label={dictionary['navigation'].vendor}>
-          <MenuItem href={`/${locale}/apps/ecommerce/products/list`}>{dictionary['navigation'].list}</MenuItem>
-          <MenuItem href={`/${locale}/pages/vendoradd`} >
-            {dictionary['navigation'].vendoradd}
-          </MenuItem>
-        </SubMenu> */}
-
+        <SubMenu label={dictionary['navigation'].vendor}>
+          <MenuItem href={`/${locale}/apps/parking/vendors/list`}>{dictionary['navigation'].ListVendors}</MenuItem>
+          <MenuItem href={`/${locale}/pages/kyconboarding`}>{dictionary['navigation'].KYCVerification}</MenuItem>
+        </SubMenu>
         <SubMenu label={dictionary['navigation'].orders}>
-          {/* <MenuItem href={`/${locale}/apps/ecommerce/orders/list`}>{dictionary['navigation'].list}</MenuItem> */}
-          <MenuItem href={`/${locale}/apps/ecommerce/orders/list`}>{dictionary['navigation'].orders}</MenuItem>
+          {/* <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].list}</MenuItem> */}
+          <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].orders}</MenuItem>
           <MenuItem href={`/${locale}/pages/faq`}>{dictionary['navigation'].faq}</MenuItem>
           <MenuItem href={`/${locale}/pages/settlement`}>{dictionary['navigation'].settlement}</MenuItem>
           {/* <MenuItem href={`/${locale}/pages/wizard-examples/property-listing`}>

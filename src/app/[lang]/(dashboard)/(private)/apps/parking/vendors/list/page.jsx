@@ -1,5 +1,9 @@
+// MUI Imports
+import Grid from '@mui/material/Grid2'
+
 // Component Imports
-import OrderList from '@views/apps/ecommerce/orders/list'
+import ProductListTable from '@views/apps/parking/vendors/list/ProductListTable'
+import ProductCard from '@views/apps/parking/vendors/list/ProductCard'
 
 // Data Imports
 import { getEcommerceData } from '@/app/server/actions'
@@ -20,11 +24,20 @@ import { getEcommerceData } from '@/app/server/actions'
 
   return res.json()
 } */
-const OrdersListPage = async () => {
+const eCommerceProductsList = async () => {
   // Vars
   const data = await getEcommerceData()
 
-  return <OrderList orderData={data?.orderData} />
+  return (
+    <Grid container spacing={6}>
+      <Grid size={{ xs: 12 }}>
+        <ProductCard />
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <ProductListTable productData={data?.products} />
+      </Grid>
+    </Grid>
+  )
 }
 
-export default OrdersListPage
+export default eCommerceProductsList

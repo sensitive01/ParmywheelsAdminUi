@@ -460,11 +460,11 @@ const VendorRegistration = () => {
         }
       });
 
-      alert('Vendor details updated successfully!');
+      alert('Admin details updated successfully!');
       router.refresh();
     } catch (err) {
       console.error('Update error:', err);
-      setError(err.message || 'Failed to update vendor details');
+      setError(err.message || 'Failed to update admin details');
     } finally {
       setIsLoading(false);
     }

@@ -1189,7 +1189,7 @@ import {
 } from '@tanstack/react-table'
 
 // Component Imports
-import TableFilters from '../../products/list/TableFilters'
+import TableFilters from '../../vendors/list/TableFilters'
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
 

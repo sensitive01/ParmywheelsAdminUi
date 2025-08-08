@@ -1,3 +1,6 @@
+
+'use client'
+
 // Next Imports
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -7,7 +10,6 @@ import classnames from 'classnames'
 
 // Component Imports
 import NavToggle from './NavToggle'
-import Logo from '@components/layout/shared/Logo'
 import NavSearch from '@components/layout/shared/search'
 import LanguageDropdown from '@components/layout/shared/LanguageDropdown'
 import ModeDropdown from '@components/layout/shared/ModeDropdown'
@@ -22,10 +24,6 @@ import useHorizontalNav from '@menu/hooks/useHorizontalNav'
 import { horizontalLayoutClasses } from '@layouts/utils/layoutClasses'
 import { getLocalizedUrl } from '@/utils/i18n'
 
-// Vars
-
-
-
 const NavbarContent = () => {
   // Hooks
   const { isBreakpointReached } = useHorizontalNav()
@@ -39,8 +37,12 @@ const NavbarContent = () => {
         <NavToggle />
         {/* Hide Logo on Smaller screens */}
         {!isBreakpointReached && (
-          <Link href={getLocalizedUrl('/', locale)}>
-            <Logo />
+          <Link href={getLocalizedUrl('/', locale)} className='flex items-center'>
+            <img
+              src='/images/cards/login.png'
+              style={{ width: 'auto', height: 'auto', maxWidth: '9%' }}
+              alt='Logo'
+            />
           </Link>
         )}
       </div>

@@ -111,6 +111,8 @@
         "disabledMenu": "Disabled Menu",
         "vendoradd": "Vendor",
         "otherservices": "Other Services",
-        "Premiumplans": "Premium Plans"
+        "Premiumplans": "Premium Plans",
+        "KYCVerification": "KYC Verification",
+        "ListVendors": "List Vendors"
     }
 }

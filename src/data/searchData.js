@@ -84,7 +84,7 @@ const data = [
   {
     id: '12',
     name: 'eCommerce - Product List',
-    url: '/apps/ecommerce/products/list',
+    url: '/apps/parking/vendors/list',
     icon: 'ri-file-list-line',
     section: 'Apps'
   },
@@ -105,7 +105,7 @@ const data = [
   {
     id: '15',
     name: 'eCommerce - Order List',
-    url: '/apps/ecommerce/orders/list',
+    url: '/apps/parking/bookings/list',
     icon: 'ri-list-unordered',
     section: 'Apps'
   },

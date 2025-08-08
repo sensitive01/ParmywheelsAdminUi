@@ -267,7 +267,7 @@
 //                 setImage(null)
 //                 setImagePreview(null)
 
-//                 router.push('/apps/ecommerce/products/list')
+//                 router.push('/apps/parking/vendors/list')
 //             } else {
 //                 setSnackbar({
 //                     open: true,
@@ -628,9 +628,9 @@ const ProductImage = ({ onChange, existingImage }) => {
         }}
         onLoad={() => { URL.revokeObjectURL(file.preview) }}
       />
-      <IconButton 
+      <IconButton
         onClick={handleRemoveFile}
-        sx={{ 
+        sx={{
           position: 'absolute',
           top: 8,
           right: 8,
@@ -662,7 +662,7 @@ const ProductImage = ({ onChange, existingImage }) => {
             </Button>
           </Box>
         </DropzoneWrapper>
-        
+
         {existingImage && files.length === 0 && (
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Typography variant='body2'>Current image in use</Typography>
@@ -678,7 +678,7 @@ const ProductImage = ({ onChange, existingImage }) => {
             />
           </Box>
         )}
-        
+
         {thumbs}
       </CardContent>
     </Card>
@@ -715,7 +715,7 @@ const VendorCreate = () => {
   // Button enable/disable states
   const [addContactButtonEnabled, setAddContactButtonEnabled] = useState(false)
   const [addParkingButtonEnabled, setAddParkingButtonEnabled] = useState(false)
-  
+
   // All available parking types
   const allParkingTypes = ['Cars', 'Bikes', 'Others']
 
@@ -723,9 +723,9 @@ const VendorCreate = () => {
   useEffect(() => {
     if (contacts.length > 0) {
       const lastContact = contacts[contacts.length - 1];
-      const isValidMobile = lastContact.mobile.trim() !== '' && 
-                          lastContact.mobile.length === 10 && 
-                          /^\d+$/.test(lastContact.mobile);
+      const isValidMobile = lastContact.mobile.trim() !== '' &&
+        lastContact.mobile.length === 10 &&
+        /^\d+$/.test(lastContact.mobile);
       setAddContactButtonEnabled(lastContact.name.trim() !== '' && isValidMobile);
     } else {
       setAddContactButtonEnabled(false);
@@ -760,7 +760,7 @@ const VendorCreate = () => {
   // Handler for mobile number input - restrict to 10 digits
   const handleMobileInput = (e, index) => {
     const value = e.target.value
-    
+
     // Allow only digits and limit to 10 characters
     if (/^\d*$/.test(value) && value.length <= 10) {
       const updatedContacts = [...contacts]
@@ -774,7 +774,7 @@ const VendorCreate = () => {
     const selectedTypes = parkingEntries.map(entry => entry.type)
       .filter((_, i) => i !== currentIndex)
       .filter(type => type !== '')
-    
+
     return allParkingTypes.filter(type => !selectedTypes.includes(type))
   }
 
@@ -798,7 +798,7 @@ const VendorCreate = () => {
       })
       return
     }
-    
+
     if (!termsAccepted) {
       setTermsError('You must accept the terms and conditions to register')
       setSnackbar({
@@ -891,13 +891,13 @@ const VendorCreate = () => {
 
         // Redirect after delay
         setTimeout(() => {
-          router.push('/apps/ecommerce/products/list')
+          router.push('/apps/parking/vendors/list')
         }, 1500)
       }
     } catch (error) {
       console.error('Error creating vendor:', error)
       let errorMessage = 'Something went wrong!'
-      
+
       if (error.response) {
         if (error.response.status === 400) {
           errorMessage = error.response.data.message || 'Validation error'
@@ -907,7 +907,7 @@ const VendorCreate = () => {
           errorMessage = 'Server error - Please try again later'
         }
       }
-      
+
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -983,9 +983,9 @@ const VendorCreate = () => {
             </Grid>
           ))}
           <Grid item xs={12}>
-            <Button 
-              variant='contained' 
-              onClick={handleAddContact} 
+            <Button
+              variant='contained'
+              onClick={handleAddContact}
               startIcon={<AddIcon />}
               disabled={!addContactButtonEnabled}
             >
@@ -1078,7 +1078,7 @@ const VendorCreate = () => {
             <Grid container spacing={2}>
               {parkingEntries.map((entry, index) => {
                 const availableTypes = getAvailableParkingTypes(index)
-                
+
                 return (
                   <Grid key={index} item xs={12}>
                     <Grid container spacing={2}>
@@ -1130,9 +1130,9 @@ const VendorCreate = () => {
               })}
             </Grid>
             <Box sx={{ mt: 2, mb: 4 }}>
-              <Button 
-                variant="contained" 
-                onClick={handleAddParkingEntry} 
+              <Button
+                variant="contained"
+                onClick={handleAddParkingEntry}
                 startIcon={<AddIcon />}
                 disabled={!addParkingButtonEnabled || parkingEntries.filter(e => e.type).length >= allParkingTypes.length}
               >

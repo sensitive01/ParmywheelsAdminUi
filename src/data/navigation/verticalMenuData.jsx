@@ -86,7 +86,7 @@ const verticalMenuData = dictionary => [
             children: [
               {
                 label: dictionary['navigation'].list,
-                href: '/apps/ecommerce/products/list'
+                href: '/apps/parking/vendors/list'
               },
               {
                 label: dictionary['navigation'].add,
@@ -103,7 +103,7 @@ const verticalMenuData = dictionary => [
             children: [
               {
                 label: dictionary['navigation'].list,
-                href: '/apps/ecommerce/orders/list'
+                href: '/apps/parking/bookings/list'
               },
               {
                 label: dictionary['navigation'].details,

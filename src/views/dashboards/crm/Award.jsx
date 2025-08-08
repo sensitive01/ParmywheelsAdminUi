@@ -70,7 +70,7 @@ const Award = () => {
           </div>
           <Button size='small' variant="contained"
             sx={{ backgroundColor: '#329a73' }}
-            onClick={() => router.push('/en/apps/ecommerce/products/list')}
+            onClick={() => router.push('/en/apps/parking/vendors/list')}
           >
 
             View Vendors
