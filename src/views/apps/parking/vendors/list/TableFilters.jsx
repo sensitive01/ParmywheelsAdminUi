@@ -30,6 +30,7 @@ const TableFilters = ({ filters, onFilterChange, bookingData }) => {
       const uniqueStatusTypes = [...new Set(bookingData.map(item => item.status))].filter(Boolean)
       setStatusTypes(uniqueStatusTypes)
 
+      
       // Get unique booking dates
       const uniqueBookingDates = [...new Set(bookingData.map(item => item.bookingDate))].filter(Boolean)
       setBookingDates(uniqueBookingDates)
