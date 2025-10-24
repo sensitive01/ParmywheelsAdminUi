@@ -182,27 +182,27 @@
 //   // Plan Selection Screen
 //   const renderPlanSelection = () => (
 //     <Box>
-//       <Typography 
-//         variant="body1" 
-//         color="text.secondary" 
+//       <Typography
+//         variant="body1"
+//         color="text.secondary"
 //         sx={{ mb: 4 }}
 //       >
 //         Choose a subscription plan that works for you.
 //       </Typography>
 
 //       {/* Plan Options */}
-//       <Box sx={{ 
-//         display: 'flex', 
-//         justifyContent: 'space-between', 
-//         mb: 4, 
+//       <Box sx={{
+//         display: 'flex',
+//         justifyContent: 'space-between',
+//         mb: 4,
 //         gap: 3,
 //         overflowX: 'auto'
 //       }}>
 //         {plans.map((plan) => (
-//           <Card 
+//           <Card
 //             key={plan.id}
 //             onClick={() => handlePlanSelect(plan.id)}
-//             sx={{ 
+//             sx={{
 //               flex: 1,
 //               minWidth: '100px',
 //               borderRadius: 2,
@@ -270,9 +270,9 @@
 //   // Payment Details Screen
 //   const renderPaymentDetails = () => (
 //     <Box>
-//       <Typography 
-//         variant="body1" 
-//         color="text.secondary" 
+//       <Typography
+//         variant="body1"
+//         color="text.secondary"
 //         sx={{ mb: 4 }}
 //       >
 //         Enter your payment information securely.
@@ -374,7 +374,7 @@
 //             variant="outlined"
 //             onClick={handleApplyCoupon}
 //             disabled={!couponCode || couponApplied}
-//             sx={{ 
+//             sx={{
 //               borderColor: '#329a73',
 //               color: '#329a73',
 //               '&:hover': {
@@ -383,7 +383,7 @@
 //               }
 //             }}
 //           >
-//             {couponLoading ? <CircularProgress size={24} /> : 
+//             {couponLoading ? <CircularProgress size={24} /> :
 //              couponApplied ? 'Applied' : 'Apply'}
 //           </Button>
 //         </Box>
@@ -397,7 +397,7 @@
 
 //       <FormControlLabel
 //         control={
-//           <Checkbox 
+//           <Checkbox
 //             checked={autoRenew}
 //             onChange={(e) => setAutoRenew(e.target.checked)}
 //             sx={{
@@ -416,9 +416,9 @@
 //   // Order Summary Screen
 //   const renderOrderSummary = () => (
 //     <Box>
-//       <Typography 
-//         variant="body1" 
-//         color="text.secondary" 
+//       <Typography
+//         variant="body1"
+//         color="text.secondary"
 //         sx={{ mb: 4 }}
 //       >
 //         Please review your subscription details before confirming.
@@ -478,15 +478,15 @@
 //         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
 //           <Typography variant="h6">Total</Typography>
 //           <Typography variant="h6" color="#329a73" fontWeight="bold">
-//             {couponApplied 
-//               ? `₹${(parseInt(getSelectedPlan().price.replace('₹', '')) * 0.9).toFixed(0)}` 
+//             {couponApplied
+//               ? `₹${(parseInt(getSelectedPlan().price.replace('₹', '')) * 0.9).toFixed(0)}`
 //               : getSelectedPlan().price}
 //           </Typography>
 //         </Box>
 
 //         <Typography variant="body2" color="text.secondary">
-//           {autoRenew 
-//             ? `Your subscription will automatically renew every ${getSelectedPlan().title.toLowerCase()} until canceled.` 
+//           {autoRenew
+//             ? `Your subscription will automatically renew every ${getSelectedPlan().title.toLowerCase()} until canceled.`
 //             : 'Your subscription will not automatically renew.'}
 //         </Typography>
 //       </Card>
@@ -515,7 +515,7 @@
 //           <ArrowBackIcon />
 //         </IconButton>
 //         <Typography variant="h5" component="h1" sx={{ fontWeight: 500, color: 'white', ml: 1 }}>
-//           {activeStep === 0 ? 'Choose Your Plan' : 
+//           {activeStep === 0 ? 'Choose Your Plan' :
 //            activeStep === 1 ? 'Payment Details' : 'Review & Confirm'}
 //         </Typography>
 //       </Box>
@@ -540,10 +540,10 @@
 
 //           {/* Navigation Buttons */}
 //           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-//             <Button 
-//               variant="outlined" 
+//             <Button
+//               variant="outlined"
 //               onClick={handleBack}
-//               sx={{ 
+//               sx={{
 //                 borderColor: '#329a73',
 //                 color: '#329a73',
 //                 borderRadius: 2,
@@ -559,11 +559,11 @@
 //             >
 //               {activeStep === 0 ? 'Cancel' : 'Back'}
 //             </Button>
-//             <Button 
-//               variant="contained" 
+//             <Button
+//               variant="contained"
 //               onClick={handleNext}
-//               sx={{ 
-//                 backgroundColor: '#329a73', 
+//               sx={{
+//                 backgroundColor: '#329a73',
 //                 borderRadius: 2,
 //                 px: 4,
 //                 py: 1,
@@ -593,23 +593,23 @@
 //         </DialogTitle>
 //         <DialogContent>
 //           <DialogContentText id="alert-dialog-description">
-//             You're about to subscribe to the {getSelectedPlan().title} plan for {couponApplied 
-//               ? `₹${(parseInt(getSelectedPlan().price.replace('₹', '')) * 0.9).toFixed(0)}` 
+//             You're about to subscribe to the {getSelectedPlan().title} plan for {couponApplied
+//               ? `₹${(parseInt(getSelectedPlan().price.replace('₹', '')) * 0.9).toFixed(0)}`
 //               : getSelectedPlan().price}.
 //             {autoRenew && " Your subscription will automatically renew until canceled."}
 //           </DialogContentText>
 //         </DialogContent>
 //         <DialogActions sx={{ p: 3 }}>
-//           <Button 
+//           <Button
 //             onClick={handleCancel}
 //             sx={{ color: 'text.secondary' }}
 //           >
 //             Cancel
 //           </Button>
-//           <Button 
+//           <Button
 //             onClick={handleConfirmSubscription}
 //             variant="contained"
-//             sx={{ 
+//             sx={{
 //               backgroundColor: '#329a73',
 //               '&:hover': {
 //                 backgroundColor: '#3d8b40'
