@@ -82,11 +82,11 @@ const horizontalMenuData = dictionary => [
             children: [
               {
                 label: dictionary['navigation'].list,
-                href: '/apps/ecommerce/customers/list'
+                href: '/apps/parking/customers/list'
               },
               {
                 label: dictionary['navigation'].details,
-                href: '/apps/ecommerce/customers/details/879861',
+                href: '/apps/parking/customers/details/879861',
                 exactMatch: false,
                 activeUrl: '/apps/ecommerce/customers/details'
               }

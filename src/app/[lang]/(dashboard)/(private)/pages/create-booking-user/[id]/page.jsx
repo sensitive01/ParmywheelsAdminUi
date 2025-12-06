@@ -451,7 +451,7 @@ export default function ParkingBooking() {
         message: 'Booking created successfully!',
         type: 'success'
       })
-      router.push('/apps/ecommerce/customers/list')
+      router.push('/apps/parking/customers/list')
       setTimeout(() => {
         setActiveStep(0)
         setVehicleType('Car')

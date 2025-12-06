@@ -119,7 +119,7 @@ const data = [
   {
     id: '17',
     name: 'eCommerce - Customer List',
-    url: '/apps/ecommerce/customers/list',
+    url: '/apps/parking/customers/list',
     icon: 'ri-user-line',
     section: 'Apps'
   },

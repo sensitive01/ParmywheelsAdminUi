@@ -88,18 +88,12 @@ const HorizontalMenu = ({ dictionary }) => {
           </MenuItem> */}
         </SubMenu>
         <SubMenu label={dictionary['navigation'].customers}>
-          <MenuItem href={`/${locale}/apps/ecommerce/customers/list`}>{dictionary['navigation'].customers}</MenuItem>
-          <MenuItem href={`/${locale}/pages/myspace`} >
-            {dictionary['navigation'].myspace}
-          </MenuItem>
+          <MenuItem href={`/${locale}/apps/parking/customers/list`}>{dictionary['navigation'].customers}</MenuItem>
+          <MenuItem href={`/${locale}/pages/myspace`}>{dictionary['navigation'].myspace}</MenuItem>
         </SubMenu>
         <SubMenu label={dictionary['navigation'].otherservices}>
-          <MenuItem href={`/${locale}/pages/corporate-solutionstable`} >
-            {dictionary['navigation'].calendar}
-          </MenuItem>
-          <MenuItem href={`/${locale}/pages/Commercial-table`} >
-            {dictionary['navigation'].kanban}
-          </MenuItem>
+          <MenuItem href={`/${locale}/pages/corporate-solutionstable`}>{dictionary['navigation'].calendar}</MenuItem>
+          <MenuItem href={`/${locale}/pages/Commercial-table`}>{dictionary['navigation'].kanban}</MenuItem>
         </SubMenu>
         <SubMenu label={dictionary['navigation'].Premiumplans}>
           <MenuItem href={`/${locale}/pages/pricing`} icon={<i className='ri-money-dollar-circle-line' />}>
@@ -136,9 +130,7 @@ const HorizontalMenu = ({ dictionary }) => {
         {/* <MenuItem href={`/${locale}/pages/notifications`} icon={<i className='ri-notification-3-line' style={{ color: '#black', fontSize: '24px' }} />} />
         <MenuItem href={`/${locale}/pages/search`} icon={<i className='ri-search-line' style={{ color: '#black', fontSize: '24px' }} />}>
         </MenuItem> */}
-
       </Menu>
-
     </HorizontalNav>
   )
 }

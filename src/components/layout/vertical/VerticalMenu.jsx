@@ -111,11 +111,11 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
               </MenuItem>
             </SubMenu>
             <SubMenu label={dictionary['navigation'].customers}>
-              <MenuItem href={`/${locale}/apps/ecommerce/customers/list`}>{dictionary['navigation'].list}</MenuItem>
+              <MenuItem href={`/${locale}/apps/parking/customers/list`}>{dictionary['navigation'].list}</MenuItem>
               <MenuItem
-                href={`/${locale}/apps/ecommerce/customers/details/879861`}
+                href={`/${locale}/apps/parking/customers/details/879861`}
                 exactMatch={false}
-                activeUrl='/apps/ecommerce/customers/details'
+                activeUrl='/apps/parking/customers/details'
               >
                 {dictionary['navigation'].details}
               </MenuItem>

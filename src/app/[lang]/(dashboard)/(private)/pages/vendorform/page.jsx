@@ -54,7 +54,7 @@ const VendorSignupForm = () => {
       });
 
       alert(response.data.message);
-      router.push("/en/apps/ecommerce/customers/list");
+      router.push("/en/apps/parking/customers/list");
     } catch (error) {
       alert(error.response?.data?.message || "Something went wrong");
     } finally {

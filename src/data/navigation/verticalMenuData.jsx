@@ -118,7 +118,7 @@ const verticalMenuData = dictionary => [
             children: [
               {
                 label: dictionary['navigation'].list,
-                href: '/apps/ecommerce/customers/list'
+                href: '/apps/parking/customers/list'
               },
               {
                 label: dictionary['navigation'].details,
