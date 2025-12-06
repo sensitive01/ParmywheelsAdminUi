@@ -112,7 +112,7 @@ const UserUpdate = ({ params }) => {
             });
             setHasChanges(false);
             setTimeout(() => {
-                router.push('/en/apps/parking/customers/list');
+                router.push('/en/apps/ecommerce/customers/list');
             }, 2000);
 
         } catch (error) {
@@ -139,7 +139,7 @@ const UserUpdate = ({ params }) => {
     };
 
     const goBack = () => {
-        router.push('/en/apps/parking/customers/list');
+        router.push('/en/apps/ecommerce/customers/list');
     };
 
     if (loading) {
@@ -155,7 +155,7 @@ const UserUpdate = ({ params }) => {
             <CardContent>
                 <Box sx={{ mb: 3 }}>
                     <Breadcrumbs aria-label="breadcrumb">
-                        <Link href="/en/apps/parking/customers/list" passHref style={{ textDecoration: 'none', color: '#329a73' }}>
+                        <Link href="/en/apps/ecommerce/customers/list" passHref style={{ textDecoration: 'none', color: '#329a73' }}>
                             Customer List
                         </Link>
                         <Typography color="text.primary">Edit Customer</Typography>
