@@ -139,7 +139,7 @@ const UserUpdate = ({ params }) => {
     };
 
     const goBack = () => {
-        router.push('/en/apps/ecommerce/customers/list');
+        router.push('/en/apps/parking/customers/list');
     };
 
     if (loading) {

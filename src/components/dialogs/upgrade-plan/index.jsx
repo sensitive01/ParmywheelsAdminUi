@@ -42,7 +42,7 @@ const UpgradePlan = ({ open, setOpen }) => {
           </IconButton>
           <div className='flex items-center gap-4 flex-col sm:flex-row'>
             <FormControl fullWidth size='small'>
-              <InputLabel id='user-view-plans-select-label'>Choose Plan</InputLabel>
+              <InputLabel id='user-view-plans-select-label'>Choose Plans</InputLabel>
               <Select
                 label='Choose Plan'
                 defaultValue='Standard'
