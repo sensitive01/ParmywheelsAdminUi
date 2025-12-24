@@ -1,30 +1,27 @@
-.kanbanColumn {
-  &:hover .drag {
-    display: block !important;
-  }
 
-  .drag {
-    display: none;
-    cursor: grab;
-    &:active {
-      cursor: grabbing;
-    }
-  }
+.kanbanColumn:hover .drag {
+  display: block !important;
 }
 
-.card {
-  &:hover {
-    .menu {
-      display: inline-flex !important;
-    }
-  }
-  .menu {
-    display: none !important;
+.kanbanColumn .drag {
+  display: none;
+  cursor: grab;
+}
 
-    &.menuOpen {
-      display: inline-flex !important;
-    }
-  }
+.kanbanColumn .drag:active {
+  cursor: grabbing;
+}
+
+.card:hover .menu {
+  display: inline-flex !important;
+}
+
+.card .menu {
+  display: none !important;
+}
+
+.card .menu.menuOpen {
+  display: inline-flex !important;
 }
 
 .scroll::-webkit-scrollbar {
