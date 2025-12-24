@@ -2,11 +2,6 @@
 const nextConfig = {
   basePath: process.env.BASEPATH,
 
-  // ✅ Disable strict CSS module enforcement (matches local behavior)
-  experimental: {
-    css: false
-  },
-
   eslint: {
     ignoreDuringBuilds: true
   },

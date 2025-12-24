@@ -50,11 +50,12 @@
 }
 
 .inputBorder {
-  fieldset {
-    border-color: rgb(var(--mui-mainColorChannels-dark) / 0.22) !important;
-  }
   label,
   input {
     color: rgb(var(--mui-mainColorChannels-dark) / 0.9) !important;
   }
+}
+
+.inputBorder fieldset {
+  border-color: rgb(var(--mui-mainColorChannels-dark) / 0.22) !important;
 }

@@ -10,18 +10,20 @@
     box-shadow 0.2s ease-in-out;
   border-block-end: 1px solid var(--mui-palette-divider);
 
-  &:hover {
-    box-shadow: var(--mui-customShadows-sm);
-    border-color: transparent;
-    .emailInfo:not(.show) {
-      display: none !important;
-    }
-    .emailActions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-  }
+
+}
+
+.emailList:hover {
+  box-shadow: var(--mui-customShadows-sm);
+  border-color: transparent;
+}
+.emailList:hover .emailInfo:not(.show) {
+  display: none !important;
+}
+.emailList:hover .emailActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .emailActions {
