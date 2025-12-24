@@ -17,22 +17,24 @@
 .heroSectionElements {
   inset-block-start: 18%;
   inset-inline-end: 3%;
+}
+
 .heroSectionElements img {
   inline-size: 100%;
-}
 }
 
 .featureIcon {
   cursor: pointer;
+}
 
-  & > div:first-child {
-    border-color: var(--mui-palette-primary-darkOpacity);
-  }
+.featureIcon > div:first-child {
+  border-color: var(--mui-palette-primary-darkOpacity);
+}
 
-  & > div:hover {
-    background-color: var(--mui-palette-primary-mainOpacity);
-    svg {
-      pointer-events: none;
-    }
-  }
+.featureIcon > div:hover {
+  background-color: var(--mui-palette-primary-mainOpacity);
+}
+
+.featureIcon > div:hover svg {
+  pointer-events: none;
 }
