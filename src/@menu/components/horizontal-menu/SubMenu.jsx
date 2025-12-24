@@ -3,16 +3,32 @@
 // React Imports
 import { Children, cloneElement, createContext, forwardRef, useEffect, useRef, useState } from 'react'
 
-
 // Next Imports
 import { usePathname } from 'next/navigation'
-
 
 // Third-party Imports
 import classnames from 'classnames'
 import styled from '@emotion/styled'
-import {  useFloating,  autoUpdate,  offset,  flip,  shift,  useHover,  useRole,  useInteractions,  useClick,  safePolygon,  useDismiss,  useFloatingNodeId,  FloatingNode,  FloatingPortal,  useMergeRefs,  useFloatingParentNodeId,  useFloatingTree,  useTransitionStyles} from '@floating-ui/react'
-
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useHover,
+  useRole,
+  useInteractions,
+  useClick,
+  safePolygon,
+  useDismiss,
+  useFloatingNodeId,
+  FloatingNode,
+  FloatingPortal,
+  useMergeRefs,
+  useFloatingParentNodeId,
+  useFloatingTree,
+  useTransitionStyles
+} from '@floating-ui/react'
 
 // Component Imports
 import SubMenuContent from './SubMenuContent'
@@ -49,11 +65,11 @@ const StyledSubMenu = styled.li`
   ${({ rootStyles }) => rootStyles};
   > .${menuClasses.button} {
     ${({ level, disabled, children }) =>
-    menuButtonStyles({
-      level,
-      disabled,
-      children
-    })};
+      menuButtonStyles({
+        level,
+        disabled,
+        children
+      })};
     ${({ buttonStyles }) => buttonStyles};
   }
 `
@@ -81,15 +97,12 @@ const SubMenu = (props, ref) => {
     ...rest
   } = props
 
-
   // States
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(false)
 
   // Refs
-  const SubMenuWithRef = forwardRef(SubMenu);
-
-console.log('SubMenuWithRef===',SubMenuWithRef);
+  const SubMenuWithRef = forwardRef(SubMenu)
 
   const dir = useRef('ltr')
   const listItemsRef = useRef([])
@@ -110,7 +123,6 @@ console.log('SubMenuWithRef===',SubMenuWithRef);
     popoutMenuOffset,
     textTruncate
   } = useHorizontalMenu()
-
 
   // Vars
   // Filter out falsy values from children
@@ -147,7 +159,6 @@ console.log('SubMenuWithRef===',SubMenuWithRef);
     ],
     whileElementsMounted: autoUpdate
   })
-
 
   // Floating UI Transition Styles
   const { isMounted, styles } = useTransitionStyles(context, {
@@ -217,7 +228,6 @@ console.log('SubMenuWithRef===',SubMenuWithRef);
     }
   }
 
-
   // Event emitter allows you to communicate across tree components.
   // This effect closes all menus when an item gets clicked anywhere in the tree.
   useEffect(() => {
@@ -234,8 +244,7 @@ console.log('SubMenuWithRef===',SubMenuWithRef);
     tree?.events.on('click', handleTreeClick)
     tree?.events.on('menuopen', onSubMenuOpen)
 
-    
-return () => {
+    return () => {
       tree?.events.off('click', handleTreeClick)
       tree?.events.off('menuopen', onSubMenuOpen)
     }
@@ -269,8 +278,7 @@ return () => {
   // Merge the reference ref with the ref passed to the component
   const referenceRef = useMergeRefs([refs.setReference, ref])
 
-  
-return (
+  return (
     <FloatingNode id={nodeId}>
       {/* Sub Menu */}
       <StyledSubMenu
