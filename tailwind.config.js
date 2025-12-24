@@ -4,9 +4,9 @@ import tailwindPlugin from './src/@core/tailwind/plugin'
 
 const config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,css}'],
-  corePlugins: {
-    preflight: false
-  },
+  // corePlugins: {
+  //   preflight: false
+  // },
   important: '#__next',
   plugins: [tailwindcssLogical, tailwindPlugin],
   theme: {
