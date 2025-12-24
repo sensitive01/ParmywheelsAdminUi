@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 // MUI Imports
 import { deepmerge } from '@mui/utils'
 import { ThemeProvider, lighten, darken, createTheme } from '@mui/material/styles'
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import CssBaseline from '@mui/material/CssBaseline'
 
 // Third-party Imports

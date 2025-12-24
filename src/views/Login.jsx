@@ -22,23 +22,23 @@ import { getLocalizedUrl } from '@/utils/i18n'
 
 const Login = () => {
   const { lang: locale } = useParams()
-  const [mobile, setMobile] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [mobile, setMobile] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const router = useRouter()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
-    setError("")
+    setError('')
     setIsLoading(true)
 
     try {
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         redirect: false,
         mobile,
-        password,
+        password
       })
 
       if (result?.error) {
@@ -46,10 +46,10 @@ const Login = () => {
       }
 
       // Redirect to dashboard on success
-      router.push("/dashboards/crm")
+      router.push('/dashboards/crm')
     } catch (error) {
-      setError(error.message || "Login failed. Please try again.")
-      console.error("Login error:", error)
+      setError(error.message || 'Login failed. Please try again.')
+      console.error('Login error:', error)
     } finally {
       setIsLoading(false)
     }
@@ -57,11 +57,15 @@ const Login = () => {
 
   return (
     <div className='flex bs-full justify-center'>
-      <div className={classnames(
-        'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
-        'w-full' // Add full width
-      )}>
-        <div className='absolute inset-0 w-full h-full'> {/* Full-covering container */}
+      <div
+        className={classnames(
+          'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
+          'w-full' // Add full width
+        )}
+      >
+        <div className='absolute inset-0 w-full h-full'>
+          {' '}
+          {/* Full-covering container */}
           <img
             src='/images/illustrations/auth/final.gif'
             alt='Login animation'
@@ -72,20 +76,18 @@ const Login = () => {
 
       <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
         <div className='flex flex-col gap-5 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset]'>
-          <div className='flex flex-col items-center mb-4'> 
-            <div className='mb-4 scale-550'>
+          <div className='flex flex-col items-center mb-4'>
+            <div className='mb-4 w-[200px]'>
               <Logo />
             </div>
             <Typography variant='h4' className='text-center'>
               {`Welcome to ${themeConfig.templateName}ParkMyWheels`}
             </Typography>
-            <Typography className='text-center'>
-              Login to Continue
-            </Typography>
+            <Typography className='text-center'>Login to Continue</Typography>
           </div>
 
           {error && (
-            <Alert severity="error" className="mb-4">
+            <Alert severity='error' className='mb-4'>
               {error}
             </Alert>
           )}
@@ -93,33 +95,30 @@ const Login = () => {
           <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
             <TextField
               fullWidth
-              label="Mobile"
+              label='Mobile'
               value={mobile}
-              onChange={(e) => {
+              onChange={e => {
                 const input = e.target.value
                 if (/^\d{0,10}$/.test(input)) {
                   setMobile(input)
                 }
               }}
               required
-              inputMode="numeric"
-              placeholder="Enter 10-digit mobile number"
+              inputMode='numeric'
+              placeholder='Enter 10-digit mobile number'
             />
 
             <TextField
               fullWidth
-              label="Password"
+              label='Password'
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               required
               type={isPasswordShown ? 'text' : 'password'}
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setIsPasswordShown(!isPasswordShown)}
-                      edge="end"
-                    >
+                  <InputAdornment position='end'>
+                    <IconButton onClick={() => setIsPasswordShown(!isPasswordShown)} edge='end'>
                       <i className={isPasswordShown ? 'ri-eye-off-line' : 'ri-eye-line'} />
                     </IconButton>
                   </InputAdornment>
@@ -127,7 +126,7 @@ const Login = () => {
               }}
             />
             <div className='flex justify-between items-center flex-wrap gap-x-3 gap-y-1'>
-              <FormControlLabel control={<Checkbox defaultChecked />} label="Remember me" />
+              <FormControlLabel control={<Checkbox defaultChecked />} label='Remember me' />
               {/* <Typography
                 className='text-end'
                 color='primary.main'
@@ -137,12 +136,7 @@ const Login = () => {
                 Forgot password?
               </Typography> */}
             </div>
-            <Button
-              fullWidth
-              variant='contained'
-              type='submit'
-              disabled={isLoading}
-            >
+            <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Log In'}
             </Button>
 
