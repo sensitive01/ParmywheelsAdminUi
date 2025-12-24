@@ -1,9 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: process.env.BASEPATH,
+
+  // ✅ Disable strict CSS module enforcement (matches local behavior)
+  experimental: {
+    css: false
+  },
+
   eslint: {
     ignoreDuringBuilds: true
   },
+
   async redirects() {
     return [
       {
@@ -29,35 +36,3 @@ const nextConfig = {
 }
 
 export default nextConfig
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   basePath: process.env.BASEPATH,
-//   eslint: {
-//     ignoreDuringBuilds: true,
-//   },
-//   async redirects() {
-//     return [
-//       {
-//         source: '/',
-//         destination: '/en/dashboards/crm',
-//         permanent: true,
-//         locale: false
-//       },
-//       {
-//         source: '/:lang(en|fr|ar)',
-//         destination: '/:lang/dashboards/crm',
-//         permanent: true,
-//         locale: false
-//       },
-//       {
-//         source: '/((?!(?:en|fr|ar|front-pages|favicon.ico)\\b)):path',
-//         destination: '/en/:path',
-//         permanent: true,
-//         locale: false
-//       }
-//     ]
-//   }
-// }
-
-// export default nextConfig
