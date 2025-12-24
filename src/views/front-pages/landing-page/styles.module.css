@@ -17,9 +17,9 @@
 .heroSectionElements {
   inset-block-start: 18%;
   inset-inline-end: 3%;
-  img {
-    inline-size: 100%;
-  }
+.heroSectionElements img {
+  inline-size: 100%;
+}
 }
 
 .featureIcon {

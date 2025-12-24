@@ -5,12 +5,13 @@
   font-size: 0.875rem;
   white-space: nowrap;
 
-  [align='right'] > * {
+
+.table [align='right'] > * {
     text-align: end;
-  }
-  [align='center'] > * {
+}
+.table [align='center'] > * {
     text-align: center;
-  }
+}
 
   thead {
     text-transform: uppercase;
