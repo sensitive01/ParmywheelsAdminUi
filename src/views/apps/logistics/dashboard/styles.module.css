@@ -9,8 +9,7 @@
   border-end-end-radius: 8px;
 }
 
-.header {
-  &::after {
+.header::after {
     content: '';
     position: absolute;
     inset-block-end: -14px;
@@ -19,4 +18,4 @@
     inline-size: 2px;
     background-color: var(--mui-palette-divider);
   }
-}
+
