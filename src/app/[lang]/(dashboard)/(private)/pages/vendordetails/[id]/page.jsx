@@ -28,6 +28,8 @@ import Paper from '@mui/material/Paper'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import ToggleButton from '@mui/material/ToggleButton'
 import Container from '@mui/material/Container'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
 
 // Icon Imports
 import AddIcon from '@mui/icons-material/Add'
@@ -509,8 +511,8 @@ const VendorUpdate = ({ vendorId }) => {
       setIsUpdatingVendorFee(true)
 
       const response = await axios.put(`${API_URL}/vendor/updateplatformfee/${vendorId}`, {
-        platformfee: platformFeeVendor,
-        handlingFee: platformFeeCustomer
+        platformFeeVendor: platformFeeVendor,
+        platformfee: platformFeeCustomer
       })
 
       console.log('response', response)
@@ -974,12 +976,12 @@ const VendorUpdate = ({ vendorId }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label='Customer Booking Handling Fee (%)'
+                  label='Customer Booking Platform Fee (%)'
                   value={platformFeeCustomer}
                   onChange={e => setPlatformFeeCustomer(e.target.value)}
                   type='number'
                   inputProps={{ min: 0, max: 100, step: 0.1 }}
-                  placeholder='Enter handling fee percentage'
+                  placeholder='Enter platform fee percentage'
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1031,23 +1033,79 @@ const VendorUpdate = ({ vendorId }) => {
 }
 
 // Main Page Component
+// TabPanel Component
+function TabPanel(props) {
+  const { children, value, index, ...other } = props
+
+  return (
+    <div
+      role='tabpanel'
+      hidden={value !== index}
+      id={`vendor-tabpanel-${index}`}
+      aria-labelledby={`vendor-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
 const VendorSettingsPage = () => {
   const params = useParams()
   const vendorId = params.id
+  const [activeTab, setActiveTab] = useState(0)
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
 
   return (
-    <div maxwidth='lg' sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Typography variant='h3' sx={{ mb: 4 }}>
         Vendor Update
       </Typography>
-      <VendorUpdate vendorId={vendorId} />
-      <BusinessHoursUpdate vendorId={vendorId} />
-      <VendorAmenitiesServices vendorId={vendorId} />
-      <VendorSupportChat vendorId={vendorId} />
-      <VendorBankDetails vendorId={vendorId} />
-      <ParkingCharges vendorId={vendorId} />
-      <BookingEdit vendorId={vendorId} />
-    </div>
+
+      <Card sx={{ mb: 4 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant='scrollable'
+          scrollButtons='auto'
+          aria-label='vendor settings tabs'
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label='Profile Details' />
+          <Tab label='Business Hours' />
+          <Tab label='Amenities & Services' />
+          <Tab label='Support Chat' />
+          <Tab label='Bank Details' />
+          <Tab label='Parking Charges' />
+          <Tab label='Booking History' />
+        </Tabs>
+      </Card>
+
+      <TabPanel value={activeTab} index={0}>
+        <VendorUpdate vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={1}>
+        <BusinessHoursUpdate vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={2}>
+        <VendorAmenitiesServices vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={3}>
+        <VendorSupportChat vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={4}>
+        <VendorBankDetails vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={5}>
+        <ParkingCharges vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={6}>
+        <BookingEdit vendorId={vendorId} />
+      </TabPanel>
+    </Container>
   )
 }
 

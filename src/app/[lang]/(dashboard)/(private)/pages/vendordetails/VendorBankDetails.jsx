@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import { useSession } from 'next-auth/react'
 import axios from 'axios'
 
@@ -28,9 +29,12 @@ const VendorBankDetails = ({ vendorId }) => {
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('')
   const [accountHolderName, setAccountHolderName] = useState('')
   const [ifscCode, setIfscCode] = useState('')
-  
+  const [isApproved, setIsApproved] = useState(false)
+  const [bankDetailsId, setBankDetailsId] = useState(null)
+
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -42,6 +46,7 @@ const VendorBankDetails = ({ vendorId }) => {
     const fetchBankDetails = async () => {
       if (!vendorId) {
         setFetchLoading(false)
+
         return
       }
 
@@ -49,16 +54,20 @@ const VendorBankDetails = ({ vendorId }) => {
         setFetchLoading(true)
         console.log(`Fetching bank details from: ${API_URL}/vendor/getbankdetails/${vendorId}`)
         const response = await axios.get(`${API_URL}/vendor/getbankdetails/${vendorId}`)
-        
+
         if (response.data?.data && response.data.data.length > 0) {
           const bankData = response.data.data[0]
+
           setAccountNumber(bankData.accountnumber || '')
           setConfirmAccountNumber(bankData.accountnumber || '')
           setAccountHolderName(bankData.accountholdername || '')
           setIfscCode(bankData.ifsccode || '')
+          setIsApproved(bankData.isApproved || false)
+          setBankDetailsId(bankData._id)
         }
       } catch (error) {
         console.error('Error fetching bank details:', error)
+
         // If 404, it's fine - just means no existing details
         if (error.response?.status !== 404) {
           setSnackbar({
@@ -78,81 +87,88 @@ const VendorBankDetails = ({ vendorId }) => {
   const validateForm = () => {
     if (!accountNumber) {
       setSnackbar({
-        open: true, 
+        open: true,
         message: 'Please enter account number',
         severity: 'warning'
       })
+
       return false
     }
-    
+
     if (accountNumber !== confirmAccountNumber) {
       setSnackbar({
-        open: true, 
+        open: true,
         message: 'Account numbers do not match',
         severity: 'warning'
       })
+
       return false
     }
-    
+
     if (!accountHolderName) {
       setSnackbar({
-        open: true, 
+        open: true,
         message: 'Please enter account holder name',
         severity: 'warning'
       })
+
       return false
     }
-    
+
     if (!ifscCode) {
       setSnackbar({
-        open: true, 
+        open: true,
         message: 'Please enter IFSC code',
         severity: 'warning'
       })
+
       return false
     }
-    
+
     return true
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
+
     if (!vendorId) {
       setSnackbar({
-        open: true, 
+        open: true,
         message: 'You must be logged in to update bank details',
         severity: 'error'
       })
+
       return
     }
 
     try {
       setLoading(true)
-      
+
       const formData = new FormData()
+
       formData.append('vendorId', vendorId)
       formData.append('accountnumber', accountNumber)
       formData.append('confirmaccountnumber', confirmAccountNumber)
       formData.append('accountholdername', accountHolderName)
       formData.append('ifsccode', ifscCode)
-      
+
       const response = await axios.post(`${API_URL}/vendor/bankdetails`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'multipart/form-data'
         }
       })
-      
+
       setSnackbar({
-        open: true, 
+        open: true,
         message: response.data.message || 'Bank details saved successfully',
         severity: 'success'
       })
     } catch (error) {
       console.error('Error saving bank details:', error)
       setSnackbar({
-        open: true, 
+        open: true,
         message: error.response?.data?.message || 'Failed to save bank details',
         severity: 'error'
       })
@@ -160,9 +176,33 @@ const VendorBankDetails = ({ vendorId }) => {
       setLoading(false)
     }
   }
-  
+
   const closeSnackbar = () => {
     setSnackbar({ ...snackbar, open: false })
+  }
+
+  const handleApprove = async () => {
+    if (!bankDetailsId) return
+
+    try {
+      setLoading(true)
+      await axios.put(`${API_URL}/admin/verify-vendor-bank-details/${bankDetailsId}`, { status: 'approved' })
+      setSnackbar({
+        open: true,
+        message: 'Bank details approved successfully',
+        severity: 'success'
+      })
+      setIsApproved(true)
+    } catch (error) {
+      console.error('Error approving bank details:', error)
+      setSnackbar({
+        open: true,
+        message: 'Failed to approve bank details',
+        severity: 'error'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (fetchLoading) {
@@ -175,96 +215,109 @@ const VendorBankDetails = ({ vendorId }) => {
 
   return (
     <Card sx={{ mt: 6 }}>
-      <CardHeader 
-        title="Bank Account Details" 
+      <CardHeader
+        title='Bank Account Details'
         sx={{ bgcolor: 'primary.main' }}
         titleTypographyProps={{ color: 'common.white' }}
+        action={
+          !isApproved &&
+          bankDetailsId && (
+            <Button
+              variant='contained'
+              color='secondary'
+              onClick={handleApprove}
+              sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
+            >
+              Approve Bank Details
+            </Button>
+          )
+        }
       />
       <CardContent>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant='body1' color='text.secondary'>
             Your Payout will be transferred to this account
           </Typography>
         </Box>
 
         <form onSubmit={handleSubmit}>
-          <Paper 
+          <Paper
             elevation={1}
-            sx={{ 
-              p: 3, 
-              mb: 3, 
+            sx={{
+              p: 3,
+              mb: 3,
               borderRadius: 2,
               ':hover': { boxShadow: 2 }
             }}
           >
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
                 Account Number
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
+                variant='outlined'
                 value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="Enter account number"
+                onChange={e => setAccountNumber(e.target.value)}
+                placeholder='Enter account number'
                 sx={{ mb: 2 }}
               />
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
                 Confirm Account Number
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
+                variant='outlined'
                 value={confirmAccountNumber}
-                onChange={(e) => setConfirmAccountNumber(e.target.value)}
-                placeholder="Confirm account number"
+                onChange={e => setConfirmAccountNumber(e.target.value)}
+                placeholder='Confirm account number'
                 sx={{ mb: 2 }}
               />
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
                 Account Holder Name
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
+                variant='outlined'
                 value={accountHolderName}
-                onChange={(e) => setAccountHolderName(e.target.value)}
-                placeholder="Enter account holder name"
+                onChange={e => setAccountHolderName(e.target.value)}
+                placeholder='Enter account holder name'
                 sx={{ mb: 2 }}
               />
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
                 IFSC Code
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
+                variant='outlined'
                 value={ifscCode}
-                onChange={(e) => setIfscCode(e.target.value)}
-                placeholder="Enter IFSC code"
+                onChange={e => setIfscCode(e.target.value)}
+                placeholder='Enter IFSC code'
                 sx={{ mb: 2 }}
               />
             </Box>
           </Paper>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button 
-              type="submit"
-              variant="contained" 
-              color="success"
-              size="large"
+            <Button
+              type='submit'
+              variant='contained'
+              color='success'
+              size='large'
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
-              sx={{ 
+              startIcon={loading ? <CircularProgress size={20} color='inherit' /> : <SaveIcon />}
+              sx={{
                 py: 1.5,
-                px: 4, 
+                px: 4,
                 borderRadius: 2,
                 textTransform: 'none',
                 fontSize: 16
@@ -276,17 +329,13 @@ const VendorBankDetails = ({ vendorId }) => {
         </form>
       </CardContent>
 
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
         onClose={closeSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={closeSnackbar} 
-          severity={snackbar.severity} 
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={closeSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

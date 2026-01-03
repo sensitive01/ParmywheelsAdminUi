@@ -59,6 +59,25 @@ const NotificationsPage = () => {
     setPage(1) // Reset pagination on tab change
   }
 
+  const handleMarkAsRead = async (id, event) => {
+    event.stopPropagation()
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-admin-notification/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isRead: true, check_read: true })
+      })
+
+      if (response.ok) {
+        setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+      }
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error)
+    }
+  }
+
   useEffect(() => {
     // Load initial notifications
     const fetchNotifications = async () => {
@@ -85,7 +104,7 @@ const NotificationsPage = () => {
             message: `${n.name} from ${n.department} requested a callback. Contact: ${n.mobile} / ${n.email}`,
             type: 'server',
             timestamp: n.callbackTime,
-            read: false,
+            read: typeof n.check_read !== 'undefined' ? n.check_read : n.isRead || false,
             source: 'server'
           }))
 
@@ -262,12 +281,25 @@ const NotificationsPage = () => {
                       borderRadius: 1,
                       mb: 1
                     }}
+                    secondaryAction={
+                      !notification.read && (
+                        <Tooltip title='Mark as Read'>
+                          <IconButton
+                            edge='end'
+                            aria-label='mark as read'
+                            onClick={e => handleMarkAsRead(notification.id, e)}
+                          >
+                            <CheckCircleIcon color='success' />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
                   >
                     <ListItemIcon>{getNotificationIcon(notification)}</ListItemIcon>
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant='subtitle1' fontWeight='medium'>
+                          <Typography variant='subtitle1' fontWeight={notification.read ? 'regular' : 'bold'}>
                             {notification.title}
                           </Typography>
                           {isCancellation && (

@@ -1,4 +1,3 @@
-
 'use client'
 
 // Next Imports
@@ -38,11 +37,7 @@ const NavbarContent = () => {
         {/* Hide Logo on Smaller screens */}
         {!isBreakpointReached && (
           <Link href={getLocalizedUrl('/', locale)} className='flex items-center'>
-            <img
-              src='/images/cards/login.png'
-              style={{ width: 'auto', height: 'auto', maxWidth: '9%' }}
-              alt='Logo'
-            />
+            <img src='/images/cards/login.png' style={{ width: 'auto', height: 'auto', maxWidth: '9%' }} alt='Logo' />
           </Link>
         )}
       </div>
@@ -52,7 +47,7 @@ const NavbarContent = () => {
         <LanguageDropdown />
         <ModeDropdown />
         <ShortcutsDropdown shortcuts={shortcuts} /> */}
-        {/* <NotificationsDropdown notifications={notifications} /> */}
+        <NotificationsDropdown />
         <UserDropdown />
         {/* Language Dropdown, Notification Dropdown, quick access menu dropdown, user dropdown will be placed here */}
       </div>

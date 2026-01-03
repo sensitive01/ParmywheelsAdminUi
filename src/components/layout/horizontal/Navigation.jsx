@@ -18,7 +18,6 @@
 // import { horizontalLayoutClasses } from '@layouts/utils/layoutClasses'
 // import { getLocalizedUrl } from '@/utils/i18n'
 
-
 // const StyledDiv = styled.div`
 //   ${({ isContentCompact, isBreakpointReached }) =>
 //     !isBreakpointReached &&
@@ -45,7 +44,7 @@
 //   const headerContentCompact = settings.navbarContentWidth === 'compact'
 
 //   return (
-    
+
 //     <div
 //       {...(!isBreakpointReached && {
 //         className: classnames(horizontalLayoutClasses.navigation, 'relative flex border-bs')
@@ -60,7 +59,7 @@
 //               alt='Logo'
 //             />
 //           </Link>
-//         )} 
+//         )}
 //       <StyledDiv
 //         isContentCompact={headerContentCompact}
 //         isBreakpointReached={isBreakpointReached}
@@ -85,8 +84,6 @@
 
 // export default Navigation
 
-
-
 // Third-party Imports
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -107,6 +104,7 @@ import useHorizontalNav from '@menu/hooks/useHorizontalNav'
 import { horizontalLayoutClasses } from '@layouts/utils/layoutClasses'
 import { getLocalizedUrl } from '@/utils/i18n'
 import UserDropdown from '../shared/UserDropdown'
+import NotificationsDropdown from '../shared/NotificationsDropdown'
 
 const StyledDiv = styled.div`
   ${({ isContentCompact, isBreakpointReached }) =>
@@ -154,7 +152,7 @@ const Navigation = ({ dictionary }) => {
           <Link href={getLocalizedUrl('/', locale)} className='flex items-center'>
             <img
               src='/images/cards/login.png'
-              style={{ height: '42px', width: 'auto', marginLeft:'20px' }} 
+              style={{ height: '42px', width: 'auto', marginLeft: '20px' }}
               alt='Logo'
             />
           </Link>
@@ -168,7 +166,12 @@ const Navigation = ({ dictionary }) => {
         })}
       >
         <HorizontalMenu dictionary={dictionary} />
-         {!isBreakpointReached && <UserDropdown />}
+        {!isBreakpointReached && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <NotificationsDropdown />
+            <UserDropdown />
+          </div>
+        )}
       </StyledDiv>
     </div>
   )

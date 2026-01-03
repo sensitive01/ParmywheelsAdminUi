@@ -27,6 +27,7 @@
         "orders": "Bookings",
         "details": "Details",
         "customers": "Customers",
+        "customerHandlingFee": "Customer Handling Fee",
         "manageReviews": "Manage Reviews",
         "referrals": "Referrals",
         "settings": "Settings",
@@ -47,7 +48,7 @@
         "permissions": "Permissions",
         "pages": "Profile",
         "userProfile": "Users",
-        "Subscriptions":"Subscriptions",
+        "Subscriptions": "Subscriptions",
         "accountSettings": "Account Settings",
         "planform": "Plan Form",
         "faq": "Transactions Payouts",
@@ -113,6 +114,7 @@
         "otherservices": "Other Services",
         "Premiumplans": "Premium Plans",
         "KYCVerification": "KYC Verification",
+        "bankDetailsVerification": "Bank Details Verification",
         "ListVendors": "List Vendors"
     }
 }
