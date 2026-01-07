@@ -307,7 +307,7 @@ const CustomerHandlingFee = () => {
                         <TableCell component='th' scope='row'>
                           {row.description}
                         </TableCell>
-                        <TableCell align='right'>{row.handlingfee}</TableCell>
+                        <TableCell align='right'>₹ {row.handlingfee}</TableCell>
                         <TableCell align='center'>
                           <Chip
                             label={row.isActive ? 'Active' : 'Inactive'}
@@ -356,7 +356,7 @@ const CustomerHandlingFee = () => {
               value={handlingfee}
               onChange={e => setHandlingFee(e.target.value)}
               InputProps={{
-                endAdornment: <InputAdornment position='end'>%</InputAdornment>
+                startAdornment: <InputAdornment position='start'>₹</InputAdornment>
               }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

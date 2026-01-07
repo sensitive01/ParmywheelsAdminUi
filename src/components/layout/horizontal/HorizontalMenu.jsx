@@ -101,17 +101,9 @@ const HorizontalMenu = ({ dictionary }) => {
           <MenuItem href={`/${locale}/pages/corporate-solutionstable`}>{dictionary['navigation'].calendar}</MenuItem>
           <MenuItem href={`/${locale}/pages/Commercial-table`}>{dictionary['navigation'].kanban}</MenuItem>
         </SubMenu>
-        <SubMenu label={dictionary['navigation'].Premiumplans}>
-          <MenuItem href={`/${locale}/pages/pricing`} icon={<i className='ri-money-dollar-circle-line' />}>
-            {dictionary['navigation'].pricing}
-          </MenuItem>
-          <MenuItem href={`/${locale}/pages/kyconboarding`} icon={<i className='ri-money-dollar-circle-line' />}>
-            {dictionary['navigation'].subscribers}
-          </MenuItem>
-          <MenuItem href={`/${locale}/pages/subscriptiontable`} icon={<i className='ri-user-settings-line' />}>
-            {dictionary['navigation'].Subscriptions}
-          </MenuItem>
-        </SubMenu>
+        <MenuItem href={`/${locale}/pages/pricing`} icon={<i className='ri-money-dollar-circle-line' />}>
+          {dictionary['navigation'].Premiumplans}
+        </MenuItem>
 
         {/* <SubMenu label={dictionary['navigation'].pages} icon={<i className='ri-file-list-2-line' />}>
           <MenuItem href={`/${locale}/pages/account-settings`} icon={<i className='ri-user-settings-line' />}>

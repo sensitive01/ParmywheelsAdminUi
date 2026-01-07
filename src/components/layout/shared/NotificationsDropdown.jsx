@@ -26,25 +26,42 @@ const NotificationDropdown = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/get-admin-notifications`)
 
-      if (response.data && response.data.data) {
-        // Verify data structure and map to component format if needed
-        // Assuming API returns array of objects with { title, subtitle, time, read, ... }
-        // If structure differs, simple mapping:
-        const mapped = response.data.data.map(item => ({
-          ...item,
-          id: item._id, // Ensure we have ID for updates
-          title: item.title,
-          subtitle: item.message,
-          time: new Date(item.createdAt).toLocaleString(),
-          read: item.isRead,
-          check_read: item.check_read, // Map the check_read field
+      if (response.data) {
+        const callbackRequests = response.data.data || []
+        const helpRequests = response.data.helpAndSupports || []
+        const bankApprovalNotification = response.data.bankApprovalNotification || []
 
-          // Add default avatars if missing
-          avatarIcon: 'ri-notification-line',
-          avatarColor: 'primary'
+        const mappedCallbacks = callbackRequests.map(item => ({
+          ...item,
+          id: item._id,
+          title: `Callback Request - ${item.department || 'General'}`,
+          subtitle: `${item.name} requested a callback.`,
+          time: new Date(item.callbackTime || item.createdAt).toLocaleString(),
+          read: typeof item.check_read !== 'undefined' ? item.check_read : item.isRead,
+          check_read: item.check_read
         }))
 
-        setNotificationsState(mapped)
+        const mappedHelpRequests = helpRequests.map(item => ({
+          ...item,
+          id: item._id,
+          title: `Help Request - ${item.status || 'Pending'}`,
+          subtitle: item.description || 'New help request',
+          time: new Date(item.createdAt || item.date).toLocaleString(),
+          read: item.isRead,
+          check_read: item.isRead // Normalize for count filter
+        }))
+
+        const mappedBankRequests = bankApprovalNotification.map(item => ({
+          ...item,
+          id: item._id,
+          title: 'Bank Approval Request',
+          subtitle: `Account Holder: ${item.accountholdername}`,
+          time: new Date(item.updatedAt || item.createdAt).toLocaleString(),
+          read: item.isApproved, // Assuming isApproved acts as 'read' or processed status for now, or false if we want it unread until actionable
+          check_read: item.isApproved
+        }))
+
+        setNotificationsState([...mappedCallbacks, ...mappedHelpRequests, ...mappedBankRequests])
       }
     } catch (error) {
       console.error('Failed to fetch notifications', error)

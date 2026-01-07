@@ -37,20 +37,34 @@ import { notificationStore } from '@/utils/requestNotificationPermission'
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([])
   const [chatNotifications, setChatNotifications] = useState([])
+  const [bankNotifications, setBankNotifications] = useState([])
   const [activeTab, setActiveTab] = useState(0)
 
   // Pagination state
   const [page, setPage] = useState(1)
   const rowsPerPage = 20
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (activeTab === 0) {
-      if (notificationStore) {
-        notificationStore.clearHistory()
-        setNotifications([])
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/clear-all-admin-notifications`, {
+          method: 'PUT'
+        })
+
+        if (response.ok) {
+          if (notificationStore) {
+            notificationStore.clearHistory()
+          }
+
+          setNotifications([])
+        }
+      } catch (error) {
+        console.error('Failed to clear notifications:', error)
       }
-    } else {
+    } else if (activeTab === 1) {
       setChatNotifications([])
+    } else {
+      setBankNotifications([])
     }
   }
 
@@ -61,6 +75,7 @@ const NotificationsPage = () => {
 
   const handleMarkAsRead = async (id, event) => {
     event.stopPropagation()
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-admin-notification/${id}`, {
         method: 'PUT',
@@ -71,7 +86,13 @@ const NotificationsPage = () => {
       })
 
       if (response.ok) {
-        setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+        if (activeTab === 0) {
+          setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+        } else if (activeTab === 1) {
+          setChatNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+        } else {
+          setBankNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+        }
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
@@ -128,6 +149,23 @@ const NotificationsPage = () => {
 
           formattedChatNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
           setChatNotifications(formattedChatNotifications)
+
+          // Process Bank Approval Notifications
+          const serverBankNotifications = result.bankApprovalNotification || []
+
+          const formattedBankNotifications = serverBankNotifications.map(n => ({
+            id: n._id,
+            title: 'Bank Approval Request',
+            message: `Account Holder: ${n.accountholdername}, Account Number: ${n.accountnumber}`,
+            type: 'bank',
+            timestamp: n.updatedAt || n.createdAt,
+            read: n.isApproved,
+            source: 'server',
+            vendorId: n.vendorId
+          }))
+
+          formattedBankNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          setBankNotifications(formattedBankNotifications)
         }
       } catch (error) {
         console.error('Failed to fetch server notifications:', error)
@@ -194,6 +232,8 @@ const NotificationsPage = () => {
       return <CancelIcon color='error' />
     } else if (type === 'chat') {
       return <ChatIcon color='primary' />
+    } else if (type === 'bank') {
+      return <AccessTimeIcon color='warning' />
     } else if (title.includes('completed')) {
       return <CheckCircleIcon color='success' />
     } else if (title.includes('parked') || type === 'parked') {
@@ -208,7 +248,7 @@ const NotificationsPage = () => {
   }
 
   // Get current list based on active tab
-  const currentList = activeTab === 0 ? notifications : chatNotifications
+  const currentList = activeTab === 0 ? notifications : activeTab === 1 ? chatNotifications : bankNotifications
 
   // Calculate pagination
   const startIndex = (page - 1) * rowsPerPage
@@ -229,8 +269,45 @@ const NotificationsPage = () => {
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={activeTab} onChange={handleTabChange} aria-label='notification tabs'>
-          <Tab label='Callback Requests' />
-          <Tab label='Help & Support' />
+          <Tab
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                Callback Requests
+                <Chip
+                  label={notifications.length}
+                  size='small'
+                  color={notifications.length > 0 ? 'primary' : 'default'}
+                  variant={activeTab === 0 ? 'filled' : 'outlined'}
+                />
+              </Box>
+            }
+          />
+          <Tab
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                Help & Support
+                <Chip
+                  label={chatNotifications.length}
+                  size='small'
+                  color={chatNotifications.length > 0 ? 'primary' : 'default'}
+                  variant={activeTab === 1 ? 'filled' : 'outlined'}
+                />
+              </Box>
+            }
+          />
+          <Tab
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                Bank Approvals
+                <Chip
+                  label={bankNotifications.length}
+                  size='small'
+                  color={bankNotifications.length > 0 ? 'warning' : 'default'}
+                  variant={activeTab === 2 ? 'filled' : 'outlined'}
+                />
+              </Box>
+            }
+          />
         </Tabs>
       </Box>
 
