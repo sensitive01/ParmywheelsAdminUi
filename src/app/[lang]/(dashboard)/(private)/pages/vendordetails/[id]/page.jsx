@@ -511,8 +511,8 @@ const VendorUpdate = ({ vendorId }) => {
       setIsUpdatingVendorFee(true)
 
       const response = await axios.put(`${API_URL}/vendor/updateplatformfee/${vendorId}`, {
-        platformFeeVendor: platformFeeVendor,
-        platformfee: platformFeeCustomer
+        customerplatformfee: platformFeeCustomer,
+        platformfee: platformFeeVendor
       })
 
       console.log('response', response)
@@ -596,10 +596,9 @@ const VendorUpdate = ({ vendorId }) => {
           setLongitude(vendorData.longitude || '')
 
           // Set platform fees - using vendorplatformfee for customer handling fee
-          setPlatformFeeCustomer(vendorData.platformfee || '')
-          setPlatformFeeVendor(vendorData.vendorplatformfee || '')
+          setPlatformFeeCustomer(vendorData.customerplatformfee || '')
+          setPlatformFeeVendor(vendorData.platformfee || '')
           setValidityDay(vendorData.subscriptionleft || 0)
-
 
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
@@ -680,8 +679,8 @@ const VendorUpdate = ({ vendorId }) => {
     formData.append('landmark', landMark)
     formData.append('latitude', latitude)
     formData.append('longitude', longitude)
-    formData.append('platformfee', platformFeeCustomer)
-    formData.append('platformFeeVendor', platformFeeVendor)
+    formData.append('platformfee', platformFeeVendor)
+    formData.append('customerplatformfee', platformFeeCustomer)
 
     const formattedContacts = contacts.map(contact => ({
       name: contact.name,
