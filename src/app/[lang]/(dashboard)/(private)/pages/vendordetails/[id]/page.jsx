@@ -596,12 +596,10 @@ const VendorUpdate = ({ vendorId }) => {
           setLongitude(vendorData.longitude || '')
 
           // Set platform fees - using vendorplatformfee for customer handling fee
-          setPlatformFeeCustomer(vendorData.vendorplatformfee || '')
-          setPlatformFeeVendor(vendorData.platformfee || '')
+          setPlatformFeeCustomer(vendorData.platformfee || '')
+          setPlatformFeeVendor(vendorData.vendorplatformfee || '')
           setValidityDay(vendorData.subscriptionleft || 0)
 
-          console.log('vendorData.vendorplatformfee:', vendorData.vendorplatformfee)
-          console.log('vendorData.platformfee:', vendorData.platformfee)
 
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
@@ -682,8 +680,8 @@ const VendorUpdate = ({ vendorId }) => {
     formData.append('landmark', landMark)
     formData.append('latitude', latitude)
     formData.append('longitude', longitude)
-    formData.append('platformfee', platformFeeVendor)
-    formData.append('handlingFee', platformFeeCustomer)
+    formData.append('platformfee', platformFeeCustomer)
+    formData.append('platformFeeVendor', platformFeeVendor)
 
     const formattedContacts = contacts.map(contact => ({
       name: contact.name,
