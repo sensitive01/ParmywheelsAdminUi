@@ -1,7 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+
 import { useRouter, useParams } from 'next/navigation'
+
+import { useSession } from 'next-auth/react'
 import axios from 'axios'
 
 // MUI Imports
@@ -26,6 +28,8 @@ import Paper from '@mui/material/Paper'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import ToggleButton from '@mui/material/ToggleButton'
 import Container from '@mui/material/Container'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
 
 // Icon Imports
 import AddIcon from '@mui/icons-material/Add'
@@ -36,15 +40,17 @@ import AvTimerIcon from '@mui/icons-material/AvTimer'
 import CloseIcon from '@mui/icons-material/Close'
 
 // Custom Components
-import CustomIconButton from '@/@core/components/mui/IconButton'
 
 // Styled Component Imports
-import AppReactDropzone from '@/libs/styles/AppReactDropzone'
 import { styled } from '@mui/material/styles'
-import CustomAvatar from '@core/components/mui/Avatar'
+
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import { useDropzone } from 'react-dropzone'
+
+import CustomAvatar from '@core/components/mui/Avatar'
+import AppReactDropzone from '@/libs/styles/AppReactDropzone'
+import CustomIconButton from '@/@core/components/mui/IconButton'
 import VendorAmenitiesServices from '../VendorAmenitiesServices'
 import VendorSupportChat from '../VendorSupportChat'
 import VendorBankDetails from '../VendorBankDetails'
@@ -73,6 +79,7 @@ const ProductImage = ({ onChange, existingImage }) => {
     accept: 'image/*',
     onDrop: acceptedFiles => {
       setFiles(acceptedFiles)
+
       if (onChange) {
         onChange(acceptedFiles[0])
       }
@@ -89,7 +96,9 @@ const ProductImage = ({ onChange, existingImage }) => {
 
   const handleRemoveFile = file => {
     const filteredFiles = files.filter(i => i.name !== file.name)
+
     setFiles(filteredFiles)
+
     if (onChange && filteredFiles.length === 0) {
       onChange(null)
     }
@@ -97,6 +106,7 @@ const ProductImage = ({ onChange, existingImage }) => {
 
   const handleRemoveAllFiles = () => {
     setFiles([])
+
     if (onChange) {
       onChange(null)
     }
@@ -122,7 +132,7 @@ const ProductImage = ({ onChange, existingImage }) => {
           </div>
           {existingImage && files.length === 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Typography variant="body2">Current image is being used</Typography>
+              <Typography variant='body2'>Current image is being used</Typography>
             </Box>
           )}
           {files.length > 0 && (
@@ -167,25 +177,16 @@ const BusinessHoursUpdate = ({ vendorId }) => {
   const [businessHours, setBusinessHours] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   })
 
-  const hours = Array.from({ length: 24 }, (_, index) =>
-    index < 10 ? `0${index}:00` : `${index}:00`
-  )
+  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? `0${index}:00` : `${index}:00`))
 
-  const DAYS_OF_WEEK = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday'
-  ]
+  const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
   const initializeDefaultHours = () => {
     return DAYS_OF_WEEK.map(day => ({
@@ -201,6 +202,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
     const fetchBusinessHours = async () => {
       if (!vendorId) {
         setLoading(false)
+
         return
       }
 
@@ -227,10 +229,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
   const handleSave = async () => {
     try {
-      const response = await axios.put(
-        `${API_URL}/vendor/updatehours/${vendorId}`,
-        { businessHours }
-      )
+      const response = await axios.put(`${API_URL}/vendor/updatehours/${vendorId}`, { businessHours })
 
       if (response.status === 200) {
         setSnackbar({
@@ -283,6 +282,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
   const handleTimeChange = (index, field, value) => {
     const updatedHours = [...businessHours]
+
     updatedHours[index] = {
       ...updatedHours[index],
       [field]: value
@@ -290,9 +290,10 @@ const BusinessHoursUpdate = ({ vendorId }) => {
     setBusinessHours(updatedHours)
   }
 
-  const getCurrentMode = (dayData) => {
+  const getCurrentMode = dayData => {
     if (dayData.isClosed) return 'closed'
     if (dayData.is24Hours) return '24Hours'
+
     return 'timeBased'
   }
 
@@ -307,12 +308,13 @@ const BusinessHoursUpdate = ({ vendorId }) => {
   if (error) {
     return (
       <Card sx={{ mt: 6 }}>
-        <CardHeader title="Operational Timings"
+        <CardHeader
+          title='Operational Timings'
           sx={{ bgcolor: 'error.main' }}
           titleTypographyProps={{ color: 'common.white' }}
         />
         <CardContent>
-          <Alert severity="error">{error}</Alert>
+          <Alert severity='error'>{error}</Alert>
         </CardContent>
       </Card>
     )
@@ -321,7 +323,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
   return (
     <Card sx={{ mt: 6 }}>
       <CardHeader
-        title="Operational Timings"
+        title='Operational Timings'
         sx={{ bgcolor: 'primary.main' }}
         titleTypographyProps={{ color: 'common.white' }}
       />
@@ -329,16 +331,16 @@ const BusinessHoursUpdate = ({ vendorId }) => {
         <Box sx={{ mb: 2 }}>
           <Grid container spacing={1} sx={{ fontWeight: 'bold', px: 1 }}>
             <Grid item xs={3}>
-              <Typography variant="subtitle2">Day</Typography>
+              <Typography variant='subtitle2'>Day</Typography>
             </Grid>
             <Grid item xs={3}>
-              <Typography variant="subtitle2">Open at</Typography>
+              <Typography variant='subtitle2'>Open at</Typography>
             </Grid>
             <Grid item xs={3} sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="subtitle2">Close at</Typography>
+              <Typography variant='subtitle2'>Close at</Typography>
             </Grid>
             <Grid item xs={6} sm={3}>
-              <Typography variant="subtitle2">Mode</Typography>
+              <Typography variant='subtitle2'>Mode</Typography>
             </Grid>
           </Grid>
         </Box>
@@ -354,9 +356,9 @@ const BusinessHoursUpdate = ({ vendorId }) => {
               ':hover': { boxShadow: 2 }
             }}
           >
-            <Grid container spacing={1} alignItems="center">
+            <Grid container spacing={1} alignItems='center'>
               <Grid item xs={3}>
-                <Typography fontWeight={500} variant="body2">
+                <Typography fontWeight={500} variant='body2'>
                   {dayData.day}
                 </Typography>
               </Grid>
@@ -364,29 +366,27 @@ const BusinessHoursUpdate = ({ vendorId }) => {
               <Grid item xs={3}>
                 {dayData.isClosed ? (
                   <Box sx={{ bgcolor: 'error.light', borderRadius: 1, p: 0.5, textAlign: 'center' }}>
-                    <Typography variant="caption" color="common.white" fontWeight={600}>
+                    <Typography variant='caption' color='common.white' fontWeight={600}>
                       Closed
                     </Typography>
-
                   </Box>
                 ) : dayData.is24Hours ? (
                   <Box sx={{ bgcolor: 'success.light', borderRadius: 1, p: 0.5, textAlign: 'center' }}>
-                    <Typography variant="caption" color="common.white" fontWeight={600}>
+                    <Typography variant='caption' color='common.white' fontWeight={600}>
                       24 Hours
                     </Typography>
-
                   </Box>
                 ) : (
-                  <FormControl size="small" fullWidth>
+                  <FormControl size='small' fullWidth>
                     <Select
                       value={dayData.openTime}
-                      onChange={(e) => handleTimeChange(index, 'openTime', e.target.value)}
+                      onChange={e => handleTimeChange(index, 'openTime', e.target.value)}
                       sx={{
                         height: 32,
                         fontSize: { xs: '0.75rem', sm: '0.8rem' }
                       }}
                     >
-                      {hours.map((time) => (
+                      {hours.map(time => (
                         <MenuItem key={time} value={time} dense>
                           {time}
                         </MenuItem>
@@ -398,16 +398,16 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
               <Grid item xs={3} sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {!dayData.isClosed && !dayData.is24Hours && (
-                  <FormControl size="small" fullWidth>
+                  <FormControl size='small' fullWidth>
                     <Select
                       value={dayData.closeTime}
-                      onChange={(e) => handleTimeChange(index, 'closeTime', e.target.value)}
+                      onChange={e => handleTimeChange(index, 'closeTime', e.target.value)}
                       sx={{
                         height: 32,
                         fontSize: { xs: '0.75rem', sm: '0.8rem' }
                       }}
                     >
-                      {hours.map((time) => (
+                      {hours.map(time => (
                         <MenuItem key={time} value={time} dense>
                           {time}
                         </MenuItem>
@@ -422,27 +422,27 @@ const BusinessHoursUpdate = ({ vendorId }) => {
                   value={getCurrentMode(dayData)}
                   exclusive
                   onChange={(event, newMode) => newMode && handleModeChange(index, newMode)}
-                  size="small"
+                  size='small'
                   fullWidth
                   sx={{ height: 32 }}
                 >
-                  <ToggleButton value="timeBased">
+                  <ToggleButton value='timeBased'>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <AccessTimeIcon fontSize="small" />
+                      <AccessTimeIcon fontSize='small' />
                     </Box>
                   </ToggleButton>
-                  <ToggleButton value="24Hours">
+                  <ToggleButton value='24Hours'>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <AvTimerIcon fontSize="small" />
-                      <Typography variant="caption" sx={{ ml: 0.5, display: { xs: 'none', sm: 'block' } }}>
+                      <AvTimerIcon fontSize='small' />
+                      <Typography variant='caption' sx={{ ml: 0.5, display: { xs: 'none', sm: 'block' } }}>
                         24h
                       </Typography>
                     </Box>
                   </ToggleButton>
-                  <ToggleButton value="closed">
+                  <ToggleButton value='closed'>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CloseIcon fontSize="small" />
-                      <Typography variant="caption" sx={{ ml: 0.5, display: { xs: 'none', sm: 'block' } }}>
+                      <CloseIcon fontSize='small' />
+                      <Typography variant='caption' sx={{ ml: 0.5, display: { xs: 'none', sm: 'block' } }}>
                         Closed
                       </Typography>
                     </Box>
@@ -455,8 +455,8 @@ const BusinessHoursUpdate = ({ vendorId }) => {
 
         <Box sx={{ mt: 3 }}>
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             startIcon={<SaveIcon />}
             fullWidth
             onClick={handleSave}
@@ -470,11 +470,7 @@ const BusinessHoursUpdate = ({ vendorId }) => {
         </Box>
       </CardContent>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
@@ -501,29 +497,35 @@ const VendorUpdate = ({ vendorId }) => {
   const [parkingEntries, setParkingEntries] = useState([{ type: '', count: '' }])
   const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   })
+
   const [platformFee, setPlatformFee] = useState('')
+
   // Fetch vendor data on component mount
   useEffect(() => {
     const fetchVendorData = async () => {
       if (!vendorId) {
         setLoading(false)
+
         return
       }
 
       try {
         console.log(`Fetching vendor data for ID: ${vendorId}`)
+
         const response = await fetch(`${API_URL}/vendor/fetch-vendor-data?id=${vendorId}`, {
           cache: 'no-store',
           headers: {
-            'pragma': 'no-cache',
+            pragma: 'no-cache',
             'cache-control': 'no-cache'
           }
         })
+
         const result = await response.json()
 
         if (response.ok && result.data) {
@@ -540,9 +542,9 @@ const VendorUpdate = ({ vendorId }) => {
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
               vendorData.contacts.map((contact, index) => ({
-                id: contact._id || (index + 1),
+                id: contact._id || index + 1,
                 name: contact.name || '',
-                mobile: contact.mobile || '',
+                mobile: contact.mobile || ''
               }))
             )
           } else {
@@ -550,10 +552,12 @@ const VendorUpdate = ({ vendorId }) => {
           }
 
           if (vendorData.parkingEntries?.length > 0) {
-            setParkingEntries(vendorData.parkingEntries.map(entry => ({
-              type: entry.type || '',
-              count: entry.count || ''
-            })))
+            setParkingEntries(
+              vendorData.parkingEntries.map(entry => ({
+                type: entry.type || '',
+                count: entry.count || ''
+              }))
+            )
           } else {
             setParkingEntries([{ type: '', count: '' }])
           }
@@ -593,6 +597,7 @@ const VendorUpdate = ({ vendorId }) => {
         message: 'Vendor ID not found',
         severity: 'error'
       })
+
       return
     }
 
@@ -602,10 +607,12 @@ const VendorUpdate = ({ vendorId }) => {
         message: 'Please fill in all required fields',
         severity: 'error'
       })
+
       return
     }
 
     const formData = new FormData()
+
     formData.append('vendorName', vendorName)
     formData.append('address', address)
     formData.append('landmark', landMark)
@@ -617,6 +624,7 @@ const VendorUpdate = ({ vendorId }) => {
       name: contact.name,
       mobile: contact.mobile
     }))
+
     formData.append('contacts', JSON.stringify(formattedContacts))
 
     const formattedParkingEntries = parkingEntries
@@ -625,6 +633,7 @@ const VendorUpdate = ({ vendorId }) => {
         type: entry.type,
         count: entry.count
       }))
+
     formData.append('parkingEntries', JSON.stringify(formattedParkingEntries))
 
     if (image) {
@@ -714,6 +723,7 @@ const VendorUpdate = ({ vendorId }) => {
                     value={contact.name}
                     onChange={e => {
                       const updatedContacts = [...contacts]
+
                       updatedContacts[index].name = e.target.value
                       setContacts(updatedContacts)
                     }}
@@ -727,6 +737,7 @@ const VendorUpdate = ({ vendorId }) => {
                       value={contact.mobile}
                       onChange={e => {
                         const updatedContacts = [...contacts]
+
                         updatedContacts[index].mobile = e.target.value
                         setContacts(updatedContacts)
                       }}
@@ -794,20 +805,18 @@ const VendorUpdate = ({ vendorId }) => {
         <Grid container spacing={3} sx={{ mt: 1 }}>
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             {imagePreview && (
-              <img
-                src={imagePreview}
-                alt="MySpace Image"
-                style={{ width: 100, height: 100, borderRadius: '50%' }}
-              />
+              <img src={imagePreview} alt='MySpace Image' style={{ width: 100, height: 100, borderRadius: '50%' }} />
             )}
           </Grid>
 
           <Grid item xs={12} sx={{ mb: 3 }}>
             <ProductImage
-              onChange={(file) => {
+              onChange={file => {
                 setImage(file)
+
                 if (file) {
                   const previewUrl = URL.createObjectURL(file)
+
                   setImagePreview(previewUrl)
                 }
               }}
@@ -818,7 +827,9 @@ const VendorUpdate = ({ vendorId }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Parking Entries</Typography>
+            <Typography variant='h6' sx={{ mb: 2 }}>
+              Parking Entries
+            </Typography>
             <Grid container spacing={2}>
               {parkingEntries.map((entry, index) => (
                 <Grid key={index} item xs={12}>
@@ -828,26 +839,28 @@ const VendorUpdate = ({ vendorId }) => {
                         <InputLabel>Parking Type</InputLabel>
                         <Select
                           value={entry.type}
-                          onChange={(e) => {
+                          onChange={e => {
                             const updatedEntries = [...parkingEntries]
+
                             updatedEntries[index].type = e.target.value
                             setParkingEntries(updatedEntries)
                           }}
-                          label="Parking Type"
+                          label='Parking Type'
                         >
-                          <MenuItem value="Cars">Cars</MenuItem>
-                          <MenuItem value="Bikes">Bikes</MenuItem>
-                          <MenuItem value="Others">Others</MenuItem>
+                          <MenuItem value='Cars'>Cars</MenuItem>
+                          <MenuItem value='Bikes'>Bikes</MenuItem>
+                          <MenuItem value='Others'>Others</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <TextField
-                          label="Count"
+                          label='Count'
                           value={entry.count}
-                          onChange={(e) => {
+                          onChange={e => {
                             const updatedEntries = [...parkingEntries]
+
                             updatedEntries[index].count = e.target.value
                             setParkingEntries(updatedEntries)
                           }}
@@ -865,27 +878,27 @@ const VendorUpdate = ({ vendorId }) => {
               ))}
             </Grid>
             <Box sx={{ mt: 2, mb: 4 }}>
-              <Button variant="contained" onClick={handleAddParkingEntry} startIcon={<AddIcon />}>
+              <Button variant='contained' onClick={handleAddParkingEntry} startIcon={<AddIcon />}>
                 Add Another Option
               </Button>
             </Box>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Platform Fee (%)"
+                label='Platform Fee (%)'
                 value={platformFee}
-                onChange={(e) => setPlatformFee(e.target.value)}
-                type="number"
+                onChange={e => setPlatformFee(e.target.value)}
+                type='number'
                 inputProps={{ min: 0, max: 100, step: 0.1 }}
-                placeholder="Enter platform fee percentage"
+                placeholder='Enter platform fee percentage'
               />
             </Grid>
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button
-              variant="contained"
-              color="success"
+              variant='contained'
+              color='success'
               onClick={handleSubmit}
               disabled={loading}
               startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
@@ -897,11 +910,7 @@ const VendorUpdate = ({ vendorId }) => {
         </Grid>
       </CardContent>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
@@ -911,23 +920,87 @@ const VendorUpdate = ({ vendorId }) => {
 }
 
 // Main Page Component
-const VendorSettingsPage = () => {
-  const params = useParams()
-  const vendorId = params.id // Get vendorId from URL params
+// TabPanel Component
+function TabPanel(props) {
+  const { children, value, index, ...other } = props
 
   return (
-    <div maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" sx={{ mb: 4 }}>
+    <div
+      role='tabpanel'
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
+// Main Page Component
+const VendorSettingsPage = () => {
+  const params = useParams()
+  const vendorId = params.id
+  const [activeTab, setActiveTab] = useState(0)
+
+  // Use imported Tabs, Tab from @mui/material which are not imported in the file view shown but might be needed.
+  // Wait, I need to check imports. Tabs and Tab are not imported in the file shown in step 67.
+  // I need to add them to the imports at the top first or make sure they are available.
+  // Actually, I can just include them in the replace content if I replace the whole file or add imports.
+  // But I am replacing from line 913.
+  // Let me replace the main component logic first.
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
+
+  return (
+    <Container maxWidth={false} sx={{ py: 4 }}>
+      <Typography variant='h3' sx={{ mb: 4 }}>
         MySpace Update
       </Typography>
-      <VendorUpdate vendorId={vendorId} />
-      <BusinessHoursUpdate vendorId={vendorId} />
-      <VendorAmenitiesServices vendorId={vendorId} />
-      <VendorSupportChat vendorId={vendorId} />
-      <VendorBankDetails vendorId={vendorId} />
-      <ParkingCharges vendorId={vendorId} />
-      <BookingEdit vendorId={vendorId} />
-    </div>
+
+      <Card sx={{ mb: 4 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant='scrollable'
+          scrollButtons='auto'
+          aria-label='myspace settings tabs'
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label='Profile Details' />
+          <Tab label='Business Hours' />
+          <Tab label='Amenities & Services' />
+          <Tab label='Support Chat' />
+          <Tab label='Bank Details' />
+          <Tab label='Parking Charges' />
+          <Tab label='Booking History' />
+        </Tabs>
+      </Card>
+
+      <TabPanel value={activeTab} index={0}>
+        <VendorUpdate vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={1}>
+        <BusinessHoursUpdate vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={2}>
+        <VendorAmenitiesServices vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={3}>
+        <VendorSupportChat vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={4}>
+        <VendorBankDetails vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={5}>
+        <ParkingCharges vendorId={vendorId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={6}>
+        <BookingEdit vendorId={vendorId} />
+      </TabPanel>
+    </Container>
   )
 }
 

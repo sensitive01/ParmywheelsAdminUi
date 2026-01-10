@@ -19,7 +19,6 @@ import CardContent from '@mui/material/CardContent'
 import Paper from '@mui/material/Paper'
 
 // Icon Imports
-import SaveIcon from '@mui/icons-material/Save'
 
 const VendorBankDetails = ({ vendorId }) => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -84,99 +83,6 @@ const VendorBankDetails = ({ vendorId }) => {
     fetchBankDetails()
   }, [vendorId, API_URL])
 
-  const validateForm = () => {
-    if (!accountNumber) {
-      setSnackbar({
-        open: true,
-        message: 'Please enter account number',
-        severity: 'warning'
-      })
-
-      return false
-    }
-
-    if (accountNumber !== confirmAccountNumber) {
-      setSnackbar({
-        open: true,
-        message: 'Account numbers do not match',
-        severity: 'warning'
-      })
-
-      return false
-    }
-
-    if (!accountHolderName) {
-      setSnackbar({
-        open: true,
-        message: 'Please enter account holder name',
-        severity: 'warning'
-      })
-
-      return false
-    }
-
-    if (!ifscCode) {
-      setSnackbar({
-        open: true,
-        message: 'Please enter IFSC code',
-        severity: 'warning'
-      })
-
-      return false
-    }
-
-    return true
-  }
-
-  const handleSubmit = async e => {
-    e.preventDefault()
-
-    if (!validateForm()) return
-
-    if (!vendorId) {
-      setSnackbar({
-        open: true,
-        message: 'You must be logged in to update bank details',
-        severity: 'error'
-      })
-
-      return
-    }
-
-    try {
-      setLoading(true)
-
-      const formData = new FormData()
-
-      formData.append('vendorId', vendorId)
-      formData.append('accountnumber', accountNumber)
-      formData.append('confirmaccountnumber', confirmAccountNumber)
-      formData.append('accountholdername', accountHolderName)
-      formData.append('ifsccode', ifscCode)
-
-      const response = await axios.post(`${API_URL}/vendor/bankdetails`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
-
-      setSnackbar({
-        open: true,
-        message: response.data.message || 'Bank details saved successfully',
-        severity: 'success'
-      })
-    } catch (error) {
-      console.error('Error saving bank details:', error)
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to save bank details',
-        severity: 'error'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const closeSnackbar = () => {
     setSnackbar({ ...snackbar, open: false })
   }
@@ -227,20 +133,27 @@ const VendorBankDetails = ({ vendorId }) => {
               color='secondary'
               onClick={handleApprove}
               sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : null}
             >
-              Approve Bank Details
+              {loading ? 'Approving...' : 'Approve Bank Details'}
             </Button>
           )
         }
       />
       <CardContent>
+        {isApproved && (
+          <Box sx={{ mb: 2 }}>
+            <Alert severity='success'>Bank details are approved.</Alert>
+          </Box>
+        )}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant='body1' color='text.secondary'>
-            Your Payout will be transferred to this account
+            Admin can only approve the bank details.
           </Typography>
         </Box>
 
-        <form onSubmit={handleSubmit}>
+        <Box>
           <Paper
             elevation={1}
             sx={{
@@ -258,9 +171,11 @@ const VendorBankDetails = ({ vendorId }) => {
                 fullWidth
                 variant='outlined'
                 value={accountNumber}
-                onChange={e => setAccountNumber(e.target.value)}
                 placeholder='Enter account number'
                 sx={{ mb: 2 }}
+                InputProps={{
+                  readOnly: true
+                }}
               />
             </Box>
 
@@ -272,9 +187,11 @@ const VendorBankDetails = ({ vendorId }) => {
                 fullWidth
                 variant='outlined'
                 value={confirmAccountNumber}
-                onChange={e => setConfirmAccountNumber(e.target.value)}
                 placeholder='Confirm account number'
                 sx={{ mb: 2 }}
+                InputProps={{
+                  readOnly: true
+                }}
               />
             </Box>
 
@@ -286,9 +203,11 @@ const VendorBankDetails = ({ vendorId }) => {
                 fullWidth
                 variant='outlined'
                 value={accountHolderName}
-                onChange={e => setAccountHolderName(e.target.value)}
                 placeholder='Enter account holder name'
                 sx={{ mb: 2 }}
+                InputProps={{
+                  readOnly: true
+                }}
               />
             </Box>
 
@@ -300,33 +219,15 @@ const VendorBankDetails = ({ vendorId }) => {
                 fullWidth
                 variant='outlined'
                 value={ifscCode}
-                onChange={e => setIfscCode(e.target.value)}
                 placeholder='Enter IFSC code'
                 sx={{ mb: 2 }}
+                InputProps={{
+                  readOnly: true
+                }}
               />
             </Box>
           </Paper>
-
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              type='submit'
-              variant='contained'
-              color='success'
-              size='large'
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} color='inherit' /> : <SaveIcon />}
-              sx={{
-                py: 1.5,
-                px: 4,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: 16
-              }}
-            >
-              {loading ? 'Saving...' : 'Save Bank Details'}
-            </Button>
-          </Box>
-        </form>
+        </Box>
       </CardContent>
 
       <Snackbar

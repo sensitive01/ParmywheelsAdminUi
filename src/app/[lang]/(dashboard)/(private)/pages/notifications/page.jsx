@@ -20,7 +20,8 @@ import {
   Chip,
   Pagination,
   Tab,
-  Tabs
+  Tabs,
+  ListItemAvatar
 } from '@mui/material'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import ClearAllIcon from '@mui/icons-material/ClearAll'
@@ -31,6 +32,8 @@ import LocalParkingIcon from '@mui/icons-material/LocalParking'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import WarningIcon from '@mui/icons-material/Warning'
 import ChatIcon from '@mui/icons-material/Chat'
+import PersonIcon from '@mui/icons-material/Person'
+import LaunchIcon from '@mui/icons-material/Launch' // Icon for the link button
 
 import { notificationStore } from '@/utils/requestNotificationPermission'
 
@@ -99,6 +102,16 @@ const NotificationsPage = () => {
     }
   }
 
+  // Handler for navigation
+  const handleViewVendor = (vendorId, event) => {
+    event.stopPropagation()
+
+    if (vendorId) {
+      // Option 1: Open in new tab (recommended for admin dashboards)
+      window.open(`https://admin.parkmywheels.com/en/pages/vendordetails/${vendorId}`, '_blank')
+    }
+  }
+
   useEffect(() => {
     // Load initial notifications
     const fetchNotifications = async () => {
@@ -138,13 +151,19 @@ const NotificationsPage = () => {
 
           const formattedChatNotifications = serverChatNotifications.map(n => ({
             id: n._id,
-            title: `Help Request - ${n.status || 'Pending'}`,
+
+            // Display Vendor Name in title or fallback
+            title: `Help Request - ${n.vendorName || n.status || 'Pending'}`,
             message: n.description || 'New help request',
             type: 'chat',
             timestamp: n.createdAt || n.date,
             read: false,
             source: 'server',
-            vendorId: n.vendorid
+            vendorId: n.vendorid,
+
+            // Map the vendor details we added in backend
+            vendorName: n.vendorName || 'Unknown Vendor',
+            vendorImage: n.vendorImage
           }))
 
           formattedChatNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -187,16 +206,13 @@ const NotificationsPage = () => {
   // Format the timestamp
   const formatTime = date => {
     if (!date) return ''
-
     const notificationDate = new Date(date)
     const now = new Date()
 
-    // If today, show time only
     if (notificationDate.toDateString() === now.toDateString()) {
       return notificationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
-    // If within the last week, show day and time
     const oneWeekAgo = new Date()
 
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
@@ -209,11 +225,9 @@ const NotificationsPage = () => {
       )
     }
 
-    // Otherwise show full date
     return notificationDate.toLocaleDateString()
   }
 
-  // Determine if notification is related to cancellation
   const isCancellationNotification = notification => {
     return (
       notification.type === 'booking_cancelled' ||
@@ -223,7 +237,6 @@ const NotificationsPage = () => {
     )
   }
 
-  // Get icon based on notification type
   const getNotificationIcon = notification => {
     const type = notification.type
     const title = notification.title?.toLowerCase() || ''
@@ -247,16 +260,13 @@ const NotificationsPage = () => {
     }
   }
 
-  // Get current list based on active tab
   const currentList = activeTab === 0 ? notifications : activeTab === 1 ? chatNotifications : bankNotifications
 
-  // Calculate pagination
   const startIndex = (page - 1) * rowsPerPage
   const endIndex = startIndex + rowsPerPage
   const paginatedNotifications = currentList.slice(startIndex, endIndex)
   const totalPages = Math.ceil(currentList.length / rowsPerPage)
 
-  // Handle page change
   const handlePageChange = (event, value) => {
     setPage(value)
   }
@@ -311,13 +321,7 @@ const NotificationsPage = () => {
         </Tabs>
       </Box>
 
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          mb: 2
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         {currentList.length > 0 && (
           <Button variant='outlined' size='small' startIcon={<ClearAllIcon />} onClick={handleClearAll}>
             Clear All
@@ -347,6 +351,7 @@ const NotificationsPage = () => {
           <List sx={{ bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, p: 2 }}>
             {paginatedNotifications.map((notification, index) => {
               const isCancellation = isCancellationNotification(notification)
+              const isChat = notification.type === 'chat'
 
               return (
                 <div key={notification.id || index}>
@@ -359,25 +364,53 @@ const NotificationsPage = () => {
                       mb: 1
                     }}
                     secondaryAction={
-                      !notification.read && (
-                        <Tooltip title='Mark as Read'>
-                          <IconButton
-                            edge='end'
-                            aria-label='mark as read'
-                            onClick={e => handleMarkAsRead(notification.id, e)}
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {/* View Vendor Button (Only for Chat Notifications) */}
+                        {isChat && notification.vendorId && (
+                          <Button
+                            variant='outlined'
+                            size='small'
+                            color='primary'
+                            endIcon={<LaunchIcon />}
+                            onClick={e => handleViewVendor(notification.vendorId, e)}
                           >
-                            <CheckCircleIcon color='success' />
-                          </IconButton>
-                        </Tooltip>
-                      )
+                            View Vendor
+                          </Button>
+                        )}
+
+                        {!notification.read && (
+                          <Tooltip title='Mark as Read'>
+                            <IconButton
+                              edge='end'
+                              aria-label='mark as read'
+                              onClick={e => handleMarkAsRead(notification.id, e)}
+                            >
+                              <CheckCircleIcon color='success' />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                     }
                   >
-                    <ListItemIcon>{getNotificationIcon(notification)}</ListItemIcon>
+                    {/* Render Avatar for Chat Notifications */}
+                    {isChat ? (
+                      <ListItemAvatar>
+                        <Avatar src={notification.vendorImage || ''} alt={notification.vendorName || 'Vendor'}>
+                          {!notification.vendorImage && <PersonIcon />}
+                        </Avatar>
+                      </ListItemAvatar>
+                    ) : (
+                      <ListItemIcon>{getNotificationIcon(notification)}</ListItemIcon>
+                    )}
+
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography variant='subtitle1' fontWeight={notification.read ? 'regular' : 'bold'}>
-                            {notification.title}
+                            {/* If Chat, Show Vendor Name clearly */}
+                            {isChat && notification.vendorName
+                              ? `${notification.vendorName} - ${notification.title}`
+                              : notification.title}
                           </Typography>
                           {isCancellation && (
                             <Chip
