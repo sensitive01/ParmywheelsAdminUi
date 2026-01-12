@@ -35,7 +35,7 @@ export const NotificationProvider = ({ children }) => {
     const formattedChatNotifications = serverChatNotifications.map(n => ({
       id: n._id,
       title: `Help Request - ${n.vendorName || n.status || 'Pending'}`,
-      message: n.description || 'New help request',
+      message: n.message || n.description || 'New help request',
       type: 'chat',
       timestamp: n.createdAt || n.date,
       read: n.isRead || false,
