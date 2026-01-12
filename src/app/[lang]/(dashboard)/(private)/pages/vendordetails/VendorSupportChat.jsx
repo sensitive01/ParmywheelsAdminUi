@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+
 import { useSession } from 'next-auth/react'
 import axios from 'axios'
 
@@ -37,11 +38,13 @@ const VendorSupportChat = ({ vendorId }) => {
   const [loading, setLoading] = useState(true)
   const [helpRequests, setHelpRequests] = useState([])
   const [selectedRequest, setSelectedRequest] = useState(null)
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'info'
   })
+
   const [requestToComplete, setRequestToComplete] = useState(null)
   const [completingId, setCompletingId] = useState(null)
 
@@ -80,9 +83,10 @@ const VendorSupportChat = ({ vendorId }) => {
         if (response.data.helpRequests.length > 0) {
           const sortedRequests = [...response.data.helpRequests].sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          setSelectedRequest(sortedRequests[0]);
-          fetchChatData(sortedRequests[0]._id);
+          )
+
+          setSelectedRequest(sortedRequests[0])
+          fetchChatData(sortedRequests[0]._id)
         } else {
           setLoading(false)
         }
@@ -95,7 +99,7 @@ const VendorSupportChat = ({ vendorId }) => {
     }
   }
 
-  const fetchChatData = async (helpRequestId) => {
+  const fetchChatData = async helpRequestId => {
     if (!helpRequestId) return
 
     try {
@@ -115,13 +119,13 @@ const VendorSupportChat = ({ vendorId }) => {
     }
   }
 
-  const handleCompleteRequest = async (requestId) => {
+  const handleCompleteRequest = async requestId => {
     try {
       setCompletingId(requestId)
-      const response = await axios.patch(
-        `${API_URL}/admin/adminclosechat/${selectedRequest._id}`,
-        { adminId: session?.user?.id } 
-      );
+
+      const response = await axios.patch(`${API_URL}/admin/adminclosechat/${selectedRequest._id}`, {
+        adminId: session?.user?.id
+      })
 
       if (response.status === 200) {
         setSnackbar({
@@ -132,9 +136,7 @@ const VendorSupportChat = ({ vendorId }) => {
 
         setHelpRequests(prev =>
           prev.map(req =>
-            req._id === requestId
-              ? { ...req, status: 'Completed', closedAt: new Date().toISOString() }
-              : req
+            req._id === requestId ? { ...req, status: 'Completed', closedAt: new Date().toISOString() } : req
           )
         )
 
@@ -159,16 +161,18 @@ const VendorSupportChat = ({ vendorId }) => {
     }
   }
 
-  const sendMessage = async (e) => {
+  const sendMessage = async e => {
     e.preventDefault()
 
     if (!message.trim() && !selectedImage) return
+
     if (!selectedRequest?._id || !vendorId) {
       setSnackbar({
         open: true,
         message: 'Cannot send message: Missing request ID or vendor ID',
         severity: 'error'
       })
+
       return
     }
 
@@ -176,26 +180,24 @@ const VendorSupportChat = ({ vendorId }) => {
       setSending(true)
 
       const formData = new FormData()
+
       formData.append('vendorid', vendorId)
+      formData.append('adminid', session?.user?.id)
       formData.append('message', message)
 
       if (selectedImage) {
         formData.append('image', selectedImage)
       }
 
-      const response = await axios.post(
-        `${API_URL}/vendor/sendchat/${selectedRequest._id}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      const response = await axios.post(`${API_URL}/vendor/sendchat/${selectedRequest._id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      )
+      })
 
       if (response.status === 200) {
         const newMessage = {
-          userId: vendorId,
+          userId: session?.user?.id,
           message: message,
           image: selectedImage ? URL.createObjectURL(selectedImage) : null,
           timestamp: new Date().toISOString(),
@@ -220,33 +222,35 @@ const VendorSupportChat = ({ vendorId }) => {
     }
   }
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = e => {
     if (e.target.files && e.target.files[0]) {
       setSelectedImage(e.target.files[0])
     }
   }
 
-  const handleRequestSelect = (request) => {
+  const handleRequestSelect = request => {
     setSelectedRequest(request)
     fetchChatData(request._id)
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     if (!dateString) return ''
+
     return new Date(dateString).toLocaleString()
   }
 
-  const isCurrentUser = (messageUserId) => {
-    return messageUserId === vendorId
+  const isCurrentUser = messageUserId => {
+    return messageUserId !== vendorId
   }
 
-  const formatRequestDate = (dateString) => {
+  const formatRequestDate = dateString => {
     if (!dateString) return ''
     const date = new Date(dateString)
+
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
       case 'Completed':
         return '#c8e6c9' // Green
@@ -259,7 +263,7 @@ const VendorSupportChat = ({ vendorId }) => {
     }
   }
 
-  const getStatusTextColor = (status) => {
+  const getStatusTextColor = status => {
     switch (status) {
       case 'Completed':
         return '#2e7d32' // Dark Green
@@ -275,13 +279,13 @@ const VendorSupportChat = ({ vendorId }) => {
   return (
     <Card sx={{ mt: 6 }}>
       <CardHeader
-        title="Support Requests & Chat"
+        title='Support Requests & Chat'
         sx={{ bgcolor: 'primary.main' }}
         titleTypographyProps={{ color: 'common.white' }}
       />
       <CardContent>
         {helpRequests.length === 0 ? (
-          <Alert severity="info">No support requests found. Create a support request if you need assistance.</Alert>
+          <Alert severity='info'>No support requests found. Create a support request if you need assistance.</Alert>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, height: '600px' }}>
             {/* Request List */}
@@ -295,9 +299,11 @@ const VendorSupportChat = ({ vendorId }) => {
                 overflowY: 'auto'
               }}
             >
-              <Typography variant="h6" sx={{ mb: 2 }}>Your Requests</Typography>
+              <Typography variant='h6' sx={{ mb: 2 }}>
+                Your Requests
+              </Typography>
 
-              {helpRequests.map((request) => (
+              {helpRequests.map(request => (
                 <Paper
                   key={request._id}
                   elevation={selectedRequest?._id === request._id ? 3 : 1}
@@ -311,17 +317,17 @@ const VendorSupportChat = ({ vendorId }) => {
                   onClick={() => handleRequestSelect(request)}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 'bold', flex: 1 }}>
+                    <Typography variant='subtitle2' noWrap sx={{ fontWeight: 'bold', flex: 1 }}>
                       {request.description.substring(0, 30)}
                       {request.description.length > 30 ? '...' : ''}
                     </Typography>
 
                     {request.status === 'Pending' && (
                       <Button
-                        variant="contained"
-                        size="small"
-                        color="success"
-                        onClick={(e) => {
+                        variant='contained'
+                        size='small'
+                        color='success'
+                        onClick={e => {
                           e.stopPropagation()
                           setRequestToComplete(request._id)
                         }}
@@ -335,23 +341,19 @@ const VendorSupportChat = ({ vendorId }) => {
                           minWidth: '80px'
                         }}
                       >
-                        {completingId === request._id ? (
-                          <CircularProgress size={14} color="inherit" />
-                        ) : (
-                          'Complete'
-                        )}
+                        {completingId === request._id ? <CircularProgress size={14} color='inherit' /> : 'Complete'}
                       </Button>
                     )}
                   </Box>
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant='caption' sx={{ display: 'flex', alignItems: 'center' }}>
                       <AccessTimeIcon sx={{ fontSize: 12, mr: 0.5 }} />
                       {formatRequestDate(request.createdAt)}
                     </Typography>
 
                     <Typography
-                      variant="caption"
+                      variant='caption'
                       sx={{
                         px: 1,
                         py: 0.5,
@@ -372,18 +374,28 @@ const VendorSupportChat = ({ vendorId }) => {
             <Box sx={{ width: { xs: '100%', md: '70%' }, display: 'flex', flexDirection: 'column', height: '100%' }}>
               {selectedRequest && (
                 <>
-                  <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: '#f9f9f9',
+                      borderRadius: 1,
+                      mb: 2,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
                     <Box>
-                      <Typography variant="subtitle1" fontWeight="bold">
+                      <Typography variant='subtitle1' fontWeight='bold'>
                         {selectedRequest.description}
                       </Typography>
-                      <Typography variant="caption" color="textSecondary">
+                      <Typography variant='caption' color='textSecondary'>
                         Request ID: {selectedRequest._id} • Created: {formatRequestDate(selectedRequest.createdAt)}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography
-                        variant="caption"
+                        variant='caption'
                         sx={{
                           px: 1.5,
                           py: 0.8,
@@ -421,16 +433,18 @@ const VendorSupportChat = ({ vendorId }) => {
                         <CircularProgress />
                       </Box>
                     ) : chatMessages.length === 0 ? (
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        height: '100%',
-                        backgroundColor: '#e8f5e9',
-                        borderRadius: 1,
-                        p: 3
-                      }}>
-                        <Typography color="#2e7d32" fontWeight="bold">
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: '100%',
+                          backgroundColor: '#e8f5e9',
+                          borderRadius: 1,
+                          p: 3
+                        }}
+                      >
+                        <Typography color='#2e7d32' fontWeight='bold'>
                           Chat not found
                         </Typography>
                       </Box>
@@ -454,34 +468,36 @@ const VendorSupportChat = ({ vendorId }) => {
                             }}
                           >
                             {!isCurrentUser(msg.userId) && (
-                              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                                Support Team
+                              <Typography variant='caption' color='text.secondary' sx={{ mb: 1, display: 'block' }}>
+                                Vendor
                               </Typography>
                             )}
 
-                            <Typography variant="body1">
-                              {msg.message}
-                            </Typography>
+                            <Typography variant='body1'>{msg.message}</Typography>
 
                             {msg.image && (
                               <Box
-                                component="img"
+                                component='img'
                                 src={msg.image.startsWith('blob:') ? msg.image : msg.image}
-                                alt="Chat image"
+                                alt='Chat image'
                                 sx={{
                                   maxWidth: '100%',
                                   maxHeight: 200,
                                   mt: 1,
                                   borderRadius: 1
                                 }}
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = '/images/broken-image.png';
+                                onError={e => {
+                                  e.target.onerror = null
+                                  e.target.src = '/images/broken-image.png'
                                 }}
                               />
                             )}
 
-                            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'right' }}>
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ mt: 1, display: 'block', textAlign: 'right' }}
+                            >
                               {msg.time || formatDate(msg.timestamp)}
                             </Typography>
                           </Box>
@@ -494,7 +510,7 @@ const VendorSupportChat = ({ vendorId }) => {
                   {/* Input Area or Completed Message */}
                   {selectedRequest.status !== 'Completed' ? (
                     <Box
-                      component="form"
+                      component='form'
                       onSubmit={sendMessage}
                       sx={{
                         p: 2,
@@ -506,24 +522,33 @@ const VendorSupportChat = ({ vendorId }) => {
                       }}
                     >
                       <input
-                        type="file"
-                        accept="image/*"
+                        type='file'
+                        accept='image/*'
                         style={{ display: 'none' }}
                         ref={fileInputRef}
                         onChange={handleImageSelect}
                       />
 
-                      <IconButton
-                        color="primary"
-                        onClick={() => fileInputRef.current.click()}
-                        sx={{ mr: 1 }}
-                      >
+                      <IconButton color='primary' onClick={() => fileInputRef.current.click()} sx={{ mr: 1 }}>
                         <ImageIcon />
                       </IconButton>
 
                       {selectedImage && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, px: 1, py: 0.5, bgcolor: '#f0f0f0', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            mr: 1,
+                            px: 1,
+                            py: 0.5,
+                            bgcolor: '#f0f0f0',
+                            borderRadius: 1
+                          }}
+                        >
+                          <Typography
+                            variant='caption'
+                            sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
                             {selectedImage.name}
                           </Typography>
                         </Box>
@@ -531,17 +556,17 @@ const VendorSupportChat = ({ vendorId }) => {
 
                       <TextField
                         fullWidth
-                        variant="outlined"
-                        placeholder="Type your message..."
+                        variant='outlined'
+                        placeholder='Type your message...'
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        size="small"
+                        onChange={e => setMessage(e.target.value)}
+                        size='small'
                         sx={{ mx: 1 }}
                       />
 
                       <IconButton
-                        color="primary"
-                        type="submit"
+                        color='primary'
+                        type='submit'
                         disabled={sending || (!message.trim() && !selectedImage)}
                         sx={{
                           bgcolor: 'primary.main',
@@ -553,11 +578,11 @@ const VendorSupportChat = ({ vendorId }) => {
                           }
                         }}
                       >
-                        {sending ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
+                        {sending ? <CircularProgress size={24} color='inherit' /> : <SendIcon />}
                       </IconButton>
                     </Box>
                   ) : (
-                    <Alert severity="info" sx={{ mt: 2 }}>
+                    <Alert severity='info' sx={{ mt: 2 }}>
                       This conversation has been marked as completed. No further messages can be sent.
                     </Alert>
                   )}
@@ -568,11 +593,7 @@ const VendorSupportChat = ({ vendorId }) => {
         )}
       </CardContent>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
@@ -582,12 +603,12 @@ const VendorSupportChat = ({ vendorId }) => {
       <Dialog
         open={Boolean(requestToComplete)}
         onClose={() => setRequestToComplete(null)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        aria-labelledby='alert-dialog-title'
+        aria-describedby='alert-dialog-description'
       >
-        <DialogTitle id="alert-dialog-title">Confirm Completion</DialogTitle>
+        <DialogTitle id='alert-dialog-title'>Confirm Completion</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText id='alert-dialog-description'>
             Are you sure you want to mark this request as completed? This will close the conversation.
           </DialogContentText>
         </DialogContent>
@@ -595,8 +616,8 @@ const VendorSupportChat = ({ vendorId }) => {
           <Button onClick={() => setRequestToComplete(null)}>Cancel</Button>
           <Button
             onClick={() => handleCompleteRequest(requestToComplete)}
-            color="success"
-            variant="contained"
+            color='success'
+            variant='contained'
             autoFocus
           >
             Confirm

@@ -28,6 +28,7 @@ const VendorBankDetails = ({ vendorId }) => {
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('')
   const [accountHolderName, setAccountHolderName] = useState('')
   const [ifscCode, setIfscCode] = useState('')
+  const [passbookImage, setPassbookImage] = useState('')
   const [isApproved, setIsApproved] = useState(false)
   const [bankDetailsId, setBankDetailsId] = useState(null)
 
@@ -61,6 +62,7 @@ const VendorBankDetails = ({ vendorId }) => {
           setConfirmAccountNumber(bankData.accountnumber || '')
           setAccountHolderName(bankData.accountholdername || '')
           setIfscCode(bankData.ifsccode || '')
+          setPassbookImage(bankData.bankpassbookimage || '')
           setIsApproved(bankData.isApproved || false)
           setBankDetailsId(bankData._id)
         }
@@ -225,6 +227,31 @@ const VendorBankDetails = ({ vendorId }) => {
                   readOnly: true
                 }}
               />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Passbook/Cheque Image
+              </Typography>
+              {passbookImage ? (
+                <Box
+                  component='img'
+                  src={passbookImage}
+                  alt='Bank Passbook'
+                  sx={{
+                    width: '100%',
+                    maxWidth: 400,
+                    height: 'auto',
+                    borderRadius: 1,
+                    border: '1px solid #ddd',
+                    p: 1
+                  }}
+                />
+              ) : (
+                <Typography variant='body2' color='text.secondary'>
+                  No image uploaded
+                </Typography>
+              )}
             </Box>
           </Paper>
         </Box>
