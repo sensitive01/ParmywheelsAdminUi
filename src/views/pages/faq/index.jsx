@@ -67,15 +67,18 @@ const Dashboard = () => {
       const data = await response.json()
 
       if (data.success) {
-        // Combine vendors and users arrays from the API response
+        // Handle response where vendors might be in data.data or data.vendors
+        const rawVendors = data.data || data.vendors || []
+        const rawUsers = data.users || []
+
         // Map them to a consistent format: { vendorName: ..., vendorId: ... }
-        const mappedVendors = (data.vendors || []).map(v => ({
+        const mappedVendors = rawVendors.map(v => ({
           vendorName: v.vendorName,
           vendorId: v._id
         }))
 
-        const mappedUsers = (data.users || []).map(u => ({
-          vendorName: u.vendorName,
+        const mappedUsers = rawUsers.map(u => ({
+          vendorName: u.vendorName, // User object might use vendorName or userName
           vendorId: u._id
         }))
 
