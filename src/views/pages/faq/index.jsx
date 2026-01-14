@@ -1,5 +1,6 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
+
 import {
   Box,
   Tab,
@@ -18,8 +19,9 @@ import {
   Button,
   Menu,
   ListItemIcon,
-  ListItemText
-} from '@mui/material';
+  ListItemText,
+  Autocomplete
+} from '@mui/material'
 import {
   AccountBalanceWallet,
   Receipt,
@@ -28,79 +30,133 @@ import {
   Download,
   PictureAsPdf,
   GridOn
-} from '@mui/icons-material';
+} from '@mui/icons-material'
 
 const TabPanel = ({ children, value, index, ...other }) => (
-  <div role="tabpanel" hidden={value !== index} {...other}>
+  <div role='tabpanel' hidden={value !== index} {...other}>
     {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
   </div>
-);
+)
 
 const Dashboard = () => {
-  const [value, setValue] = useState(0);
-  const [summaryData, setSummaryData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+  const [value, setValue] = useState(0)
+  const [summaryData, setSummaryData] = useState(null)
+  const [allVendors, setAllVendors] = useState([])
+  const [loading, setLoading] = useState(true)
+
   const [filter, setFilter] = useState({
     startDate: '',
     endDate: '',
     vendor: 'all'
-  });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  })
+
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
 
   useEffect(() => {
-    fetchSummaryData();
-  }, []);
+    fetchSummaryData()
+    fetchAllVendors()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const fetchSummaryData = async () => {
+  const fetchAllVendors = async () => {
     try {
-      const response = await fetch('https://api.parkmywheels.com/admin/fetchallbookingtransactions');
-      const data = await response.json();
+      // Fetch full list of vendors/users for the dropdown
+      const response = await fetch(`${baseUrl}/admin/fetchallvendors`)
+      const data = await response.json()
 
       if (data.success) {
-        setSummaryData(data.data);
+        // Combine vendors and users arrays from the API response
+        // Map them to a consistent format: { vendorName: ..., vendorId: ... }
+        const mappedVendors = (data.vendors || []).map(v => ({
+          vendorName: v.vendorName,
+          vendorId: v._id
+        }))
+
+        const mappedUsers = (data.users || []).map(u => ({
+          vendorName: u.vendorName,
+          vendorId: u._id
+        }))
+
+        const combinedList = [...mappedVendors, ...mappedUsers]
+
+        setAllVendors(combinedList)
       }
-      setLoading(false);
     } catch (error) {
-      console.error("Error fetching summary data:", error);
-      setLoading(false);
+      console.error('Error fetching all vendors list:', error)
     }
-  };
+  }
+
+  const fetchSummaryData = async () => {
+    setLoading(true)
+
+    try {
+      let url = `${baseUrl}/admin/fetchallbookingtransactions`
+      const queryParams = new URLSearchParams()
+
+      const hasFilter = filter.startDate || filter.endDate || (filter.vendor && filter.vendor !== 'all')
+
+      if (hasFilter) {
+        url = `${baseUrl}/admin/getfilteredbookingtransactions`
+        if (filter.startDate) queryParams.append('startDate', filter.startDate)
+        if (filter.endDate) queryParams.append('endDate', filter.endDate)
+        if (filter.vendor && filter.vendor !== 'all') queryParams.append('vendorId', filter.vendor)
+
+        url += `?${queryParams.toString()}`
+      }
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (data.success) {
+        setSummaryData(data.data)
+      }
+
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching summary data:', error)
+      setLoading(false)
+    }
+  }
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+    setValue(newValue)
+  }
 
   const handleFilterChange = (name, value) => {
     setFilter(prev => ({
       ...prev,
       [name]: value
-    }));
-  };
+    }))
+  }
 
-  const handleDownloadClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const handleDownloadClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
 
   const handleDownloadClose = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
+
+  // Helper to get current display data
+  const getCurrentData = () => {
+    return summaryData?.vendors || []
+  }
 
   const exportToExcel = () => {
-    if (!summaryData) return;
+    if (!summaryData) return
 
-    // Get filtered vendors based on current selection
-    const vendorsToExport = filter.vendor === 'all'
-      ? summaryData.vendors
-      : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
+    const vendorsToExport = getCurrentData()
 
-    if (vendorsToExport.length === 0) return;
+    if (vendorsToExport.length === 0) return
 
-    let csvContent = "data:text/csv;charset=utf-8,";
+    let csvContent = 'data:text/csv;charset=utf-8,'
 
     // Add headers
-    const headers = ["Vendor Name", "Bookings", "Total Amount", "Platform Fee %", "Receivable"];
-    csvContent += headers.join(",") + "\r\n";
+    const headers = ['Vendor Name', 'Bookings', 'Total Amount', 'Platform Fee %', 'Receivable']
+
+    csvContent += headers.join(',') + '\r\n'
 
     // Add data rows
     vendorsToExport.forEach(vendor => {
@@ -110,36 +166,41 @@ const Dashboard = () => {
         vendor.totalAmount,
         vendor.platformFeePercentage,
         vendor.totalReceivable
-      ];
-      csvContent += row.join(",") + "\r\n";
-    });
+      ]
+
+      csvContent += row.join(',') + '\r\n'
+    })
 
     // Add summary row
-    csvContent += `"${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}",${vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)
-      },${vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)
-      },,${vendorsToExport.reduce((sum, v) => sum + v.totalReceivable, 0)
-      }\r\n`;
+    csvContent += `"${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}",${vendorsToExport.reduce(
+      (sum, v) => sum + v.bookingCount,
+      0
+    )},${vendorsToExport.reduce((sum, v) => sum + v.totalAmount, 0)},,${vendorsToExport.reduce(
+      (sum, v) => sum + v.totalReceivable,
+      0
+    )}\r\n`
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `transactions_${filter.vendor === 'all' ? 'all_vendors' : 'vendor_' + filter.vendor}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
 
-    handleDownloadClose();
-  };
+    link.setAttribute('href', encodedUri)
+    link.setAttribute(
+      'download',
+      `transactions_${filter.vendor === 'all' ? 'all_vendors' : 'vendor_' + filter.vendor}_${new Date().toISOString().slice(0, 10)}.csv`
+    )
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    handleDownloadClose()
+  }
 
   const exportToPDF = () => {
-    if (!summaryData) return;
+    if (!summaryData) return
 
-    // Get filtered vendors based on current selection
-    const vendorsToExport = filter.vendor === 'all'
-      ? summaryData.vendors
-      : summaryData.vendors.filter(v => v.vendorId === filter.vendor);
+    const vendorsToExport = getCurrentData()
 
-    if (vendorsToExport.length === 0) return;
+    if (vendorsToExport.length === 0) return
 
     // Create a basic PDF using browser's print functionality
     const printContent = `
@@ -169,7 +230,9 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              ${vendorsToExport.map(vendor => `
+              ${vendorsToExport
+                .map(
+                  vendor => `
                 <tr>
                   <td>${vendor.vendorName}</td>
                   <td>${vendor.bookingCount}</td>
@@ -177,7 +240,9 @@ const Dashboard = () => {
                   <td>${vendor.platformFeePercentage}%</td>
                   <td>₹${vendor.totalReceivable}</td>
                 </tr>
-              `).join('')}
+              `
+                )
+                .join('')}
               <tr class="total-row">
                 <td>${filter.vendor === 'all' ? 'Grand Total' : 'Selected Vendor Total'}</td>
                 <td>${vendorsToExport.reduce((sum, v) => sum + v.bookingCount, 0)}</td>
@@ -189,69 +254,56 @@ const Dashboard = () => {
           </table>
         </body>
       </html>
-    `;
+    `
 
-    const win = window.open('', '_blank');
-    win.document.write(printContent);
-    win.document.close();
-    win.focus();
+    const win = window.open('', '_blank')
+
+    win.document.write(printContent)
+    win.document.close()
+    win.focus()
     setTimeout(() => {
-      win.print();
-      win.close();
-    }, 500);
+      win.print()
+      win.close()
+    }, 500)
 
-    handleDownloadClose();
-  };
+    handleDownloadClose()
+  }
 
-  const filteredVendors = summaryData?.vendors.filter(vendor => {
-    if (filter.vendor !== 'all' && vendor.vendorId !== filter.vendor) {
-      return false;
-    }
-    return true;
-  }) || [];
+  const filteredVendors = getCurrentData()
 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
-    );
+    )
   }
+
+  // Prepare Autocomplete options
+  const vendorOptions = [{ vendorName: 'All Vendors', vendorId: 'all' }, ...allVendors]
+  const selectedVendorOption = vendorOptions.find(v => v.vendorId === filter.vendor) || vendorOptions[0]
 
   return (
     <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          centered
-        >
-          <Tab label="Transaction" icon={<Summarize />} iconPosition="start" />
-          <Tab label="Payouts Details" />
+        <Tabs value={value} onChange={handleChange} centered>
+          <Tab label='Transaction' icon={<Summarize />} iconPosition='start' />
+          <Tab label='Payouts Details' />
         </Tabs>
 
-        <Button
-          variant="contained"
-          startIcon={<Download />}
-          onClick={handleDownloadClick}
-          sx={{ ml: 2 }}
-        >
+        <Button variant='contained' startIcon={<Download />} onClick={handleDownloadClick} sx={{ ml: 2 }}>
           Download
         </Button>
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleDownloadClose}
-        >
+        <Menu anchorEl={anchorEl} open={open} onClose={handleDownloadClose}>
           <MenuItem onClick={exportToExcel}>
             <ListItemIcon>
-              <GridOn fontSize="small" />
+              <GridOn fontSize='small' />
             </ListItemIcon>
             <ListItemText>Export to Excel</ListItemText>
           </MenuItem>
           <MenuItem onClick={exportToPDF}>
             <ListItemIcon>
-              <PictureAsPdf fontSize="small" />
+              <PictureAsPdf fontSize='small' />
             </ListItemIcon>
             <ListItemText>Export to PDF</ListItemText>
           </MenuItem>
@@ -260,64 +312,57 @@ const Dashboard = () => {
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
+        <Grid container spacing={2} alignItems='center'>
           <Grid item xs={12} sm={6} md={3}>
             <TextField
-              label="Start Date"
-              type="date"
+              label='Start Date'
+              type='date'
               value={filter.startDate}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              onChange={e => handleFilterChange('startDate', e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarToday color="action" />
+                  <InputAdornment position='start'>
+                    <CalendarToday color='action' />
                   </InputAdornment>
-                ),
+                )
               }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <TextField
-              label="End Date"
-              type="date"
+              label='End Date'
+              type='date'
               value={filter.endDate}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              onChange={e => handleFilterChange('endDate', e.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarToday color="action" />
+                  <InputAdornment position='start'>
+                    <CalendarToday color='action' />
                   </InputAdornment>
-                ),
+                )
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              select
-              label="Vendor"
-              value={filter.vendor}
-              onChange={(e) => handleFilterChange('vendor', e.target.value)}
-              fullWidth
-            >
-              <MenuItem value="all">All Vendors</MenuItem>
-              {summaryData?.vendors.map((vendor) => (
-                <MenuItem key={vendor.vendorId} value={vendor.vendorId}>
-                  {vendor.vendorName}
-                  {vendor.bookingCount === 0 && (
-                    <Chip
-                      label="No transactions"
-                      size="small"
-                      sx={{ ml: 1 }}
-                      variant="outlined"
-                    />
-                  )}
-                </MenuItem>
-              ))}
-            </TextField>
+          <Grid item xs={12} sm={6} md={4}>
+            <Autocomplete
+              options={vendorOptions}
+              getOptionLabel={option => option.vendorName}
+              value={selectedVendorOption}
+              disableClearable
+              onChange={(event, newValue) => {
+                handleFilterChange('vendor', newValue ? newValue.vendorId : 'all')
+              }}
+              renderInput={params => <TextField {...params} label='Select Vendor' fullWidth />}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <Button variant='contained' size='large' fullWidth onClick={fetchSummaryData} sx={{ height: '56px' }}>
+              Search
+            </Button>
           </Grid>
         </Grid>
       </Paper>
@@ -325,7 +370,7 @@ const Dashboard = () => {
       <TabPanel value={value} index={0}>
         {summaryData && (
           <Box>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant='h5' gutterBottom>
               Transaction Summary
             </Typography>
             <Paper sx={{ p: 3, mb: 3 }}>
@@ -333,10 +378,10 @@ const Dashboard = () => {
                 <Grid item xs={12} sm={6} md={4}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
-                      <Typography variant="h6" color="textSecondary">
+                      <Typography variant='h6' color='textSecondary'>
                         Total Bookings
                       </Typography>
-                      <Typography variant="h3">
+                      <Typography variant='h3'>
                         {summaryData.vendors.reduce((sum, vendor) => sum + vendor.bookingCount, 0)}
                       </Typography>
                     </CardContent>
@@ -345,10 +390,10 @@ const Dashboard = () => {
                 <Grid item xs={12} sm={6} md={4}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
-                      <Typography variant="h6" color="textSecondary">
+                      <Typography variant='h6' color='textSecondary'>
                         Total Amount
                       </Typography>
-                      <Typography variant="h3" color="primary">
+                      <Typography variant='h3' color='primary'>
                         ₹{summaryData.grandTotalAmount}
                       </Typography>
                     </CardContent>
@@ -357,10 +402,10 @@ const Dashboard = () => {
                 <Grid item xs={12} sm={6} md={4}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
-                      <Typography variant="h6" color="textSecondary">
+                      <Typography variant='h6' color='textSecondary'>
                         Total Receivable
                       </Typography>
-                      <Typography variant="h3" color="success.main">
+                      <Typography variant='h3' color='success.main'>
                         ₹{summaryData.grandTotalReceivable}
                       </Typography>
                     </CardContent>
@@ -369,26 +414,28 @@ const Dashboard = () => {
               </Grid>
             </Paper>
 
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               All Vendors ({filteredVendors.length})
             </Typography>
             <Grid container spacing={2}>
-              {filteredVendors.map((vendor) => (
+              {filteredVendors.map(vendor => (
                 <Grid item xs={12} sm={6} md={4} key={vendor.vendorId}>
-                  <Card sx={{
-                    opacity: vendor.bookingCount === 0 ? 0.7 : 1,
-                    border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
-                  }}>
+                  <Card
+                    sx={{
+                      opacity: vendor.bookingCount === 0 ? 0.7 : 1,
+                      border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
+                    }}
+                  >
                     <CardContent>
-                      <Typography variant="h6">
+                      <Typography variant='h6'>
                         {vendor.vendorName}
                         {vendor.bookingCount === 0 && (
                           <Chip
-                            label="No transactions"
-                            size="small"
+                            label='No transactions'
+                            size='small'
                             sx={{ ml: 1 }}
-                            color="default"
-                            variant="outlined"
+                            color='default'
+                            variant='outlined'
                           />
                         )}
                       </Typography>
@@ -425,27 +472,29 @@ const Dashboard = () => {
       <TabPanel value={value} index={1}>
         {summaryData && (
           <Box>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant='h5' gutterBottom>
               Detailed Vendor Information
             </Typography>
             <Paper sx={{ p: 3, mb: 3 }}>
               <Grid container spacing={3}>
-                {filteredVendors.map((vendor) => (
+                {filteredVendors.map(vendor => (
                   <Grid item xs={12} key={vendor.vendorId}>
-                    <Card sx={{
-                      opacity: vendor.bookingCount === 0 ? 0.7 : 1,
-                      border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
-                    }}>
+                    <Card
+                      sx={{
+                        opacity: vendor.bookingCount === 0 ? 0.7 : 1,
+                        border: vendor.bookingCount === 0 ? '1px dashed #ccc' : '1px solid rgba(0, 0, 0, 0.12)'
+                      }}
+                    >
                       <CardContent>
-                        <Typography variant="h6">
+                        <Typography variant='h6'>
                           {vendor.vendorName}
                           {vendor.bookingCount === 0 && (
                             <Chip
-                              label="No transactions"
-                              size="small"
+                              label='No transactions'
+                              size='small'
                               sx={{ ml: 1 }}
-                              color="default"
-                              variant="outlined"
+                              color='default'
+                              variant='outlined'
                             />
                           )}
                         </Typography>
@@ -474,7 +523,7 @@ const Dashboard = () => {
         )}
       </TabPanel>
     </Box>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

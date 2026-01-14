@@ -102,6 +102,7 @@ const PlanCreationForm = () => {
     if (planId) {
       fetchPlanDetails()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planId])
 
   const fetchPlanDetails = async () => {
@@ -394,14 +395,15 @@ const PlanCreationForm = () => {
               <Autocomplete
                 multiple
                 options={getCurrentData()}
-                getOptionLabel={option => (planDetails.role === 'vendor' ? option.vendorName : option.userName)}
+                getOptionLabel={option => option.vendorName || option.userName || ''}
                 value={getSelectedItems()}
                 onChange={handleSubscriptionChange}
                 filterOptions={(options, { inputValue }) => {
                   const filterValue = inputValue.toLowerCase()
 
                   return options.filter(option => {
-                    const name = planDetails.role === 'vendor' ? option.vendorName : option.userName
+                    const name =
+                      (planDetails.role === 'vendor' ? option.vendorName : option.userName || option.vendorName) || ''
 
                     return name.toLowerCase().includes(filterValue)
                   })
@@ -427,7 +429,7 @@ const PlanCreationForm = () => {
                   value.map((option, index) => (
                     <Chip
                       variant='outlined'
-                      label={planDetails.role === 'vendor' ? option.vendorName : option.userName}
+                      label={option.vendorName || option.userName}
                       {...getTagProps({ index })}
                       key={option._id}
                       size='small'
@@ -439,7 +441,7 @@ const PlanCreationForm = () => {
                   <li {...props} key={option._id}>
                     <Checkbox style={{ marginRight: 8 }} checked={selected} color='primary' />
                     <ListItemText
-                      primary={planDetails.role === 'vendor' ? option.vendorName : option.userName}
+                      primary={option.vendorName || option.userName}
                       primaryTypographyProps={{
                         style: {
                           fontWeight: selected ? 'bold' : 'normal'
@@ -453,7 +455,6 @@ const PlanCreationForm = () => {
                 clearText='Clear all selections'
                 closeText='Close'
                 openText='Open'
-                selectAllText='Select all'
                 disableCloseOnSelect
                 limitTags={3}
                 getLimitTagsText={more => `+${more} more`}
