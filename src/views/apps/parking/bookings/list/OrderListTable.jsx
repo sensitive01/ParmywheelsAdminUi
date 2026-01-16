@@ -250,7 +250,8 @@ const BookingListTable = () => {
     vehicleType: '',
     sts: '',
     status: '',
-    bookingDate: ''
+    bookingDate: '',
+    bookingSource: 'all'
   })
 
   useEffect(() => {
@@ -337,16 +338,25 @@ const BookingListTable = () => {
       }
 
       if (filters.bookingDate) {
-        // Normalize the filter date to DD-MM-YYYY format
-        const normalizedFilterDate = filters.bookingDate
+        const filterDateStr = filters.bookingDate // YYYY-MM-DD from input
 
         filteredResults = filteredResults.filter(booking => {
-          // Ensure booking date is in DD-MM-YYYY format
-          const bookingDate = booking.bookingDate // Assuming it's already in DD-MM-YYYY format
+          const bookingDate = booking.bookingDate // DD-MM-YYYY from data
 
-          // Compare dates directly after normalizing both to same format
-          return bookingDate === normalizedFilterDate
+          if (!bookingDate) return false
+
+          // Format filterDateStr to DD-MM-YYYY
+          const [year, month, day] = filterDateStr.split('-')
+          const formattedFilterDate = `${day}-${month}-${year}`
+
+          return bookingDate === formattedFilterDate
         })
+      }
+
+      if (filters.bookingSource === 'user') {
+        filteredResults = filteredResults.filter(booking => booking.userId)
+      } else if (filters.bookingSource === 'vendor') {
+        filteredResults = filteredResults.filter(booking => !booking.userId)
       }
 
       setFilteredData(filteredResults.length > 0 ? filteredResults : [])
@@ -370,7 +380,8 @@ const BookingListTable = () => {
       vehicleType: '',
       sts: '',
       status: '',
-      bookingDate: ''
+      bookingDate: '',
+      bookingSource: 'all'
     })
   }
 
@@ -384,32 +395,14 @@ const BookingListTable = () => {
   }
 
   const exportToExcel = () => {
-    // Get data filtered by ALL current filters (vendor + date + others)
-    const filteredByVendor = selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data
+    // Determine data source: if filteredData has items, use it.
+    // If filteredData is empty but it's because filters matched nothing, download nothing (alert).
+    // EXCEPT if the user specifically requested "download all by default", but context suggests
+    // they just want "sync". Since filteredData represents the current view, using it is correct.
+    // If no filters are applied, filteredData === data (all).
+    const dataToExport = filteredData && filteredData.length > 0 ? filteredData : []
 
-    const filteredByAll = filteredByVendor.filter(booking => {
-      // Apply date filter if present
-      if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
-        return false
-      }
-
-      // Apply other filters if present
-      if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
-        return false
-      }
-
-      if (filters.sts && booking.sts !== filters.sts) {
-        return false
-      }
-
-      if (filters.status && booking.status?.toLowerCase() !== filters.status.toLowerCase()) {
-        return false
-      }
-
-      return true
-    })
-
-    if (!filteredByAll || filteredByAll.length === 0) {
+    if (dataToExport.length === 0) {
       alert('No data to export with current filters')
 
       return
@@ -438,7 +431,7 @@ const BookingListTable = () => {
 
     csvContent += headers.join(',') + '\r\n'
 
-    filteredByAll.forEach((row, index) => {
+    dataToExport.forEach((row, index) => {
       let duration = ''
 
       if (row.status?.toLowerCase() === 'completed') {
@@ -477,7 +470,9 @@ const BookingListTable = () => {
 
     const vendorName = selectedVendor ? vendors.find(v => v._id === selectedVendor)?.vendorName : 'all_vendors'
 
-    const fileName = `bookings_${vendorName}_${filters.bookingDate || 'all_dates'}_${new Date().toISOString().slice(0, 10)}.csv`
+    const fileName = `bookings_${vendorName}_${filters.bookingSource}_${filters.bookingDate || 'all_dates'}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`
 
     link.setAttribute('download', fileName)
     document.body.appendChild(link)
@@ -488,32 +483,9 @@ const BookingListTable = () => {
   }
 
   const exportToPDF = () => {
-    // Get data filtered by ALL current filters (vendor + date + others)
-    const filteredByVendor = selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data
+    const dataToExport = filteredData && filteredData.length > 0 ? filteredData : []
 
-    const filteredByAll = filteredByVendor.filter(booking => {
-      // Apply date filter if present
-      if (filters.bookingDate && booking.bookingDate !== filters.bookingDate) {
-        return false
-      }
-
-      // Apply other filters if present
-      if (filters.vehicleType && booking.vehicleType !== filters.vehicleType) {
-        return false
-      }
-
-      if (filters.sts && booking.sts !== filters.sts) {
-        return false
-      }
-
-      if (filters.status && booking.status?.toLowerCase() !== filters.status.toLowerCase()) {
-        return false
-      }
-
-      return true
-    })
-
-    if (!filteredByAll || filteredByAll.length === 0) {
+    if (dataToExport.length === 0) {
       alert('No data to export with current filters')
 
       return
@@ -522,7 +494,7 @@ const BookingListTable = () => {
     const vendorName = selectedVendor ? vendors.find(v => v._id === selectedVendor)?.vendorName : 'All Vendors'
 
     // Calculate total amount
-    const totalAmount = filteredByAll.reduce((sum, booking) => {
+    const totalAmount = dataToExport.reduce((sum, booking) => {
       return sum + (parseFloat(booking.totalamout) || 0)
     }, 0)
 
@@ -546,10 +518,11 @@ const BookingListTable = () => {
             <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
             <p><strong>Vendor:</strong> ${vendorName}</p>
             ${filters.bookingDate ? `<p><strong>Booking Date:</strong> ${filters.bookingDate}</p>` : ''}
+            ${filters.bookingSource !== 'all' ? `<p><strong>Source:</strong> ${filters.bookingSource === 'user' ? 'User Bookings' : 'Vendor Bookings'}</p>` : ''}
             ${filters.vehicleType ? `<p><strong>Vehicle Type:</strong> ${filters.vehicleType}</p>` : ''}
             ${filters.sts ? `<p><strong>Booking Type:</strong> ${filters.sts}</p>` : ''}
             ${filters.status ? `<p><strong>Status:</strong> ${filters.status}</p>` : ''}
-            <p><strong>Total Bookings:</strong> ${filteredByAll.length}</p>
+            <p><strong>Total Bookings:</strong> ${dataToExport.length}</p>
           </div>
 
           <table>
@@ -574,7 +547,7 @@ const BookingListTable = () => {
               </tr>
             </thead>
             <tbody>
-              ${filteredByAll
+              ${dataToExport
                 .map((booking, index) => {
                   let duration = ''
 
@@ -891,7 +864,7 @@ const BookingListTable = () => {
   )
 
   const table = useReactTable({
-    data: filteredData.length > 0 || globalFilter ? filteredData : data,
+    data: filteredData,
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -920,18 +893,15 @@ const BookingListTable = () => {
 
   return (
     <Card>
-      <CardHeader title='Filters' />
+      <CardHeader title='All Bookings Details' />
       <Tabs
-        value={filters.status?.toLowerCase() || 'all'}
-        onChange={(e, val) => handleFilterChange('status', val === 'all' ? '' : val)}
+        value={filters.bookingSource}
+        onChange={(e, val) => handleFilterChange('bookingSource', val)}
         sx={{ borderBottom: 1, borderColor: 'divider' }}
       >
-        <Tab label='Pending' value='pending' />
-        <Tab label='Approved' value='approved' />
-        <Tab label='Parked' value='parked' />
-        <Tab label='Completed' value='completed' />
-        <Tab label='Cancelled' value='cancelled' />
-        <Tab label='All' value='all' />
+        <Tab label='All Bookings' value='all' />
+        <Tab label='User Bookings' value='user' />
+        <Tab label='Vendor Bookings' value='vendor' />
       </Tabs>
       <CardContent className='flex flex-col gap-4'>
         <div className='flex flex-col sm:flex-row gap-4'>

@@ -505,6 +505,7 @@ const VendorUpdate = ({ vendorId }) => {
   const [isUpdatingVendorFee, setIsUpdatingVendorFee] = useState(false)
   const [validityDay, setValidityDay] = useState(0)
   const [isUpdateValidity, setIsUpdateValidity] = useState(false)
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState(null)
 
   const handleUpdateVendorFee = async () => {
     try {
@@ -599,6 +600,7 @@ const VendorUpdate = ({ vendorId }) => {
           setPlatformFeeCustomer(vendorData.customerplatformfee || '')
           setPlatformFeeVendor(vendorData.platformfee || '')
           setValidityDay(vendorData.subscriptionleft || 0)
+          setSubscriptionEndDate(vendorData.subscriptionenddate || null)
 
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
@@ -966,6 +968,25 @@ const VendorUpdate = ({ vendorId }) => {
                     {isUpdateValidity ? <CircularProgress size={24} /> : 'Update'}
                   </Button>
                 </Box>
+                {subscriptionEndDate && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color:
+                          new Date(subscriptionEndDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
+                            ? 'error.main'
+                            : 'success.main',
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem'
+                      }}
+                    >
+                      {new Date(subscriptionEndDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
+                        ? `Expired on: ${new Date(subscriptionEndDate).toDateString()}`
+                        : `Valid until: ${new Date(subscriptionEndDate).toDateString()}`}
+                    </Typography>
+                  </Box>
+                )}
               </Grid>
             </Grid>
 
@@ -1058,9 +1079,7 @@ const VendorSettingsPage = () => {
 
   return (
     <Container maxWidth={false} sx={{ py: 4 }}>
-      <Typography variant='h3' sx={{ mb: 4 }}>
-        Vendor Update
-      </Typography>
+      <Typography variant='h3' sx={{ mb: 4 }}></Typography>
 
       <Card sx={{ mb: 4 }}>
         <Tabs
