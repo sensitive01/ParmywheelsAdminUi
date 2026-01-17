@@ -36,12 +36,16 @@ import WarningIcon from '@mui/icons-material/Warning'
 import ChatIcon from '@mui/icons-material/Chat'
 import PersonIcon from '@mui/icons-material/Person'
 import LaunchIcon from '@mui/icons-material/Launch' // Icon for the link button
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
 
 import { useNotifications } from '@/contexts/NotificationContext'
 
 const NotificationsPage = () => {
   const { lang } = useParams()
-  const { notifications, chatNotifications, bankNotifications, markAsRead, clearAll } = useNotifications()
+
+  const { notifications, chatNotifications, bankNotifications, kycNotifications, markAsRead, clearAll } =
+    useNotifications()
+
   const [activeTab, setActiveTab] = useState(0)
 
   // Pagination state
@@ -63,12 +67,15 @@ const NotificationsPage = () => {
   }
 
   // Handler for navigation
-  const handleViewVendor = (vendorId, event) => {
+  // Handler for navigation
+  const handleViewDetails = (notification, event) => {
     event.stopPropagation()
 
-    if (vendorId) {
+    if (notification.type === 'kyc') {
+      window.open(`/${lang || 'en'}/pages/kyconboarding`, '_blank')
+    } else if (notification.vendorId) {
       // Option 1: Open in new tab (recommended for admin dashboards)
-      window.open(`/${lang || 'en'}/pages/vendordetails/${vendorId}`, '_blank')
+      window.open(`/${lang || 'en'}/pages/vendordetails/${notification.vendorId}`, '_blank')
     }
   }
 
@@ -118,6 +125,8 @@ const NotificationsPage = () => {
       return <ChatIcon color='primary' />
     } else if (type === 'bank') {
       return <AccessTimeIcon color='warning' />
+    } else if (type === 'kyc') {
+      return <VerifiedUserIcon color='info' />
     } else if (title.includes('completed')) {
       return <CheckCircleIcon color='success' />
     } else if (title.includes('parked') || type === 'parked') {
@@ -131,7 +140,14 @@ const NotificationsPage = () => {
     }
   }
 
-  const currentList = activeTab === 0 ? notifications : activeTab === 1 ? chatNotifications : bankNotifications
+  const currentList =
+    activeTab === 0
+      ? notifications
+      : activeTab === 1
+        ? chatNotifications
+        : activeTab === 2
+          ? bankNotifications
+          : kycNotifications
 
   const startIndex = (page - 1) * rowsPerPage
   const endIndex = startIndex + rowsPerPage
@@ -189,6 +205,19 @@ const NotificationsPage = () => {
               </Box>
             }
           />
+          <Tab
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                KYC Verification
+                <Chip
+                  label={kycNotifications.length}
+                  size='small'
+                  color={kycNotifications.length > 0 ? 'info' : 'default'}
+                  variant={activeTab === 3 ? 'filled' : 'outlined'}
+                />
+              </Box>
+            }
+          />
         </Tabs>
         {currentList.length > 0 && (
           <Button
@@ -227,6 +256,7 @@ const NotificationsPage = () => {
               const isCancellation = isCancellationNotification(notification)
               const isChat = notification.type === 'chat'
               const isBank = notification.type === 'bank'
+              const isKyc = notification.type === 'kyc'
 
               return (
                 <div key={notification.id || index}>
@@ -240,16 +270,16 @@ const NotificationsPage = () => {
                     }}
                     secondaryAction={
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        {/* View Vendor Button (For Chat OR Bank based on ID presence) */}
-                        {(isChat || isBank) && notification.vendorId && (
+                        {/* View Vendor Button (For Chat OR Bank OR KYC based on ID presence) */}
+                        {(isChat || isBank || isKyc) && notification.vendorId && (
                           <Button
                             variant='outlined'
                             size='small'
                             color='primary'
                             endIcon={<LaunchIcon />}
-                            onClick={e => handleViewVendor(notification.vendorId, e)}
+                            onClick={e => handleViewDetails(notification, e)}
                           >
-                            View Vendor
+                            {isKyc ? 'View Details' : 'View Vendor'}
                           </Button>
                         )}
 
@@ -268,7 +298,8 @@ const NotificationsPage = () => {
                     }
                   >
                     {/* Render Avatar for Chat or Bank Notifications */}
-                    {(isChat || isBank) && notification.vendorImage ? (
+                    {/* Render Avatar for Chat or Bank or KYC Notifications */}
+                    {(isChat || isBank || isKyc) && notification.vendorImage ? (
                       <ListItemAvatar>
                         <Avatar src={notification.vendorImage} alt={notification.vendorName || 'Vendor'}>
                           <PersonIcon />
@@ -283,7 +314,7 @@ const NotificationsPage = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography variant='subtitle1' fontWeight={notification.read ? 'regular' : 'bold'}>
                             {/* If Chat or Bank, Show Vendor Name clearly */}
-                            {(isChat || isBank) && notification.vendorName
+                            {(isChat || isBank || isKyc) && notification.vendorName
                               ? `${notification.vendorName} - ${notification.title}`
                               : notification.title}
                           </Typography>

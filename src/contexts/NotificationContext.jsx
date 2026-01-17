@@ -10,6 +10,7 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]) // Callback requests
   const [chatNotifications, setChatNotifications] = useState([]) // Help & Support
   const [bankNotifications, setBankNotifications] = useState([]) // Bank Approvals]
+  const [kycNotifications, setKycNotifications] = useState([]) // KYC Notifications
   const [loading, setLoading] = useState(true)
 
   const processNotifications = data => {
@@ -61,14 +62,39 @@ export const NotificationProvider = ({ children }) => {
       vendorImage: n.vendorImage || n.bankpassbookimage
     }))
 
+    // 4. KYC Notifications
+    const serverKycNotifications = data.kycNotification || []
+
+    const formattedKycNotifications = serverKycNotifications.map(n => ({
+      id: n._id,
+      title: 'KYC Verification',
+      message: `Vendor: ${n.vendorName} | Status: ${n.status}`,
+      type: 'kyc',
+      timestamp: n.createdAt,
+      read: n.isAdminRead || false,
+      source: 'server',
+      vendorId: n.vendorId,
+      vendorName: n.vendorName,
+      vendorImage: n.vendorImage,
+      idProof: n.idProof,
+      idProofNumber: n.idProofNumber,
+      idProofImage: n.idProofImage,
+      addressProof: n.addressProof,
+      addressProofNumber: n.addressProofNumber,
+      addressProofImage: n.addressProofImage,
+      status: n.status
+    }))
+
     // Sort all by date descending
     formattedNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     formattedChatNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     formattedBankNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    formattedKycNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
     setNotifications(formattedNotifications)
     setChatNotifications(formattedChatNotifications)
     setBankNotifications(formattedBankNotifications)
+    setKycNotifications(formattedKycNotifications)
     setLoading(false)
   }
 
@@ -92,11 +118,16 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => markRead(prev))
     setChatNotifications(prev => markRead(prev))
     setBankNotifications(prev => markRead(prev))
+    setKycNotifications(prev => markRead(prev))
+
+    // Check if it's a KYC notification to check strict payload
+    const isKyc = kycNotifications.some(n => n.id === id)
 
     try {
       await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/admin/update-admin-notification/${id}`, {
         isRead: true,
-        check_read: true
+        check_read: true,
+        ...(isKyc && { isAdminRead: true }) // meaningful for KYC
       })
 
       // Optionally refetch to be sure
@@ -130,6 +161,7 @@ export const NotificationProvider = ({ children }) => {
       // assuming the user might implement the backend logic I will provide.
       if (typeIndex === 1) setChatNotifications([])
       if (typeIndex === 2) setBankNotifications([])
+      if (typeIndex === 3) setKycNotifications([])
 
       // TODO: Call API for clearing these types if available
     }
@@ -146,7 +178,8 @@ export const NotificationProvider = ({ children }) => {
   const unreadCount =
     notifications.filter(n => !n.read).length +
     chatNotifications.filter(n => !n.read).length +
-    bankNotifications.filter(n => !n.read).length
+    bankNotifications.filter(n => !n.read).length +
+    kycNotifications.filter(n => !n.read).length
 
   return (
     <NotificationContext.Provider
@@ -154,6 +187,7 @@ export const NotificationProvider = ({ children }) => {
         notifications,
         chatNotifications,
         bankNotifications,
+        kycNotifications,
         loading,
         unreadCount,
         fetchNotifications,
