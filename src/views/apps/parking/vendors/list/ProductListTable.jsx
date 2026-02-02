@@ -1,8 +1,8 @@
 'use client'
 
 // React Imports
-import React from 'react';
-import { Fragment } from 'react';
+import React from 'react'
+import { Fragment } from 'react'
 
 import { useState, useEffect, useMemo } from 'react'
 
@@ -31,7 +31,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import IconButton from '@mui/material/IconButton'
 import Grid from '@mui/material/Grid'
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tabs from '@mui/material/Tabs'
@@ -44,9 +44,9 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Alert from '@mui/material/Alert'
-import DeleteIcon from '@mui/icons-material/Delete';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import DeleteIcon from '@mui/icons-material/Delete'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -97,7 +97,7 @@ export const statusChipColor = {
   pending: { color: 'warning' },
   rejected: { color: 'error' },
   suspended: { color: '#666CFF' }
-};
+}
 
 // Place type icon mapping
 export const placeTypeIcons = {
@@ -106,123 +106,122 @@ export const placeTypeIcons = {
   commercial: { icon: 'ri-building-4-line', color: '#fdb528' },
   hospital: { icon: 'ri-hospital-line', color: '#00cfe8' },
   default: { icon: 'ri-map-pin-line', color: '#282a42' }
-};
+}
 
 // Day name mapping
 const dayNames = {
-  0: "Sunday",
-  1: "Monday",
-  2: "Tuesday",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday",
-  6: "Saturday"
-};
+  0: 'Sunday',
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday'
+}
 
 // Format time from 24h to 12h format
-const formatTime = (time) => {
-  if (!time) return 'Closed';
+const formatTime = time => {
+  if (!time) return 'Closed'
 
-  const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours, 10);
-  const period = hour >= 12 ? 'PM' : 'AM';
-  const formattedHour = hour % 12 || 12;
+  const [hours, minutes] = time.split(':')
+  const hour = parseInt(hours, 10)
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const formattedHour = hour % 12 || 12
 
-  return `${formattedHour}:${minutes} ${period}`;
-};
+  return `${formattedHour}:${minutes} ${period}`
+}
 
 // Vendor Detail Modal Component
 const VendorDetailModal = ({ open, handleClose, vendorId }) => {
-  const [vendorData, setVendorData] = useState(null);
-  const [businessHours, setBusinessHours] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [hoursLoading, setHoursLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [tabValue, setTabValue] = useState(0);
-  const router = useRouter();
-  const { lang: locale } = useParams();
-  const [amenities, setAmenities] = useState([]);
-  const [amenitiesLoading, setAmenitiesLoading] = useState(false);
-  const [parkingServices, setParkingServies] = useState([]);
-  const [servicesLoading, setServicesLoading] = useState(false);
-  const [supportRequests, setSupportRequests] = useState([]);
-  const [supportRequestsLoading, setSupportRequestsLoading] = useState(false);
-  const [bankDetails, setBankDetails] = useState(null);
-  const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
-  const [meetings, setMeetings] = useState([]);
-  const [meetingsLoading, setMeetingsLoading] = useState(false);
-  const [bookingTransactions, setBookingTransactions] = useState([]);
-  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [vendorData, setVendorData] = useState(null)
+  const [businessHours, setBusinessHours] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [hoursLoading, setHoursLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [tabValue, setTabValue] = useState(0)
+  const router = useRouter()
+  const { lang: locale } = useParams()
+  const [amenities, setAmenities] = useState([])
+  const [amenitiesLoading, setAmenitiesLoading] = useState(false)
+  const [parkingServices, setParkingServies] = useState([])
+  const [servicesLoading, setServicesLoading] = useState(false)
+  const [supportRequests, setSupportRequests] = useState([])
+  const [supportRequestsLoading, setSupportRequestsLoading] = useState(false)
+  const [bankDetails, setBankDetails] = useState(null)
+  const [bankDetailsLoading, setBankDetailsLoading] = useState(false)
+  const [meetings, setMeetings] = useState([])
+  const [meetingsLoading, setMeetingsLoading] = useState(false)
+  const [bookingTransactions, setBookingTransactions] = useState([])
+  const [transactionsLoading, setTransactionsLoading] = useState(false)
 
   const [transactionDates, setTransactionDates] = useState({
     start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
-  });
+  })
 
-  const [bookings, setBookings] = useState([]);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
-  const [charges, setCharges] = useState({});
-  const [chargesLoading, setChargesLoading] = useState(false);
-
+  const [bookings, setBookings] = useState([])
+  const [bookingsLoading, setBookingsLoading] = useState(false)
+  const [charges, setCharges] = useState({})
+  const [chargesLoading, setChargesLoading] = useState(false)
 
   // Day name mapping - Changed from object to array for better ordering
   const dayNames = [
-    "Monday",    // 0
-    "Tuesday",   // 1
-    "Wednesday", // 2
-    "Thursday",  // 3
-    "Friday",    // 4
-    "Saturday",  // 5
-    "Sunday"     // 6
-  ];
+    'Monday', // 0
+    'Tuesday', // 1
+    'Wednesday', // 2
+    'Thursday', // 3
+    'Friday', // 4
+    'Saturday', // 5
+    'Sunday' // 6
+  ]
 
   const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
+    setTabValue(newValue)
+  }
 
   useEffect(() => {
     const fetchVendorDetails = async () => {
-      if (!vendorId || !open) return;
+      if (!vendorId || !open) return
 
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
       try {
-        const response = await fetch(`${API_URL}/vendor/fetch-vendor-data?id=${vendorId}`);
+        const response = await fetch(`${API_URL}/vendor/fetch-vendor-data?id=${vendorId}`)
 
         if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
+          throw new Error(`Error: ${response.status}`)
         }
 
-        const data = await response.json();
+        const data = await response.json()
 
-        setVendorData(data.data);
+        setVendorData(data.data)
       } catch (err) {
-        console.error("Failed to fetch vendor details:", err);
-        setError(err.message || "Failed to fetch vendor details");
+        console.error('Failed to fetch vendor details:', err)
+        setError(err.message || 'Failed to fetch vendor details')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchVendorDetails();
-  }, [vendorId, open]);
+    fetchVendorDetails()
+  }, [vendorId, open])
 
   // Fetch business hours - Updated to match the expected API response structure
   useEffect(() => {
     const fetchBusinessHours = async () => {
-      if (!vendorData?.vendorId) return;
+      if (!vendorData?.vendorId) return
 
-      setHoursLoading(true);
+      setHoursLoading(true)
 
       try {
-        const response = await fetch(`${API_URL}/vendor/fetchbusinesshours/${vendorData.vendorId}`);
+        const response = await fetch(`${API_URL}/vendor/fetchbusinesshours/${vendorData.vendorId}`)
 
         if (!response.ok) {
-          throw new Error(`Error fetching business hours: ${response.status}`);
+          throw new Error(`Error fetching business hours: ${response.status}`)
         }
 
-        const data = await response.json();
+        const data = await response.json()
 
         // Make sure we have the expected data structure
         if (data && data.businessHours && Array.isArray(data.businessHours)) {
@@ -232,162 +231,161 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             openTime: hour.openTime || null,
             closeTime: hour.closeTime || null,
             closed: hour.isClosed || !hour.openTime || !hour.closeTime
-          }));
+          }))
 
           // Sort by day of week to ensure consistent order
           const sortedHours = processedHours.sort((a, b) => {
-            return dayNames.indexOf(a.day) - dayNames.indexOf(b.day);
-          });
+            return dayNames.indexOf(a.day) - dayNames.indexOf(b.day)
+          })
 
-          setBusinessHours(sortedHours);
+          setBusinessHours(sortedHours)
         } else {
           // If data structure is unexpected, log for debugging
-          console.warn("Business hours data structure is not as expected:", data);
-          setBusinessHours([]);
+          console.warn('Business hours data structure is not as expected:', data)
+          setBusinessHours([])
         }
       } catch (err) {
-        console.error("Failed to fetch business hours:", err);
+        console.error('Failed to fetch business hours:', err)
       } finally {
-        setHoursLoading(false);
+        setHoursLoading(false)
       }
-    };
+    }
 
-    fetchBusinessHours();
-  }, [vendorData]);
+    fetchBusinessHours()
+  }, [vendorData])
 
   // Format time from 24h to 12h format
-  const formatTime = (time) => {
-    if (!time) return 'Closed';
+  const formatTime = time => {
+    if (!time) return 'Closed'
 
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours, 10);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 || 12;
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours, 10)
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const formattedHour = hour % 12 || 12
 
-    return `${formattedHour}:${minutes} ${period}`;
-  };
-
+    return `${formattedHour}:${minutes} ${period}`
+  }
 
   const fetchAmenitiesData = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setAmenitiesLoading(true);
+    setAmenitiesLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`)
+      const data = await response.json()
 
       if (data?.AmenitiesData?.amenities) {
-        setAmenities(data.AmenitiesData.amenities);
+        setAmenities(data.AmenitiesData.amenities)
       }
     } catch (error) {
-      console.error('Error fetching amenities data:', error);
+      console.error('Error fetching amenities data:', error)
     } finally {
-      setAmenitiesLoading(false);
+      setAmenitiesLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (vendorData?.vendorId) {
-      fetchAmenitiesData();
+      fetchAmenitiesData()
     }
-  }, [vendorData]);
+  }, [vendorData])
 
   const fetchServiceData = async () => {
-    if (!vendorData?.vendorId) return;
-    setServicesLoading(true);
+    if (!vendorData?.vendorId) return
+    setServicesLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/getamenitiesdata/${vendorData.vendorId}`)
+      const data = await response.json()
 
       if (data?.AmenitiesData?.parkingEntries) {
-        setParkingServies(data.AmenitiesData.parkingEntries);
+        setParkingServies(data.AmenitiesData.parkingEntries)
       }
     } catch (error) {
-      console.error('Error fetching service data', error);
+      console.error('Error fetching service data', error)
     } finally {
-      setServicesLoading(false);
+      setServicesLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (vendorData?.vendorId) {
-      fetchServiceData();
-      fetchSupportRequests();
-      fetchBankDetails();
-      fetchMeetings();
-      fetchBookingTransactions();
-      fetchBookings();
-      fetchChargesData();
+      fetchServiceData()
+      fetchSupportRequests()
+      fetchBankDetails()
+      fetchMeetings()
+      fetchBookingTransactions()
+      fetchBookings()
+      fetchChargesData()
     }
-  }, [vendorData]);
+  }, [vendorData])
 
   const fetchSupportRequests = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setSupportRequestsLoading(true);
+    setSupportRequestsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/vendor/gethelpvendor/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/gethelpvendor/${vendorData.vendorId}`)
+      const data = await response.json()
 
       if (data?.helpRequests) {
-        setSupportRequests(Array.isArray(data.helpRequests) ? data.helpRequests : []);
+        setSupportRequests(Array.isArray(data.helpRequests) ? data.helpRequests : [])
       }
     } catch (error) {
-      console.error('Error fetching support requests:', error);
+      console.error('Error fetching support requests:', error)
     } finally {
-      setSupportRequestsLoading(false);
+      setSupportRequestsLoading(false)
     }
-  };
+  }
 
   const fetchBankDetails = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setBankDetailsLoading(true);
+    setBankDetailsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/vendor/getbankdetails/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/getbankdetails/${vendorData.vendorId}`)
+      const data = await response.json()
 
       if (data?.data && data.data.length > 0) {
-        setBankDetails(data.data[0]);
+        setBankDetails(data.data[0])
       }
     } catch (error) {
-      console.error('Error fetching bank details:', error);
+      console.error('Error fetching bank details:', error)
     } finally {
-      setBankDetailsLoading(false);
+      setBankDetailsLoading(false)
     }
-  };
+  }
 
   const fetchMeetings = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setMeetingsLoading(true);
+    setMeetingsLoading(true)
 
     try {
-      const response = await axios.get(`${API_URL}/vendor/fetchmeeting/${vendorData.vendorId}`);
+      const response = await axios.get(`${API_URL}/vendor/fetchmeeting/${vendorData.vendorId}`)
 
       if (response.data?.meetings) {
-        setMeetings(response.data.meetings);
+        setMeetings(response.data.meetings)
       }
     } catch (error) {
-      console.error('Error fetching meetings:', error);
+      console.error('Error fetching meetings:', error)
     } finally {
-      setMeetingsLoading(false);
+      setMeetingsLoading(false)
     }
-  };
+  }
 
   const fetchBookingTransactions = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setTransactionsLoading(true);
+    setTransactionsLoading(true)
 
     try {
       const response = await axios.get(
         `${API_URL}/vendor/fetchbookingtransaction/${vendorData.vendorId}?startDate=${transactionDates.start}&endDate=${transactionDates.end}`
-      );
+      )
 
       if (response.data?.data?.bookings) {
         const formattedTransactions = response.data.data.bookings.map((item, index) => ({
@@ -396,171 +394,176 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           bookingId: item._id,
           bookingAmount: `₹${item.amount}`,
           platformFee: `₹${item.platformfee}`,
-          receivable: `₹${item.receivableAmount}`,
-        }));
+          receivable: `₹${item.receivableAmount}`
+        }))
 
-        setBookingTransactions(formattedTransactions);
+        setBookingTransactions(formattedTransactions)
       }
     } catch (error) {
-      console.error('Error fetching booking transactions:', error);
+      console.error('Error fetching booking transactions:', error)
     } finally {
-      setTransactionsLoading(false);
+      setTransactionsLoading(false)
     }
-  };
+  }
 
   const fetchBookings = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setBookingsLoading(true);
+    setBookingsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${vendorData.vendorId}`)
+      const data = await response.json()
 
       if (data?.bookings) {
         // Sort bookings by date (newest first)
         const sortedBookings = data.bookings.sort((a, b) => {
-          const dateA = new Date(a.bookingDate).getTime();
-          const dateB = new Date(b.bookingDate).getTime();
+          const dateA = new Date(a.bookingDate).getTime()
+          const dateB = new Date(b.bookingDate).getTime()
 
+          return dateB - dateA
+        })
 
-          return dateB - dateA;
-        });
-
-        setBookings(sortedBookings);
+        setBookings(sortedBookings)
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error fetching bookings:', error)
     } finally {
-      setBookingsLoading(false);
+      setBookingsLoading(false)
     }
-  };
+  }
 
   const fetchChargesData = async () => {
-    if (!vendorData?.vendorId) return;
+    if (!vendorData?.vendorId) return
 
-    setChargesLoading(true);
+    setChargesLoading(true)
 
     try {
-      console.log(`Fetching charges from: ${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
+      console.log(`Fetching charges from: ${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`)
 
-      const response = await fetch(`${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/vendor/getchargesdata/${vendorData.vendorId}`)
+      const data = await response.json()
 
-      console.log('Charges API response:', data);
+      console.log('Charges API response:', data)
 
       if (!data || !data.vendor) {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid response format')
       }
 
-      const { vendor } = data;
-      const chargesMap = {};
+      const { vendor } = data
+      const chargesMap = {}
 
       vendor.charges.forEach(charge => {
-        let label;
+        let label
 
         // Case-insensitive type matching
-        const typeLC = charge.type.toLowerCase();
+        const typeLC = charge.type.toLowerCase()
 
         if (typeLC.includes('additional')) {
-          label = 'Additional Hour';
+          label = 'Additional Hour'
         } else if (typeLC.includes('full day') || typeLC.includes('24 hour')) {
-          label = 'Full Day';
+          label = 'Full Day'
         } else if (typeLC.includes('monthly')) {
-          label = 'Monthly';
+          label = 'Monthly'
         } else {
-          label = 'Minimum Charges';
+          label = 'Minimum Charges'
         }
 
         // Create a key using category and label
-        const key = `${charge.category}-${label}`;
+        const key = `${charge.category}-${label}`
 
         chargesMap[key] = {
           ...charge,
           label
-        };
-      });
+        }
+      })
 
-      console.log('Mapped charges:', chargesMap);
-      setCharges(chargesMap);
+      console.log('Mapped charges:', chargesMap)
+      setCharges(chargesMap)
     } catch (error) {
-      console.error('Error fetching charges data:', error);
+      console.error('Error fetching charges data:', error)
     } finally {
-      setChargesLoading(false);
+      setChargesLoading(false)
     }
-  };
+  }
 
   // Render contact information
   const renderContacts = () => {
     if (!vendorData?.contacts || vendorData.contacts.length === 0) {
-      return <Typography>No contact information available</Typography>;
+      return <Typography>No contact information available</Typography>
     }
 
     return (
       <Box sx={{ mt: 2 }}>
         {vendorData.contacts.map((contact, index) => (
           <Paper key={index} sx={{ p: 2, mb: 2, bgcolor: '#f9f9f9' }}>
-            <Typography variant="subtitle1" fontWeight="bold">{contact.name}</Typography>
-            <Typography variant="body2">Mobile: {contact.mobile}</Typography>
-            {contact.email && <Typography variant="body2">Email: {contact.email}</Typography>}
-            {contact.designation && <Typography variant="body2">Role: {contact.designation}</Typography>}
+            <Typography variant='subtitle1' fontWeight='bold'>
+              {contact.name}
+            </Typography>
+            <Typography variant='body2'>Mobile: {contact.mobile}</Typography>
+            {contact.email && <Typography variant='body2'>Email: {contact.email}</Typography>}
+            {contact.designation && <Typography variant='body2'>Role: {contact.designation}</Typography>}
           </Paper>
         ))}
       </Box>
-    );
-  };
+    )
+  }
 
   // Render subscription information
   const renderSubscription = () => {
-    if (!vendorData) return null;
+    if (!vendorData) return null
 
-    const isSubscribed = vendorData.subscription === "true";
+    const isSubscribed = vendorData.subscription === 'true'
 
     const endDate = vendorData.subscriptionenddate
       ? new Date(vendorData.subscriptionenddate).toLocaleDateString()
-      : 'N/A';
+      : 'N/A'
 
     return (
       <Box sx={{ mt: 2 }}>
         <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
-          <Typography variant="subtitle1" fontWeight="bold">Subscription Status</Typography>
+          <Typography variant='subtitle1' fontWeight='bold'>
+            Subscription Status
+          </Typography>
           <Chip
-            label={isSubscribed ? "Active" : "Inactive"}
-            variant="filled"
-            size="small"
-            color={isSubscribed ? "success" : "default"}
+            label={isSubscribed ? 'Active' : 'Inactive'}
+            variant='filled'
+            size='small'
+            color={isSubscribed ? 'success' : 'default'}
             sx={{ mt: 1, mb: 1 }}
           />
           {isSubscribed && (
             <>
-              <Typography variant="body2">Days Remaining: {vendorData.subscriptionleft || 0}</Typography>
-              <Typography variant="body2">End Date: {endDate}</Typography>
+              <Typography variant='body2'>Days Remaining: {vendorData.subscriptionleft || 0}</Typography>
+              <Typography variant='body2'>End Date: {endDate}</Typography>
               {vendorData.subscriptionplan && (
-                <Typography variant="body2">Plan: {vendorData.subscriptionplan}</Typography>
+                <Typography variant='body2'>Plan: {vendorData.subscriptionplan}</Typography>
               )}
-              {vendorData.trial === "true" && (
-                <Chip label="Trial" size="small" color="info" sx={{ mt: 1 }} />
-              )}
+              {vendorData.trial === 'true' && <Chip label='Trial' size='small' color='info' sx={{ mt: 1 }} />}
               {vendorData.platformfee && (
-                <Typography variant="body2" sx={{ mt: 1 }}>Platform Fee: {vendorData.platformfee}</Typography>
+                <Typography variant='body2' sx={{ mt: 1 }}>
+                  Platform Fee: {vendorData.platformfee}
+                </Typography>
               )}
             </>
           )}
         </Paper>
       </Box>
-    );
-  };
+    )
+  }
 
   // Render parking information
   const renderParking = () => {
     if (!vendorData?.parkingEntries || vendorData.parkingEntries.length === 0) {
-      return <Typography>No parking information available</Typography>;
+      return <Typography>No parking information available</Typography>
     }
 
     return (
       <Box sx={{ mt: 2 }}>
         <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
-          <Typography variant="subtitle1" fontWeight="bold">Parking Capacity</Typography>
+          <Typography variant='subtitle1' fontWeight='bold'>
+            Parking Capacity
+          </Typography>
           <Box sx={{ mt: 1 }}>
             {vendorData.parkingEntries.map((entry, index) => (
               <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -572,7 +575,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                     marginRight: '8px'
                   }}
                 />
-                <Typography variant="body1">
+                <Typography variant='body1'>
                   {entry.type}: <strong>{entry.count}</strong>
                 </Typography>
               </Box>
@@ -580,8 +583,8 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </Box>
         </Paper>
       </Box>
-    );
-  };
+    )
+  }
 
   // Render business hours - Updated to handle various data structures
   const renderBusinessHours = () => {
@@ -590,22 +593,30 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!businessHours || businessHours.length === 0) {
-      return <Alert severity="info">No business hours information available</Alert>;
+      return <Alert severity='info'>No business hours information available</Alert>
     }
 
     return (
       <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table size="small">
+        <Table size='small'>
           <TableHead>
             <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-              <TableCell><strong>Day</strong></TableCell>
-              <TableCell><strong>Opening Time</strong></TableCell>
-              <TableCell><strong>Closing Time</strong></TableCell>
-              <TableCell align="center"><strong>Status</strong></TableCell>
+              <TableCell>
+                <strong>Day</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Opening Time</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Closing Time</strong>
+              </TableCell>
+              <TableCell align='center'>
+                <strong>Status</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -614,12 +625,12 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                 <TableCell>{hours.day}</TableCell>
                 <TableCell>{hours.closed ? 'Closed' : formatTime(hours.openTime)}</TableCell>
                 <TableCell>{hours.closed ? 'Closed' : formatTime(hours.closeTime)}</TableCell>
-                <TableCell align="center">
+                <TableCell align='center'>
                   <Chip
-                    label={hours.closed ? "Closed" : "Open"}
-                    color={hours.closed ? "default" : "success"}
-                    size="small"
-                    variant="outlined"
+                    label={hours.closed ? 'Closed' : 'Open'}
+                    color={hours.closed ? 'default' : 'success'}
+                    size='small'
+                    variant='outlined'
                   />
                 </TableCell>
               </TableRow>
@@ -627,61 +638,71 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </TableBody>
         </Table>
       </TableContainer>
-    );
-  };
+    )
+  }
 
   // Render location information
   const renderLocation = () => {
-    if (!vendorData) return null;
+    if (!vendorData) return null
 
     return (
       <Box sx={{ mt: 2 }}>
         <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
-          <Typography variant="subtitle1" fontWeight="bold">Location Details</Typography>
+          <Typography variant='subtitle1' fontWeight='bold'>
+            Location Details
+          </Typography>
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
-              <Typography variant="body2" color="text.secondary">Address</Typography>
-              <Typography variant="body1">{vendorData.address || 'N/A'}</Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Address
+              </Typography>
+              <Typography variant='body1'>{vendorData.address || 'N/A'}</Typography>
             </Grid>
 
             {vendorData.landMark && (
               <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">Landmark</Typography>
-                <Typography variant="body1">{vendorData.landMark}</Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Landmark
+                </Typography>
+                <Typography variant='body1'>{vendorData.landMark}</Typography>
               </Grid>
             )}
 
             <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary">Latitude</Typography>
-              <Typography variant="body1">{vendorData.latitude || 'N/A'}</Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Latitude
+              </Typography>
+              <Typography variant='body1'>{vendorData.latitude || 'N/A'}</Typography>
             </Grid>
 
             <Grid item xs={6}>
-              <Typography variant="body2" color="text.secondary">Longitude</Typography>
-              <Typography variant="body1">{vendorData.longitude || 'N/A'}</Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Longitude
+              </Typography>
+              <Typography variant='body1'>{vendorData.longitude || 'N/A'}</Typography>
             </Grid>
           </Grid>
 
           {vendorData.latitude && vendorData.longitude && (
             <Button
-              variant="outlined"
-              color="primary"
-              size="small"
+              variant='outlined'
+              color='primary'
+              size='small'
               startIcon={<LocationOnIcon />}
               sx={{ mt: 2 }}
-              component="a"
+              component='a'
               href={`https://www.google.com/maps?q=${vendorData.latitude},${vendorData.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              target='_blank'
+              rel='noopener noreferrer'
             >
               View on Map
             </Button>
           )}
         </Paper>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderAmenities = () => {
     if (amenitiesLoading) {
@@ -689,34 +710,28 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!amenities || amenities.length === 0) {
-      return <Alert severity="info">No amenities information available</Alert>;
+      return <Alert severity='info'>No amenities information available</Alert>
     }
 
     return (
       <Box sx={{ mt: 2 }}>
         <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+          <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 2 }}>
             Available Amenities
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {amenities.map((amenity, index) => (
-              <Chip
-                key={index}
-                label={amenity}
-                color="primary"
-                variant="outlined"
-                sx={{ mb: 1 }}
-              />
+              <Chip key={index} label={amenity} color='primary' variant='outlined' sx={{ mb: 1 }} />
             ))}
           </Box>
         </Paper>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderServicesPricing = () => {
     if (servicesLoading) {
@@ -724,20 +739,24 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!parkingServices || parkingServices.length === 0) {
-      return <Alert severity="info">No services & pricing information available</Alert>;
+      return <Alert severity='info'>No services & pricing information available</Alert>
     }
 
     return (
       <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table size="small">
+        <Table size='small'>
           <TableHead>
             <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-              <TableCell><strong>Service Name</strong></TableCell>
-              <TableCell align="right"><strong>Price (₹)</strong></TableCell>
+              <TableCell>
+                <strong>Service Name</strong>
+              </TableCell>
+              <TableCell align='right'>
+                <strong>Price (₹)</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -746,18 +765,16 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                 <TableCell>
                   <div style={{ fontWeight: 500 }}>{service.text}</div>
                 </TableCell>
-                <TableCell align="right">
-                  <div style={{ color: '#2196f3', fontWeight: 500 }}>
-                    ₹{service.amount}
-                  </div>
+                <TableCell align='right'>
+                  <div style={{ color: '#2196f3', fontWeight: 500 }}>₹{service.amount}</div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    );
-  };
+    )
+  }
 
   const renderSupportRequests = () => {
     if (supportRequestsLoading) {
@@ -765,38 +782,43 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!supportRequests || supportRequests.length === 0) {
-      return <Alert severity="info">No support requests found</Alert>;
+      return <Alert severity='info'>No support requests found</Alert>
     }
 
     return (
       <TableContainer component={Paper}>
-        <Table size="small">
+        <Table size='small'>
           <TableHead>
             <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-              <TableCell><strong>Description</strong></TableCell>
-              <TableCell align="right"><strong>Status</strong></TableCell>
-              <TableCell align="right"><strong>Date</strong></TableCell>
+              <TableCell>
+                <strong>Description</strong>
+              </TableCell>
+              <TableCell align='right'>
+                <strong>Status</strong>
+              </TableCell>
+              <TableCell align='right'>
+                <strong>Date</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {supportRequests.map((request) => (
+            {supportRequests.map(request => (
               <TableRow key={request._id}>
                 <TableCell>{request.description}</TableCell>
-                <TableCell align="right">
+                <TableCell align='right'>
                   <Chip
                     label={request.status || 'Pending'}
                     color={
-                      request.status === 'resolved' ? 'success' :
-                        request.status === 'closed' ? 'default' : 'warning'
+                      request.status === 'resolved' ? 'success' : request.status === 'closed' ? 'default' : 'warning'
                     }
-                    size="small"
+                    size='small'
                   />
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align='right'>
                   {request.date ? new Date(request.date).toLocaleDateString() : 'N/A'}
                 </TableCell>
               </TableRow>
@@ -804,8 +826,8 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </TableBody>
         </Table>
       </TableContainer>
-    );
-  };
+    )
+  }
 
   const renderBankDetails = () => {
     if (bankDetailsLoading) {
@@ -813,29 +835,37 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!bankDetails) {
-      return <Alert severity="info">No bank details found</Alert>;
+      return <Alert severity='info'>No bank details found</Alert>
     }
 
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Bank Account Information</Typography>
+        <Typography variant='h6' sx={{ mb: 2 }}>
+          Bank Account Information
+        </Typography>
         <TableContainer component={Paper}>
-          <Table size="small">
+          <Table size='small'>
             <TableBody>
               <TableRow>
-                <TableCell component="th" scope="row">Account Number</TableCell>
+                <TableCell component='th' scope='row'>
+                  Account Number
+                </TableCell>
                 <TableCell>{bankDetails.accountnumber || 'N/A'}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell component="th" scope="row">Account Holder</TableCell>
+                <TableCell component='th' scope='row'>
+                  Account Holder
+                </TableCell>
                 <TableCell>{bankDetails.accountholdername || 'N/A'}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell component="th" scope="row">IFSC Code</TableCell>
+                <TableCell component='th' scope='row'>
+                  IFSC Code
+                </TableCell>
                 <TableCell>{bankDetails.ifsccode || 'N/A'}</TableCell>
               </TableRow>
               {/* <TableRow>
@@ -848,8 +878,8 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </Table>
         </TableContainer>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderMeetings = () => {
     if (meetingsLoading) {
@@ -857,28 +887,38 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!meetings || meetings.length === 0) {
-      return <Alert severity="info">No meeting requests found</Alert>;
+      return <Alert severity='info'>No meeting requests found</Alert>
     }
 
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Advertise with us</Typography>
+        <Typography variant='h6' sx={{ mb: 2 }}>
+          Advertise with us
+        </Typography>
         <TableContainer component={Paper}>
-          <Table size="small">
+          <Table size='small'>
             <TableHead>
               <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>Email</strong></TableCell>
-                <TableCell><strong>Mobile</strong></TableCell>
-                <TableCell><strong>Time</strong></TableCell>
+                <TableCell>
+                  <strong>Name</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Email</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Mobile</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Time</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {meetings.map((meeting) => (
+              {meetings.map(meeting => (
                 <TableRow key={meeting._id}>
                   <TableCell>{meeting.name || 'N/A'}</TableCell>
                   <TableCell>{meeting.email || 'N/A'}</TableCell>
@@ -890,8 +930,8 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           </Table>
         </TableContainer>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderBookingTransactions = () => {
     if (transactionsLoading) {
@@ -899,71 +939,70 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!bookingTransactions || bookingTransactions.length === 0) {
-      return <Alert severity="info">No booking transactions found</Alert>;
+      return <Alert severity='info'>No booking transactions found</Alert>
     }
 
     const getTotalReceivable = () => {
       return bookingTransactions.reduce((total, transaction) => {
-        const amount = parseFloat(transaction.receivable.replace("₹", "")) || 0;
+        const amount = parseFloat(transaction.receivable.replace('₹', '')) || 0
 
-
-        return total + amount;
-      }, 0);
-    };
+        return total + amount
+      }, 0)
+    }
 
     const columns = [
-      { field: "serialNo", headerName: "S.No", width: 80 },
-      { field: "bookingId", headerName: "Booking ID", width: 220 },
-      { field: "bookingAmount", headerName: "Total Amount", width: 150 },
-      { field: "platformFee", headerName: "Platform Fee", width: 150 },
-      { field: "receivable", headerName: "Receivable", width: 150 },
-    ];
+      { field: 'serialNo', headerName: 'S.No', width: 80 },
+      { field: 'bookingId', headerName: 'Booking ID', width: 220 },
+      { field: 'bookingAmount', headerName: 'Total Amount', width: 150 },
+      { field: 'platformFee', headerName: 'Platform Fee', width: 150 },
+      { field: 'receivable', headerName: 'Receivable', width: 150 }
+    ]
 
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Booking Transactions</Typography>
+        <Typography variant='h6' sx={{ mb: 2 }}>
+          Booking Transactions
+        </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <TextField
-            label="Start Date"
-            type="date"
+            label='Start Date'
+            type='date'
             value={transactionDates.start}
-            onChange={(e) => setTransactionDates({ ...transactionDates, start: e.target.value })}
+            onChange={e => setTransactionDates({ ...transactionDates, start: e.target.value })}
             InputLabelProps={{ shrink: true }}
-            size="small"
+            size='small'
             sx={{ width: 180, mr: 2 }}
           />
           <TextField
-            label="End Date"
-            type="date"
+            label='End Date'
+            type='date'
             value={transactionDates.end}
-            onChange={(e) => setTransactionDates({ ...transactionDates, end: e.target.value })}
+            onChange={e => setTransactionDates({ ...transactionDates, end: e.target.value })}
             InputLabelProps={{ shrink: true }}
-            size="small"
+            size='small'
             sx={{ width: 180, mr: 2 }}
           />
-          <Button
-            variant="contained"
-            onClick={fetchBookingTransactions}
-            sx={{ textTransform: 'none' }}
-          >
+          <Button variant='contained' onClick={fetchBookingTransactions} sx={{ textTransform: 'none' }}>
             Apply Filter
           </Button>
         </Box>
 
-        <Box sx={{
-          bgcolor: '#f5f5f5',
-          padding: '8px 16px',
-          borderRadius: 1,
-          border: '1px solid #e0e0e0',
-          mb: 2,
-          display: 'inline-block'
-        }}>
-          <Typography variant="body2" fontWeight="bold" color="#329a73">
+        <Box
+          sx={{
+            bgcolor: '#f5f5f5',
+            padding: '8px 16px',
+            borderRadius: 1,
+            border: '1px solid #e0e0e0',
+            mb: 2,
+            display: 'inline-block'
+          }}
+        >
+          <Typography variant='body2' fontWeight='bold' color='#329a73'>
             Total Receivable: ₹{getTotalReceivable().toFixed(2)}
           </Typography>
         </Box>
@@ -974,21 +1013,21 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             columns={columns}
             pageSizeOptions={[5, 10, 20]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 5 } },
+              pagination: { paginationModel: { pageSize: 5 } }
             }}
             sx={{
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#329a73",
-                color: "black",
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#329a73',
+                color: 'black',
                 fontSize: '0.875rem'
               },
-              borderRadius: 2,
+              borderRadius: 2
             }}
           />
         </div>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderBookings = () => {
     if (bookingsLoading) {
@@ -996,11 +1035,11 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (!bookings || bookings.length === 0) {
-      return <Alert severity="info">No bookings found</Alert>;
+      return <Alert severity='info'>No bookings found</Alert>
     }
 
     const columns = [
@@ -1008,115 +1047,96 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         field: 'vehicleNumber',
         headerName: 'Vehicle Number',
         width: 150,
-        renderCell: (params) => (
-          <Typography style={{ color: '#329a73' }}>
-            {params.value || 'N/A'}
-          </Typography>
-        )
+        renderCell: params => <Typography style={{ color: '#329a73' }}>{params.value || 'N/A'}</Typography>
       },
 
       {
         field: 'bookingDateTime',
         headerName: 'Booking Date & Time',
         width: '300',
-        renderCell: (params) => {
-          const formatDate = (dateStr) => {
-            if (!dateStr) return 'N/A';
-            const [day, month, year] = dateStr.split('-');
+        renderCell: params => {
+          const formatDate = dateStr => {
+            if (!dateStr) return 'N/A'
+            const [day, month, year] = dateStr.split('-')
 
-            if (!day || !month || !year) return 'Invalid Date';
-            const date = new Date(`${year}- ${month}-${day}`);
+            if (!day || !month || !year) return 'Invalid Date'
+            const date = new Date(`${year}- ${month}-${day}`)
 
-            if (isNaN(date.getTime())) return 'Invalid Date';
+            if (isNaN(date.getTime())) return 'Invalid Date'
 
-            return date.toDateString();
-          };
-
+            return date.toDateString()
+          }
 
           return (
             <Typography>
               {formatDate(params.row.bookingDate)}, {params.row.bookingTime || 'N/A'}
             </Typography>
-          );
+          )
         }
       },
       {
         field: 'status',
         headerName: 'Status',
         width: 180,
-        renderCell: (params) => {
-          const statusKey = params.value?.toLowerCase();
-          const chipData = statusChipColor[statusKey] || { color: 'default' };
+        renderCell: params => {
+          const statusKey = params.value?.toLowerCase()
+          const chipData = statusChipColor[statusKey] || { color: 'default' }
 
-          return (
-            <Chip
-              label={params.value || 'N/A'}
-              variant="tonal"
-              size="small"
-              color={chipData.color}
-            />
-          );
+          return <Chip label={params.value || 'N/A'} variant='tonal' size='small' color={chipData.color} />
         }
       },
       {
         field: 'sts',
         headerName: 'Booking Type',
         width: 200,
-        renderCell: (params) => {
-          const statusKey = params.value?.toLowerCase();
-          const chipData = statusChipColor[statusKey] || { color: 'default' };
+        renderCell: params => {
+          const statusKey = params.value?.toLowerCase()
+          const chipData = statusChipColor[statusKey] || { color: 'default' }
 
-          return (
-            <Chip
-              label={params.value || 'N/A'}
-              variant="tonal"
-              size="small"
-              color={chipData.color}
-            />
-          );
+          return <Chip label={params.value || 'N/A'} variant='tonal' size='small' color={chipData.color} />
         }
       },
       {
         field: 'vehicleType',
         headerName: 'vehicle Type',
         width: 200,
-        renderCell: (params) => {
-          const vehicleType = params.value?.toLowerCase();
+        renderCell: params => {
+          const vehicleType = params.value?.toLowerCase()
 
           const vehicleIcons = {
             car: { icon: 'ri-car-fill', color: '#ff4d49' },
             bike: { icon: 'ri-motorbike-fill', color: '#72e128' },
             default: { icon: 'ri-roadster-fill', color: '#282a42' }
-          };
+          }
 
-          const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default;
+          const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default
 
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <i className={icon} style={{ fontSize: '16px', color }}></i>
               <Typography>{params.value || 'N/A'}</Typography>
             </Box>
-          );
+          )
         }
       },
       {
         field: 'customer',
         headerName: 'Customer',
         width: 200,
-        renderCell: (params) => (
+        renderCell: params => (
           <Box>
-            <Typography fontWeight="500">{params.row.personName || 'Unknown'}</Typography>
-            <Typography variant="body2">{params.row.mobileNumber || 'N/A'}</Typography>
+            <Typography fontWeight='500'>{params.row.personName || 'Unknown'}</Typography>
+            <Typography variant='body2'>{params.row.mobileNumber || 'N/A'}</Typography>
           </Box>
         )
-      },
-    ];
+      }
+    ]
 
     const rows = bookings.map(booking => ({
       id: booking._id,
       ...booking,
       bookingDateTime: `${booking.bookingDate}, ${booking.bookingTime}`
-    }));
+    }))
 
     return (
       <Box sx={{ height: 400, width: '100%', mt: 2 }}>
@@ -1125,110 +1145,105 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
           columns={columns}
           pageSizeOptions={[5, 10, 20]}
           initialState={{
-            pagination: { paginationModel: { pageSize: 5 } },
+            pagination: { paginationModel: { pageSize: 5 } }
           }}
           sx={{
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: '#329a73',
-              color: 'black',
-            },
+              color: 'black'
+            }
           }}
         />
       </Box>
-    );
-  };
-
+    )
+  }
 
   const renderCharges = () => {
-    const categories = ['Car', 'Bike', 'Others'];
-    const labels = ['Minimum Charges', 'Additional Hour', 'Full Day', 'Monthly'];
+    const categories = ['Car', 'Bike', 'Others']
+    const labels = ['Minimum Charges', 'Additional Hour', 'Full Day', 'Monthly']
 
     if (chargesLoading) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress size={30} />
         </Box>
-      );
+      )
     }
 
     if (Object.keys(charges).length === 0) {
-      return <Alert severity="info">No parking charges found for this vendor</Alert>;
+      return <Alert severity='info'>No parking charges found for this vendor</Alert>
     }
 
     return (
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Parking Charges
         </Typography>
 
         {/* Charges Table */}
         <TableContainer component={Paper} sx={{ mt: 2 }}>
-          <Table size="small">
+          <Table size='small'>
             <TableHead>
               <TableRow>
                 <TableCell>Category</TableCell>
                 <TableCell>Type</TableCell>
                 <TableCell>Duration</TableCell>
-                <TableCell align="right">Amount (₹)</TableCell>
+                <TableCell align='right'>Amount (₹)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.keys(charges).map((key) => {
-                const charge = charges[key];
-
+              {Object.keys(charges).map(key => {
+                const charge = charges[key]
 
                 return (
-                  <TableRow
-                    key={key}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
+                  <TableRow key={key} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {charge.category === 'Car' && <i className="ri-car-fill" style={{ color: '#ff4d49' }} />}
-                        {charge.category === 'Bike' && <i className="ri-motorbike-fill" style={{ color: '#72e128' }} />}
-                        {charge.category === 'Others' && <i className="ri-roadster-fill" style={{ color: '#282a42' }} />}
+                        {charge.category === 'Car' && <i className='ri-car-fill' style={{ color: '#ff4d49' }} />}
+                        {charge.category === 'Bike' && <i className='ri-motorbike-fill' style={{ color: '#72e128' }} />}
+                        {charge.category === 'Others' && (
+                          <i className='ri-roadster-fill' style={{ color: '#282a42' }} />
+                        )}
                         {charge.category}
                       </Box>
                     </TableCell>
                     <TableCell>{charge.label}</TableCell>
                     <TableCell>{charge.type}</TableCell>
-                    <TableCell align="right">
-                      <Typography fontWeight="medium" color="primary">
+                    <TableCell align='right'>
+                      <Typography fontWeight='medium' color='primary'>
                         {charge.amount}
                       </Typography>
                     </TableCell>
                   </TableRow>
-                );
+                )
               })}
             </TableBody>
           </Table>
         </TableContainer>
 
         {/* Alternative Card View */}
-        <Typography variant="subtitle1" sx={{ mt: 4, mb: 2 }}>
+        <Typography variant='subtitle1' sx={{ mt: 4, mb: 2 }}>
           Charges by Category
         </Typography>
 
         <Grid container spacing={2}>
-          {categories.map((category) => {
+          {categories.map(category => {
             // Filter charges for this category
-            const categoryCharges = Object.values(charges).filter(
-              charge => charge.category === category
-            );
+            const categoryCharges = Object.values(charges).filter(charge => charge.category === category)
 
             if (categoryCharges.length === 0) {
-              return null;
+              return null
             }
 
             return (
               <Grid item xs={12} md={4} key={category}>
-                <Card variant="outlined" sx={{ height: '100%' }}>
+                <Card variant='outlined' sx={{ height: '100%' }}>
                   <CardHeader
                     title={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {category === 'Car' && <i className="ri-car-fill" style={{ color: '#ff4d49' }} />}
-                        {category === 'Bike' && <i className="ri-motorbike-fill" style={{ color: '#72e128' }} />}
-                        {category === 'Others' && <i className="ri-roadster-fill" style={{ color: '#282a42' }} />}
+                        {category === 'Car' && <i className='ri-car-fill' style={{ color: '#ff4d49' }} />}
+                        {category === 'Bike' && <i className='ri-motorbike-fill' style={{ color: '#72e128' }} />}
+                        {category === 'Others' && <i className='ri-roadster-fill' style={{ color: '#282a42' }} />}
                         {category}
                       </Box>
                     }
@@ -1241,46 +1256,38 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                         <React.Fragment key={`${charge.category}-${charge.type}`}>
                           <ListItem
                             secondaryAction={
-                              <Chip
-                                label={`₹${charge.amount}`}
-                                color="primary"
-                                size="small"
-                                variant="tonal"
-                              />
+                              <Chip label={`₹${charge.amount}`} color='primary' size='small' variant='tonal' />
                             }
                           >
                             <ListItemIcon sx={{ minWidth: '36px' }}>
-                              <i className="ri-time-line" />
+                              <i className='ri-time-line' />
                             </ListItemIcon>
-                            <ListItemText
-                              primary={charge.label}
-                              secondary={charge.type}
-                            />
+                            <ListItemText primary={charge.label} secondary={charge.type} />
                           </ListItem>
-                          {index < categoryCharges.length - 1 && <Divider variant="inset" component="li" />}
+                          {index < categoryCharges.length - 1 && <Divider variant='inset' component='li' />}
                         </React.Fragment>
                       ))}
                     </List>
                   </CardContent>
                 </Card>
               </Grid>
-            );
+            )
           })}
         </Grid>
       </Box>
-    );
-  };
+    )
+  }
 
   const renderPayout = () => {
     return (
       <Box sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Payout
         </Typography>
 
         {/* Dummy Header Table */}
         <TableContainer component={Paper} sx={{ mt: 2 }}>
-          <Table size="small">
+          <Table size='small'>
             <TableHead>
               <TableRow>
                 <TableCell>S.No</TableCell>
@@ -1290,15 +1297,12 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                 <TableCell>Receivable (₹)</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
-              {/* Empty for now; just a dummy header */}
-            </TableBody>
+            <TableBody>{/* Empty for now; just a dummy header */}</TableBody>
           </Table>
         </TableContainer>
       </Box>
-    );
-  };
-
+    )
+  }
 
   const handleEditProfile = () => {
     if (vendorId) {
@@ -1310,16 +1314,11 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="lg" // Changed from "md" to "lg" to increase the width
+      maxWidth='lg' // Changed from "md" to "lg" to increase the width
       fullWidth
     >
       <DialogActions>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleEditProfile}
-          sx={{ mr: 2 }}
-        >
+        <Button variant='contained' color='primary' onClick={handleEditProfile} sx={{ mr: 2 }}>
           Edit Profile
         </Button>
         {/* <Button onClick={handleClose} color="primary">Close</Button> */}
@@ -1327,7 +1326,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Vendor Details
-          <IconButton aria-label="close" onClick={handleClose}>
+          <IconButton aria-label='close' onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -1338,7 +1337,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography color="error">{error}</Typography>
+          <Typography color='error'>{error}</Typography>
         ) : vendorData ? (
           <>
             <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -1354,23 +1353,23 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
                 </CustomAvatar>
               )}
               <Box>
-                <Typography variant="h6">{vendorData.vendorName}</Typography>
+                <Typography variant='h6'>{vendorData.vendorName}</Typography>
                 <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
                   <Chip
                     label={vendorData.status || 'Pending'}
-                    variant="filled"
-                    size="small"
+                    variant='filled'
+                    size='small'
                     color={
-                      vendorData.status === 'approved' ? 'success' :
-                        vendorData.status === 'rejected' ? 'error' :
-                          vendorData.status === 'suspended' ? 'default' : 'warning'
+                      vendorData.status === 'approved'
+                        ? 'success'
+                        : vendorData.status === 'rejected'
+                          ? 'error'
+                          : vendorData.status === 'suspended'
+                            ? 'default'
+                            : 'warning'
                     }
                   />
-                  <Chip
-                    label={`ID: ${vendorData.vendorId}`}
-                    variant="outlined"
-                    size="small"
-                  />
+                  <Chip label={`ID: ${vendorData.vendorId}`} variant='outlined' size='small' />
                 </Box>
               </Box>
             </Box>
@@ -1380,27 +1379,30 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
-              aria-label="vendor details tabs"
+              aria-label='vendor details tabs'
               sx={{ mb: 2 }}
-              variant="scrollable"
-              scrollButtons="auto"
+              variant='scrollable'
+              scrollButtons='auto'
             >
-              <Tab icon={<InfoIcon fontSize="small" />} iconPosition="start" label="Basic Info" />
-              <Tab icon={<ContactsIcon fontSize="small" />} iconPosition="start" label="Contacts" />
-              <Tab icon={<LocationOnIcon fontSize="small" />} iconPosition="start" label="Location" />
-              <Tab icon={<AccessTimeIcon fontSize="small" />} iconPosition="start" label="Business Hours" />
-              <Tab icon={<DirectionsCarIcon fontSize="small" />} iconPosition="start" label="Parking Entries" />
-              <Tab icon={<SubscriptionsIcon fontSize="small" />} iconPosition="start" label="Premium Package" />
-              <Tab icon={<i className="ri-list-check" />} iconPosition='start' label="Amenities" />
-              <Tab icon={<MonetizationOnIcon fontSize="small" />} iconPosition="start" label="Services & Pricing" />
-              <Tab icon={<ChatIcon fontSize="small" />} iconPosition="start" label="Support Requests" />
-              <Tab icon={<i className="ri-bank-line" />} iconPosition="start" label="Bank Details" />
-              <Tab icon={<i className="ri-calendar-line" />} iconPosition="start" label="Advertise With Us" />
-              <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Booking Transactions" />
-              <Tab icon={<i className="ri-car-line" />} iconPosition="start" label="Bookings" />
-              <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Parking Charges" />
-              <Tab icon={<i className="ri-money-dollar-circle-line" />} iconPosition="start" label="Payout" />
-
+              <Tab icon={<InfoIcon fontSize='small' />} iconPosition='start' label='Basic Info' />
+              <Tab icon={<ContactsIcon fontSize='small' />} iconPosition='start' label='Contacts' />
+              <Tab icon={<LocationOnIcon fontSize='small' />} iconPosition='start' label='Location' />
+              <Tab icon={<AccessTimeIcon fontSize='small' />} iconPosition='start' label='Business Hours' />
+              <Tab icon={<DirectionsCarIcon fontSize='small' />} iconPosition='start' label='Parking Entries' />
+              <Tab icon={<SubscriptionsIcon fontSize='small' />} iconPosition='start' label='Premium Package' />
+              <Tab icon={<i className='ri-list-check' />} iconPosition='start' label='Amenities' />
+              <Tab icon={<MonetizationOnIcon fontSize='small' />} iconPosition='start' label='Services & Pricing' />
+              <Tab icon={<ChatIcon fontSize='small' />} iconPosition='start' label='Support Requests' />
+              <Tab icon={<i className='ri-bank-line' />} iconPosition='start' label='Bank Details' />
+              <Tab icon={<i className='ri-calendar-line' />} iconPosition='start' label='Advertise With Us' />
+              <Tab
+                icon={<i className='ri-money-dollar-circle-line' />}
+                iconPosition='start'
+                label='Booking Transactions'
+              />
+              <Tab icon={<i className='ri-car-line' />} iconPosition='start' label='Bookings' />
+              <Tab icon={<i className='ri-money-dollar-circle-line' />} iconPosition='start' label='Parking Charges' />
+              <Tab icon={<i className='ri-money-dollar-circle-line' />} iconPosition='start' label='Payout' />
             </Tabs>
 
             {/* Basic Info Tab */}
@@ -1408,44 +1410,62 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
               <Box>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Vendor ID</Typography>
-                    <Typography variant="body1">#{vendorData.vendorId || 'N/A'}</Typography>
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      Vendor ID
+                    </Typography>
+                    <Typography variant='body1'>#{vendorData.vendorId || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Space ID</Typography>
-                    <Typography variant="body1">{vendorData.spaceid || 'N/A'}</Typography>
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      Space ID
+                    </Typography>
+                    <Typography variant='body1'>{vendorData.spaceid || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Creation Date</Typography>
-                    <Typography variant="body1">
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      Creation Date
+                    </Typography>
+                    <Typography variant='body1'>
                       {vendorData.createdAt ? new Date(vendorData.createdAt).toLocaleDateString() : 'N/A'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Last Updated</Typography>
-                    <Typography variant="body1">
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      Last Updated
+                    </Typography>
+                    <Typography variant='body1'>
                       {vendorData.updatedAt ? new Date(vendorData.updatedAt).toLocaleDateString() : 'N/A'}
                     </Typography>
                   </Grid>
                   {vendorData.email && (
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Email</Typography>
-                      <Typography variant="body1">{vendorData.email}</Typography>
+                      <Typography variant='subtitle2' color='text.secondary'>
+                        Email
+                      </Typography>
+                      <Typography variant='body1'>{vendorData.email}</Typography>
                     </Grid>
                   )}
                   {vendorData.mobile && (
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Mobile</Typography>
-                      <Typography variant="body1">{vendorData.mobile}</Typography>
+                      <Typography variant='subtitle2' color='text.secondary'>
+                        Mobile
+                      </Typography>
+                      <Typography variant='body1'>{vendorData.mobile}</Typography>
                     </Grid>
                   )}
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Status</Typography>
-                    <Typography variant="body1">{vendorData.status || 'Pending'}</Typography>
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      Status
+                    </Typography>
+                    <Typography variant='body1'>{vendorData.status || 'Pending'}</Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="text.secondary">MongoDB ID</Typography>
-                    <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>{vendorData._id || 'N/A'}</Typography>
+                    <Typography variant='subtitle2' color='text.secondary'>
+                      MongoDB ID
+                    </Typography>
+                    <Typography variant='body1' sx={{ wordBreak: 'break-all' }}>
+                      {vendorData._id || 'N/A'}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Box>
@@ -1489,11 +1509,13 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">Close</Button>
+        <Button onClick={handleClose} color='primary'>
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
-  );
-};
+  )
+}
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -1520,15 +1542,8 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
     return () => clearTimeout(timeout)
   }, [value, debounce, onChange])
 
-  return (
-    <TextField
-      {...props}
-      value={value}
-      onChange={e => setValue(e.target.value)}
-      size="small"
-    />
-  );
-};
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
+}
 
 const columnHelper = createColumnHelper()
 
@@ -1541,32 +1556,37 @@ const VendorListTable = () => {
   const { lang: locale } = useParams()
   const { data: session } = useSession()
   const router = useRouter()
-  const [vendorLoading, setVendorLoading] = useState({});
-  const [vendorStatusMap, setVendorStatusMap] = useState({});
+  const [vendorLoading, setVendorLoading] = useState({})
+  const [vendorStatusMap, setVendorStatusMap] = useState({})
+
+  // Tab state for vendor separation
+  const [activeTab, setActiveTab] = useState('all')
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
 
   // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedVendorId, setSelectedVendorId] = useState(null);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedVendorId, setSelectedVendorId] = useState(null)
+  const [anchorEl, setAnchorEl] = React.useState(null)
 
-  const handleOpenModal = (vendorId) => {
-    setSelectedVendorId(vendorId);
-    setModalOpen(true);
-  };
+  const handleOpenModal = vendorId => {
+    setSelectedVendorId(vendorId)
+    setModalOpen(true)
+  }
 
   const handleCloseModal = () => {
-    setModalOpen(false);
-  };
+    setModalOpen(false)
+  }
 
-
-
-  const handleDisplaySubscribers = (vendorId) => {
+  const handleDisplaySubscribers = vendorId => {
     router.push(`/en/pages/mysubscribers?id=${vendorId}`)
   }
 
   const fetchVendors = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await fetch(`${API_URL}/vendor/all-vendors`)
       const result = await response.json()
 
@@ -1578,7 +1598,7 @@ const VendorListTable = () => {
         setFilteredData([])
       }
     } catch (error) {
-      console.error("Error fetching vendor data:", error)
+      console.error('Error fetching vendor data:', error)
     } finally {
       setLoading(false)
     }
@@ -1590,12 +1610,13 @@ const VendorListTable = () => {
 
   // Function to update vendor status
   const updateVendorStatus = async (vendorId, newStatus) => {
-    setVendorLoading(prev => ({ ...prev, [vendorId]: true }));
+    setVendorLoading(prev => ({ ...prev, [vendorId]: true }))
 
     try {
-      const endpoint = newStatus === 'approved'
-        ? `${API_URL}/vendor/approve/${vendorId}`
-        : `${API_URL}/vendor/updateStatus/${vendorId}`;
+      const endpoint =
+        newStatus === 'approved'
+          ? `${API_URL}/vendor/approve/${vendorId}`
+          : `${API_URL}/vendor/updateStatus/${vendorId}`
 
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -1603,21 +1624,21 @@ const VendorListTable = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
-      });
+      })
 
-      if (!response.ok) throw new Error('Failed to update vendor status');
+      if (!response.ok) throw new Error('Failed to update vendor status')
 
-      setVendorStatusMap(prev => ({ ...prev, [vendorId]: newStatus }));
+      setVendorStatusMap(prev => ({ ...prev, [vendorId]: newStatus }))
 
-      return true;
+      return true
     } catch (error) {
-      console.error('Error updating vendor status:', error);
+      console.error('Error updating vendor status:', error)
 
-      return false;
+      return false
     } finally {
-      setVendorLoading(prev => ({ ...prev, [vendorId]: false }));
+      setVendorLoading(prev => ({ ...prev, [vendorId]: false }))
     }
-  };
+  }
 
   const columns = useMemo(
     () => [
@@ -1646,209 +1667,209 @@ const VendorListTable = () => {
       columnHelper.accessor('vendorName', {
         header: 'Vendor Name',
         cell: ({ row }) => {
-          const vendor = row.original;
-          const imgSrc = vendor.image || "https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/avatars/1.png";
+          const vendor = row.original
+
+          const imgSrc =
+            vendor.image || 'https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/avatars/1.png'
 
           return (
-            <div className="flex items-center gap-3">
+            <div className='flex items-center gap-3'>
               {vendor.image ? (
-                <img
-                  src={imgSrc}
-                  alt="Vendor Avatar"
-                  className="w-8 h-8 rounded-full"
-                />
+                <img src={imgSrc} alt='Vendor Avatar' className='w-8 h-8 rounded-full' />
               ) : (
                 <CustomAvatar skin='light' size={34}>
                   {getInitials(vendor.vendorName)}
                 </CustomAvatar>
               )}
 
-              <div className="flex flex-col">
-                <Typography className="font-medium">{vendor.vendorName}</Typography>
-                <Typography variant="body2">{vendor.spaceid}</Typography>
+              <div className='flex flex-col'>
+                <Typography className='font-medium'>{vendor.vendorName}</Typography>
+                <Typography variant='body2'>{vendor.spaceid}</Typography>
               </div>
             </div>
-          );
+          )
         }
       }),
       columnHelper.accessor('contacts', {
         header: 'Contact Info',
         cell: ({ row }) => {
-          const contacts = row.original.contacts || [];
-          const primaryContact = contacts[0] || { name: 'N/A', mobile: 'N/A' };
+          const contacts = row.original.contacts || []
+          const primaryContact = contacts[0] || { name: 'N/A', mobile: 'N/A' }
 
           return (
-            <div className="flex flex-col">
-              <Typography className="font-medium">{primaryContact.name}</Typography>
-              <Typography variant="body2">{primaryContact.mobile}</Typography>
+            <div className='flex flex-col'>
+              <Typography className='font-medium'>{primaryContact.name}</Typography>
+              <Typography variant='body2'>{primaryContact.mobile}</Typography>
               {contacts.length > 1 && (
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant='caption' color='text.secondary'>
                   +{contacts.length - 1} more contacts
                 </Typography>
               )}
             </div>
-          );
+          )
         }
       }),
       columnHelper.accessor('address', {
         header: 'Address',
         cell: ({ row }) => {
-          const placeType = row.original.address?.toLowerCase() || 'default';
-          const { icon, color } = placeTypeIcons[placeType] || placeTypeIcons.default;
+          const placeType = row.original.address?.toLowerCase() || 'default'
+          const { icon, color } = placeTypeIcons[placeType] || placeTypeIcons.default
 
           return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <i className={icon} style={{ fontSize: '16px', color }}></i>
               {row.original.address || 'Unknown'}
             </Typography>
-          );
+          )
         }
       }),
 
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const vendorId = row.original._id;
-          const isLoading = vendorLoading[vendorId] || false;
-          const currentStatus = vendorStatusMap[vendorId] || row.original.status || 'pending';
+          const vendorId = row.original._id
+          const isLoading = vendorLoading[vendorId] || false
+          const currentStatus = vendorStatusMap[vendorId] || row.original.status || 'pending'
 
           const toggleStatus = async () => {
-            if (isLoading || currentStatus !== 'pending') return;
+            if (isLoading || currentStatus !== 'pending') return
 
-            const success = await updateVendorStatus(vendorId, 'approved');
+            const success = await updateVendorStatus(vendorId, 'approved')
 
             if (!success) {
               // Optional: rollback or show toast
             }
-          };
+          }
 
           const chipStyles = {
             backgroundColor: currentStatus === 'pending' ? '#ff4d4f' : '#52c41a',
             color: 'white',
             cursor: currentStatus === 'pending' ? 'pointer' : 'default',
             opacity: isLoading ? 0.7 : 1,
-            '&:hover': currentStatus === 'pending' ? {
-              backgroundColor: '#ff7875',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-            } : {}
-          };
+            '&:hover':
+              currentStatus === 'pending'
+                ? {
+                    backgroundColor: '#ff7875',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                  }
+                : {}
+          }
 
           const chip = (
             <Chip
-              label={isLoading ? '...' : (currentStatus || 'Pending')}
-              variant="tonal"
-              size="small"
+              label={isLoading ? '...' : currentStatus || 'Pending'}
+              variant='tonal'
+              size='small'
               sx={chipStyles}
               onClick={currentStatus === 'pending' ? toggleStatus : undefined}
             />
-          );
+          )
 
-          return currentStatus === 'pending' ? (
-            <Tooltip title="Click to approve">{chip}</Tooltip>
-          ) : chip;
+          return currentStatus === 'pending' ? <Tooltip title='Click to approve'>{chip}</Tooltip> : chip
         }
       }),
 
       columnHelper.accessor('subscription', {
         header: 'Subscription',
         cell: ({ row }) => {
-          const isSubscribed = row.original.subscription === "true";
-          const daysLeft = row.original.subscriptionleft || "0";
+          const isSubscribed = row.original.subscription === 'true'
+          const daysLeft = row.original.subscriptionleft || '0'
 
           const endDate = row.original.subscriptionenddate
             ? new Date(row.original.subscriptionenddate).toLocaleDateString()
-            : 'N/A';
+            : 'N/A'
 
           return (
-            <div className="flex flex-col">
+            <div className='flex flex-col'>
               <Chip
-                label={isSubscribed ? "Active" : "Inactive"}
-                variant="tonal"
-                size="small"
-                color={isSubscribed ? "success" : "default"}
+                label={isSubscribed ? 'Active' : 'Inactive'}
+                variant='tonal'
+                size='small'
+                color={isSubscribed ? 'success' : 'default'}
               />
               {isSubscribed && (
-                <Typography variant="caption">
+                <Typography variant='caption'>
                   {daysLeft} days left • Ends: {endDate}
                 </Typography>
               )}
             </div>
-          );
+          )
         }
       }),
       columnHelper.accessor('parkingEntries', {
         header: 'Parking Capacity',
         cell: ({ row }) => {
-          const parkingEntries = row.original.parkingEntries || [];
+          const parkingEntries = row.original.parkingEntries || []
 
           if (parkingEntries.length === 0) {
-            return <Typography variant="body2">No entries</Typography>;
+            return <Typography variant='body2'>No entries</Typography>
           }
 
           return (
-            <div className="flex flex-col gap-1">
+            <div className='flex flex-col gap-1'>
               {parkingEntries.map((entry, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <i className={entry.type?.toLowerCase() === 'bike' ? 'ri-motorbike-fill' : 'ri-car-fill'}
-                    style={{ fontSize: '14px', color: entry.type?.toLowerCase() === 'bike' ? '#72e128' : '#ff4d49' }}></i>
-                  <Typography variant="body2">
+                <div key={index} className='flex items-center gap-2'>
+                  <i
+                    className={entry.type?.toLowerCase() === 'bike' ? 'ri-motorbike-fill' : 'ri-car-fill'}
+                    style={{ fontSize: '14px', color: entry.type?.toLowerCase() === 'bike' ? '#72e128' : '#ff4d49' }}
+                  ></i>
+                  <Typography variant='body2'>
                     {entry.type}: <strong>{entry.count}</strong>
                   </Typography>
                 </div>
               ))}
             </div>
-          );
+          )
         }
       }),
       columnHelper.accessor('actions', {
         header: 'Actions',
         cell: ({ row }) => {
           // State for delete confirmation dialog
-          const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-          const [deleteLoading, setDeleteLoading] = useState(false);
+          const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+          const [deleteLoading, setDeleteLoading] = useState(false)
 
           // Function to delete vendor
           const handleDeleteVendor = async () => {
             try {
-              setDeleteLoading(true);
+              setDeleteLoading(true)
 
               const response = await fetch(`${API_URL}/admin/deletevendor/${row.original.vendorId}`, {
-                method: 'DELETE',
-              });
+                method: 'DELETE'
+              })
 
               if (!response.ok) {
-                throw new Error('Failed to delete vendor');
+                throw new Error('Failed to delete vendor')
               }
 
               // Close dialog and refresh vendor list
-              setDeleteDialogOpen(false);
-              fetchVendors(); // Call the fetchVendors function to refresh the list
-
+              setDeleteDialogOpen(false)
+              fetchVendors() // Call the fetchVendors function to refresh the list
             } catch (error) {
-              console.error('Error deleting vendor:', error);
+              console.error('Error deleting vendor:', error)
 
               // You could add a toast notification here
             } finally {
-              setDeleteLoading(false);
+              setDeleteLoading(false)
             }
-          };
+          }
 
           return (
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="outlined"
-                size="small"
-                color="primary"
+                variant='outlined'
+                size='small'
+                color='primary'
                 startIcon={<VisibilityIcon />}
                 onClick={() => handleDisplaySubscribers(row.original._id)}
               >
-               View Subscriptions
+                View Subscriptions
               </Button>
 
               <Button
-                variant="outlined"
-                size="small"
-                color="primary"
+                variant='outlined'
+                size='small'
+                color='primary'
                 startIcon={<VisibilityIcon />}
                 onClick={() => handleOpenModal(row.original._id)}
               >
@@ -1856,9 +1877,9 @@ const VendorListTable = () => {
               </Button>
 
               <Button
-                variant="outlined"
-                size="small"
-                color="error"
+                variant='outlined'
+                size='small'
+                color='error'
                 startIcon={<DeleteIcon />}
                 onClick={() => setDeleteDialogOpen(true)}
               >
@@ -1866,46 +1887,53 @@ const VendorListTable = () => {
               </Button>
 
               {/* Delete Confirmation Dialog */}
-              <Dialog
-                open={deleteDialogOpen}
-                onClose={() => setDeleteDialogOpen(false)}
-              >
+              <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
                 <DialogTitle>Confirm Deletion</DialogTitle>
                 <DialogContent>
                   <Typography>
-                    Are you sure you want to delete vendor <strong>{row.original.vendorName}</strong> (ID: {row.original.vendorId})?
-                    This action cannot be undone.
+                    Are you sure you want to delete vendor <strong>{row.original.vendorName}</strong> (ID:{' '}
+                    {row.original.vendorId})? This action cannot be undone.
                   </Typography>
                 </DialogContent>
                 <DialogActions>
-                  <Button
-                    onClick={() => setDeleteDialogOpen(false)}
-                    color="primary"
-                    disabled={deleteLoading}
-                  >
+                  <Button onClick={() => setDeleteDialogOpen(false)} color='primary' disabled={deleteLoading}>
                     Cancel
                   </Button>
                   <Button
                     onClick={handleDeleteVendor}
-                    color="error"
-                    variant="contained"
+                    color='error'
+                    variant='contained'
                     disabled={deleteLoading}
-                    startIcon={deleteLoading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+                    startIcon={deleteLoading ? <CircularProgress size={20} color='inherit' /> : <DeleteIcon />}
                   >
                     {deleteLoading ? 'Deleting...' : 'Delete'}
                   </Button>
                 </DialogActions>
               </Dialog>
             </Box>
-          );
+          )
         }
       })
     ],
     [data, filteredData, vendorLoading, vendorStatusMap]
-  );
+  )
+
+  const filteredVendorList = useMemo(() => {
+    let result = filteredData.length > 0 || globalFilter ? filteredData : data
+
+    if (activeTab === 'general') {
+      // General vendors: spaceid is null, undefined, or empty string
+      result = result.filter(vendor => !vendor.spaceid || vendor.spaceid.trim() === '')
+    } else if (activeTab === 'myspace') {
+      // My Space vendors: spaceid exists and is not empty
+      result = result.filter(vendor => vendor.spaceid && vendor.spaceid.trim() !== '')
+    }
+
+    return result
+  }, [data, filteredData, activeTab, globalFilter])
 
   const table = useReactTable({
-    data: filteredData.length > 0 || globalFilter ? filteredData : data,
+    data: filteredVendorList,
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -1930,21 +1958,21 @@ const VendorListTable = () => {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
-  });
+  })
 
-  const handleExportClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const handleExportClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
 
   const handleExportClose = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
 
   const exportToCSV = () => {
-    handleExportClose();
+    handleExportClose()
 
-    // Get the data to export (filtered if search is active, otherwise all data)
-    const exportData = filteredData.length > 0 || globalFilter ? filteredData : data;
+    // Get the data to export from table model (respects all filters)
+    const exportData = table.getFilteredRowModel().rows.map(row => row.original)
 
     // Create CSV headers
     const headers = [
@@ -1953,16 +1981,17 @@ const VendorListTable = () => {
       'Contact Name',
       'Contact Mobile',
       'Address',
+      'Space ID',
       'Status',
       'Subscription Status',
       'Subscription End Date',
       'Parking Capacity'
-    ];
+    ]
 
     // Create CSV rows
     const rows = exportData.map(vendor => {
-      const primaryContact = vendor.contacts?.[0] || {};
-      const parkingEntries = vendor.parkingEntries?.map(entry => `${entry.type}:${entry.count}`).join(', ') || '';
+      const primaryContact = vendor.contacts?.[0] || {}
+      const parkingEntries = vendor.parkingEntries?.map(entry => `${entry.type}:${entry.count}`).join(', ') || ''
 
       return [
         vendor.vendorId,
@@ -1970,39 +1999,42 @@ const VendorListTable = () => {
         `"${primaryContact.name || ''}"`,
         primaryContact.mobile || '',
         `"${vendor.address || ''}"`,
+        `"${vendor.spaceid || ''}"`,
         vendor.status || '',
-        vendor.subscription === "true" ? "Active" : "Inactive",
+        vendor.subscription === 'true' ? 'Active' : 'Inactive',
         vendor.subscriptionenddate || '',
         `"${parkingEntries}"`
-      ];
-    });
+      ]
+    })
 
     // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
 
     // Create and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', `vendors_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    link.setAttribute('href', url)
+    link.setAttribute('download', `vendors_export_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   const exportToPDF = () => {
-    handleExportClose();
+    handleExportClose()
 
     // Create a new window with the content to print
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank')
 
-    // Get the data to export (filtered if search is active, otherwise all data)
-    const exportData = filteredData.length > 0 || globalFilter ? filteredData : data;
+    if (!printWindow) return
+
+    // Get the data to export from table model (respects all filters)
+    const exportData = table.getFilteredRowModel().rows.map(row => row.original)
+
+    // Determine title suffix
+    const titleSuffix = activeTab === 'all' ? 'All' : activeTab === 'myspace' ? 'My Space' : 'General'
 
     // Create the HTML content with print-specific styles
     printWindow.document.write(`
@@ -2022,12 +2054,13 @@ const VendorListTable = () => {
         </style>
       </head>
       <body>
-        <h1>Vendors Export</h1>
+        <h1>Vendors Export (${titleSuffix})</h1>
         <table>
           <thead>
             <tr>
               <th>Vendor ID</th>
               <th>Vendor Name</th>
+              <th>Space ID</th>
               <th>Contact</th>
               <th>Mobile</th>
               <th>Status</th>
@@ -2035,21 +2068,23 @@ const VendorListTable = () => {
             </tr>
           </thead>
           <tbody>
-            ${exportData.map(vendor => {
-      const primaryContact = vendor.contacts?.[0] || {};
+            ${exportData
+              .map(vendor => {
+                const primaryContact = vendor.contacts?.[0] || {}
 
-
-      return `
+                return `
                 <tr>
                   <td>${vendor.vendorId}</td>
                   <td>${vendor.vendorName || 'N/A'}</td>
+                  <td>${vendor.spaceid || '-'}</td>
                   <td>${primaryContact.name || 'N/A'}</td>
                   <td>${primaryContact.mobile || 'N/A'}</td>
                   <td>${vendor.status || 'N/A'}</td>
-                  <td>${vendor.subscription === "true" ? "Active" : "Inactive"}</td>
+                  <td>${vendor.subscription === 'true' ? 'Active' : 'Inactive'}</td>
                 </tr>
-              `;
-    }).join('')}
+              `
+              })
+              .join('')}
           </tbody>
         </table>
         <div class="footer">
@@ -2068,31 +2103,45 @@ const VendorListTable = () => {
         </script>
       </body>
     </html>
-  `);
+  `)
 
-    printWindow.document.close();
-  };
-
+    printWindow.document.close()
+  }
 
   return (
     <Card>
-      <CardHeader title="Vendor Management" />
+      <CardHeader title='Vendor Management' />
+
+      {/* Type Selection Tabs */}
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        textColor='primary'
+        indicatorColor='primary'
+        variant='fullWidth'
+        aria-label='vendor type tabs'
+      >
+        <Tab label='All Vendors' value='all' />
+        <Tab label='My Space Vendors' value='myspace' icon={<i className='ri-building-line' />} iconPosition='start' />
+        <Tab label='General Vendors' value='general' icon={<i className='ri-store-2-line' />} iconPosition='start' />
+      </Tabs>
+
       <Divider />
-      <CardContent className="flex justify-between items-center gap-4 max-sm:flex-col">
+      <CardContent className='flex justify-between items-center gap-4 max-sm:flex-col'>
         {/* Search Input (Left Side) */}
         <DebouncedInput
           value={globalFilter ?? ''}
-          onChange={(value) => setGlobalFilter(String(value))}
-          placeholder="Search Vendors"
-          className="sm:is-auto"
+          onChange={value => setGlobalFilter(String(value))}
+          placeholder='Search Vendors'
+          className='sm:is-auto'
         />
 
         {/* Buttons (Right Side - Add Vendor + Export) */}
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {/* Add Vendor Button */}
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             startIcon={<AddIcon />}
             onClick={() => router.push(getLocalizedUrl('/pages/vendoradd', locale))}
           >
@@ -2101,29 +2150,25 @@ const VendorListTable = () => {
 
           {/* Export Button */}
           <Button
-            variant="contained"
-            color="primary"
-            startIcon={<i className="ri-download-line" />}
+            variant='contained'
+            color='primary'
+            startIcon={<i className='ri-download-line' />}
             onClick={handleExportClick}
           >
             Download
           </Button>
 
           {/* Export Menu (CSV/PDF) */}
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleExportClose}
-          >
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleExportClose}>
             <MenuItem onClick={exportToCSV}>
               <ListItemIcon>
-                <i className="ri-file-excel-2-line" />
+                <i className='ri-file-excel-2-line' />
               </ListItemIcon>
               <ListItemText>Export as Excel</ListItemText>
             </MenuItem>
             <MenuItem onClick={exportToPDF}>
               <ListItemIcon>
-                <i className="ri-file-pdf-line" />
+                <i className='ri-file-pdf-line' />
               </ListItemIcon>
               <ListItemText>Export as PDF</ListItemText>
             </MenuItem>
@@ -2203,18 +2248,9 @@ const VendorListTable = () => {
       />
 
       {/* Vendor Detail Modal */}
-      <VendorDetailModal
-        open={modalOpen}
-        handleClose={handleCloseModal}
-        vendorId={selectedVendorId}
-      />
+      <VendorDetailModal open={modalOpen} handleClose={handleCloseModal} vendorId={selectedVendorId} />
     </Card>
   )
 }
 
 export default VendorListTable
-
-
-
-
-

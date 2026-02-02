@@ -170,6 +170,9 @@ const BookingEdit = ({ vendorId }) => {
   // Booking Source Filter: 'all', 'user', 'vendor'
   const [bookingSourceFilter, setBookingSourceFilter] = useState('user')
 
+  // Status Filter
+  const [statusFilter, setStatusFilter] = useState('pending') // 'pending', 'approved', 'parked', 'completed', 'cancelled', 'all'
+
   // Use provided vendorId prop or fallback to session user id
   const effectiveVendorId = vendorId || session?.user?.id
 
@@ -208,7 +211,7 @@ const BookingEdit = ({ vendorId }) => {
   }, [effectiveVendorId, vendors])
 
   // Function to parse date and time from booking
-  const parseBookingDateTime = booking => {
+  const parseBookingDateTime = useCallback(booking => {
     if (!booking.bookingDate || !booking.bookingTime) return null
 
     try {
@@ -227,6 +230,74 @@ const BookingEdit = ({ vendorId }) => {
       console.error('Error parsing booking datetime:', e)
 
       return null
+    }
+  }, [])
+
+  // Function to parse date string to DateTime object
+  const parseDateTime = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return null
+
+    try {
+      // Check if date is in YYYY-MM-DD format
+      let dateParts
+
+      if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+        const [year, month, day] = dateStr.split('-')
+
+        dateParts = { day, month, year }
+      }
+
+      // Otherwise assume DD-MM-YYYY format
+      else if (dateStr.includes('-')) {
+        const [day, month, year] = dateStr.split('-')
+
+        dateParts = { day, month, year }
+      } else {
+        return null
+      }
+
+      // Parse time
+      const [timePart, ampm] = timeStr.split(' ')
+      let [hours, minutes] = timePart.split(':').map(Number)
+
+      if (ampm && ampm.toUpperCase() === 'PM' && hours !== 12) {
+        hours += 12
+      } else if (ampm && ampm.toUpperCase() === 'AM' && hours === 12) {
+        hours = 0
+      }
+
+      return new Date(`${dateParts.year}-${dateParts.month}-${dateParts.day}T${hours}:${minutes}:00`)
+    } catch (e) {
+      console.error('Error parsing date/time:', e)
+
+      return null
+    }
+  }
+
+  // Function to calculate duration between two dates
+  const calculateDuration = (startDate, startTime, endDate, endTime) => {
+    if (!startDate || !startTime) return 'N/A'
+
+    try {
+      const startDateTime = parseDateTime(startDate, startTime)
+      const endDateTime = endDate && endTime ? parseDateTime(endDate, endTime) : new Date()
+
+      if (!startDateTime) return 'N/A'
+
+      const diffMs = endDateTime - startDateTime
+
+      if (diffMs < 0) return 'N/A'
+
+      const diffSecs = Math.floor(diffMs / 1000)
+      const hours = Math.floor(diffSecs / 3600)
+      const minutes = Math.floor((diffSecs % 3600) / 60)
+      const seconds = diffSecs % 60
+
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    } catch (e) {
+      console.error('Error calculating duration:', e)
+
+      return 'N/A'
     }
   }
 
@@ -406,13 +477,21 @@ const BookingEdit = ({ vendorId }) => {
     // Same logic as OrderListTable:
     // User bookings: userid exists AND userid != vendorId
     // Vendor bookings: userid is missing OR userid == vendorId
+    // 2. Filter by Booking Source (User vs Vendor vs My Space)
+    // 2. Filter by Booking Source (User vs Vendor)
     if (bookingSourceFilter === 'user') {
       result = result.filter(item => item.userid && String(item.userid) !== String(effectiveVendorId))
     } else {
+      // Vendor bookings: userid is missing OR userid == vendorId
       result = result.filter(item => !item.userid || String(item.userid) === String(effectiveVendorId))
     }
 
-    // 3. Global Text Filter
+    // 3. Filter by Status
+    if (statusFilter !== 'all') {
+      result = result.filter(item => item.status?.toLowerCase() === statusFilter)
+    }
+
+    // 4. Global Text Filter
     if (globalFilter) {
       const lowercasedFilter = globalFilter.toLowerCase()
 
@@ -428,7 +507,9 @@ const BookingEdit = ({ vendorId }) => {
     }
 
     setFilteredData(result)
-  }, [data, viewType, bookingSourceFilter, globalFilter, effectiveVendorId])
+  }, [data, viewType, bookingSourceFilter, globalFilter, effectiveVendorId, statusFilter])
+
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const columns = useMemo(
     () => [
@@ -448,101 +529,16 @@ const BookingEdit = ({ vendorId }) => {
             indeterminate={row.getIsSomeSelected()}
             onChange={row.getToggleSelectedHandler()}
           />
-        )
+        ),
+        enableSorting: false
       },
-      columnHelper.accessor('vehicleNumber', {
-        header: 'Vehicle Number',
-        cell: ({ row }) => (
-          <Typography style={{ color: '#666cff' }}>
-            {row.original.vehicleNumber ? `#${row.original.vehicleNumber}` : 'N/A'}
-          </Typography>
-        )
-      }),
-      columnHelper.accessor('bookingDate', {
-        header: 'Booking Date & Time',
-        cell: ({ row }) => {
-          const formatDateDisplay = dateStr => {
-            if (!dateStr) return 'N/A'
-
-            try {
-              if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
-                return new Date(dateStr).toLocaleDateString('en-US', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                })
-              } else if (dateStr.includes('-')) {
-                const [day, month, year] = dateStr.split('-')
-
-                return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                })
-              }
-
-              return dateStr
-            } catch (e) {
-              console.error('Date parsing error:', e, dateStr)
-
-              return dateStr
-            }
-          }
-
-          const formatTimeDisplay = timeStr => {
-            if (!timeStr) return ''
-
-            if (timeStr.includes('AM') || timeStr.includes('PM')) {
-              return timeStr
-            }
-
-            try {
-              const [hours, minutes] = timeStr.split(':').map(Number)
-              const period = hours >= 12 ? 'PM' : 'AM'
-              const hours12 = hours % 12 || 12
-
-              return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`
-            } catch (e) {
-              return timeStr
-            }
-          }
-
-          return (
-            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <i className='ri-calendar-2-line' style={{ fontSize: '16px', color: '#666' }}></i>
-              {`${formatDateDisplay(row.original.bookingDate)}, ${formatTimeDisplay(row.original.bookingTime || 'N/A')}`}
-            </Typography>
-          )
-        }
-      }),
-      columnHelper.accessor('payableTime', {
-        header: 'Payable Time',
-        cell: ({ row }) => {
-          // Check booking status
-          const status = row.original.status?.toLowerCase()
-
-          // Return empty for completed status
-          if (status === 'completed') {
-            return null
-          }
-
-          const isParked = status === 'parked'
-
-          // Show real-time timer for PARKED status
-          if (isParked) {
-            return (
-              <div className='flex items-center gap-2'>
-                <i className='ri-time-line' style={{ fontSize: '16px', color: '#666CFF' }}></i>
-                <PayableTimeTimer parkedDate={row.original.parkedDate} parkedTime={row.original.parkedTime} />
-              </div>
-            )
-          }
-
-          // Default case for other statuses
-          return null
-        }
-      }),
-      columnHelper.accessor('customerName', {
+      {
+        id: 'sno',
+        header: 'S.No',
+        cell: ({ row }) => <Typography>{row.index + 1}</Typography>,
+        enableSorting: false
+      },
+      columnHelper.accessor('customer', {
         header: 'Customer',
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
@@ -552,6 +548,35 @@ const BookingEdit = ({ vendorId }) => {
               <Typography variant='body2'>{row.original.mobileNumber || 'N/A'}</Typography>
             </div>
           </div>
+        )
+      }),
+      columnHelper.accessor('vehicleType', {
+        header: 'Vehicle Type',
+        cell: ({ row }) => {
+          const vehicleType = row.original.vehicleType?.toLowerCase()
+
+          const vehicleIcons = {
+            car: { icon: 'ri-car-fill', color: '#ff4d49' },
+            bike: { icon: 'ri-motorbike-fill', color: '#72e128' },
+            default: { icon: 'ri-roadster-fill', color: '#282a42' }
+          }
+
+          const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default
+
+          return (
+            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <i className={icon} style={{ fontSize: '16px', color }}></i>
+              {row.original.vehicleType || 'N/A'}
+            </Typography>
+          )
+        }
+      }),
+      columnHelper.accessor('vehicleNumber', {
+        header: 'Vehicle Number',
+        cell: ({ row }) => (
+          <Typography style={{ color: '#666cff' }}>
+            {row.original.vehicleNumber ? `#${row.original.vehicleNumber}` : 'N/A'}
+          </Typography>
         )
       }),
       columnHelper.accessor('sts', {
@@ -576,6 +601,295 @@ const BookingEdit = ({ vendorId }) => {
           )
         }
       }),
+      {
+        id: 'bookingDateTime',
+        header: 'Booking Date & Time',
+        accessorFn: row => {
+          const dateTime = parseDateTime(row.bookingDate, row.bookingTime)
+
+          return dateTime ? dateTime.getTime() : 0
+        },
+        sortingFn: 'basic',
+        cell: ({ row }) => {
+          const formatDateDisplay = dateStr => {
+            if (!dateStr) return 'N/A'
+
+            try {
+              if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                return new Date(dateStr).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              } else if (dateStr.includes('-')) {
+                const [day, month, year] = dateStr.split('-')
+
+                return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              }
+
+              return dateStr
+            } catch (e) {
+              return dateStr
+            }
+          }
+
+          const formatTimeDisplay = timeStr => {
+            if (!timeStr) return 'N/A'
+            const raw = String(timeStr).trim()
+
+            if (/NaN/i.test(raw)) return 'N/A'
+            if (/(AM|PM)/i.test(raw)) return raw
+
+            try {
+              const [h, m] = raw.split(':').map(Number)
+
+              if (Number.isNaN(h)) return 'N/A'
+              const period = h >= 12 ? 'PM' : 'AM'
+              const hours12 = h % 12 || 12
+
+              return `${hours12}:${String(m || 0).padStart(2, '0')} ${period}`
+            } catch (e) {
+              return 'N/A'
+            }
+          }
+
+          return (
+            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <i className='ri-calendar-2-line' style={{ fontSize: '16px', color: '#666' }}></i>
+              {`${formatDateDisplay(row.original.bookingDate)}, ${formatTimeDisplay(row.original.bookingTime || 'N/A')}`}
+            </Typography>
+          )
+        }
+      },
+      {
+        id: 'parkingEntryDateTime',
+        header: 'Parking Entry Date & Time',
+        accessorFn: row => {
+          const dateTime = parseDateTime(row.parkedDate, row.parkedTime)
+
+          return dateTime ? dateTime.getTime() : 0
+        },
+        cell: ({ row }) => {
+          const formatDateDisplay = dateStr => {
+            if (!dateStr) return 'N/A'
+
+            try {
+              if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                return new Date(dateStr).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              } else if (dateStr.includes('-')) {
+                const [day, month, year] = dateStr.split('-')
+
+                return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              }
+
+              return dateStr
+            } catch (e) {
+              return dateStr
+            }
+          }
+
+          const formatTimeDisplay = timeStr => {
+            if (!timeStr) return 'N/A'
+
+            return timeStr
+          }
+
+          return (
+            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <i className='ri-calendar-2-line' style={{ fontSize: '16px', color: '#666' }}></i>
+              {`${formatDateDisplay(row.original.parkedDate)}, ${formatTimeDisplay(row.original.parkedTime || 'N/A')}`}
+            </Typography>
+          )
+        }
+      },
+      {
+        id: 'exitVehicleDateTime',
+        header: 'Parking Exit Date & Time',
+        accessorFn: row => {
+          const dateTime = parseDateTime(row.exitvehicledate, row.exitvehicletime)
+
+          return dateTime ? dateTime.getTime() : 0
+        },
+        cell: ({ row }) => {
+          const formatDateDisplay = dateStr => {
+            if (!dateStr) return 'N/A'
+
+            try {
+              if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                return new Date(dateStr).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              } else if (dateStr.includes('-')) {
+                const [day, month, year] = dateStr.split('-')
+
+                return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              }
+
+              return dateStr
+            } catch (e) {
+              return dateStr
+            }
+          }
+
+          const formatTimeDisplay = timeStr => {
+            if (!timeStr) return 'N/A'
+
+            return timeStr
+          }
+
+          return (
+            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <i className='ri-calendar-2-line' style={{ fontSize: '16px', color: '#666' }}></i>
+              {`${formatDateDisplay(row.original.exitvehicledate)}, ${formatTimeDisplay(row.original.exitvehicletime || 'N/A')}`}
+            </Typography>
+          )
+        }
+      },
+      {
+        id: 'payableTime',
+        header: 'Payable Time',
+        cell: ({ row }) => {
+          const status = row.original.status?.toLowerCase()
+
+          if (status === 'completed') return row.original.hour || 'N/A'
+          const isParked = status === 'parked'
+
+          if (isParked) {
+            return (
+              <div className='flex items-center gap-2'>
+                <i className='ri-time-line' style={{ fontSize: '16px', color: '#666CFF' }}></i>
+                <PayableTimeTimer parkedDate={row.original.parkedDate} parkedTime={row.original.parkedTime} />
+              </div>
+            )
+          }
+
+          return row.original.hour || 'N/A'
+        }
+      },
+      {
+        id: 'duration',
+        header: 'Duration',
+        cell: ({ row }) => {
+          const status = row.original.status?.toUpperCase()
+          const isCompleted = status === 'COMPLETED'
+
+          if (isCompleted) {
+            let duration = row.original.hour
+
+            if (!duration || duration === 'N/A') {
+              duration = calculateDuration(
+                row.original.parkedDate,
+                row.original.parkedTime,
+                row.original.exitvehicledate,
+                row.original.exitvehicletime
+              )
+            }
+
+            return (
+              <Typography sx={{ fontWeight: 500, color: '#72e128', fontFamily: 'monospace' }}>{duration}</Typography>
+            )
+          }
+
+          return <Typography>N/A</Typography>
+        }
+      },
+      ...((bookingSourceFilter === 'user'
+        ? [
+            {
+              id: 'charges',
+              header: 'Charges',
+              cell: ({ row }) => <Typography>₹{Number(row.original.amount || 0).toFixed(2)}</Typography>
+            },
+            {
+              id: 'handlingFee',
+              header: 'Handling Fee',
+              cell: ({ row }) => <Typography>₹{Number(row.original.handlingfee || 0).toFixed(2)}</Typography>
+            },
+            {
+              id: 'gst',
+              header: 'GST',
+              cell: ({ row }) => <Typography>₹{Number(row.original.gstamout || 0).toFixed(2)}</Typography>
+            },
+            {
+              id: 'platformFee',
+              header: 'Platform Fee',
+              cell: ({ row }) => (
+                <Typography sx={{ color: '#ff4d49', fontWeight: 500 }}>
+                  - ₹{Number(row.original.releasefee || 0).toFixed(2)}
+                </Typography>
+              )
+            },
+            {
+              id: 'receivableAmount',
+              header: 'Receivable',
+              cell: ({ row }) => (
+                <Typography sx={{ color: '#72e128', fontWeight: 500 }}>
+                  ₹{Number(row.original.recievableamount || 0).toFixed(2)}
+                </Typography>
+              )
+            },
+            {
+              id: 'total',
+              header: 'Total',
+              cell: ({ row }) => (
+                <Typography fontWeight={600}>
+                  ₹{Number(row.original.totalamout || row.original.amount || 0).toFixed(2)}
+                </Typography>
+              )
+            }
+          ]
+        : [
+            {
+              id: 'charges',
+              header: 'Charges',
+              cell: ({ row }) => <Typography>₹{Number(row.original.amount || 0).toFixed(2)}</Typography>
+            },
+            {
+              id: 'platformFee',
+              header: 'Platform Fee',
+              cell: ({ row }) => (
+                <Typography sx={{ color: '#ff4d49', fontWeight: 500 }}>
+                  - ₹{Number(row.original.releasefee || 0).toFixed(2)}
+                </Typography>
+              )
+            },
+            {
+              id: 'receivableAmount',
+              header: 'Receivable',
+              cell: ({ row }) => (
+                <Typography sx={{ color: '#72e128', fontWeight: 500 }}>
+                  ₹{Number(row.original.recievableamount || 0).toFixed(2)}
+                </Typography>
+              )
+            },
+            {
+              id: 'total',
+              header: 'Total',
+              cell: ({ row }) => (
+                <Typography fontWeight={600}>
+                  ₹{Number(row.original.totalamout || row.original.amount || 0).toFixed(2)}
+                </Typography>
+              )
+            }
+          ]) || []),
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
@@ -597,27 +911,6 @@ const BookingEdit = ({ vendorId }) => {
               }
               color={!chipData.color.startsWith('#') ? chipData.color : undefined}
             />
-          )
-        }
-      }),
-      columnHelper.accessor('vehicleType', {
-        header: 'Vehicle Type',
-        cell: ({ row }) => {
-          const vehicleType = row.original.vehicleType?.toLowerCase()
-
-          const vehicleIcons = {
-            car: { icon: 'ri-car-fill', color: '#ff4d49' },
-            bike: { icon: 'ri-motorbike-fill', color: '#72e128' },
-            default: { icon: 'ri-roadster-fill', color: '#282a42' }
-          }
-
-          const { icon, color } = vehicleIcons[vehicleType] || vehicleIcons.default
-
-          return (
-            <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <i className={icon} style={{ fontSize: '16px', color }}></i>
-              {row.original.vehicleType || 'N/A'}
-            </Typography>
           )
         }
       }),
@@ -651,7 +944,6 @@ const BookingEdit = ({ vendorId }) => {
                         const selectedId = row.original._id
 
                         if (!selectedId) return
-
                         const isConfirmed = window.confirm('Are you sure you want to delete this booking?')
 
                         if (!isConfirmed) return
@@ -665,8 +957,6 @@ const BookingEdit = ({ vendorId }) => {
                         }
 
                         setData(prev => prev.filter(booking => booking._id !== selectedId))
-
-                        // We rely on useEffect to update filteredData based on data
                       } catch (error) {
                         console.error('Error deleting booking:', error)
                       }
@@ -676,8 +966,7 @@ const BookingEdit = ({ vendorId }) => {
               ]}
             />
           </div>
-        ),
-        enableSorting: false
+        )
       }),
       columnHelper.accessor('statusAction', {
         header: 'Change Status',
@@ -685,7 +974,7 @@ const BookingEdit = ({ vendorId }) => {
           <ActionStatusButton
             bookingId={row.original._id}
             currentStatus={row.original.status}
-            bookingDetails={row.original} // Pass the entire booking object
+            bookingDetails={row.original}
             vendorId={vendorId}
             onUpdate={fetchData}
           />
@@ -693,7 +982,7 @@ const BookingEdit = ({ vendorId }) => {
         enableSorting: false
       })
     ],
-    [router, fetchData, vendorId]
+    [router, fetchData, vendorId, bookingSourceFilter]
   )
 
   const table = useReactTable({
@@ -729,7 +1018,7 @@ const BookingEdit = ({ vendorId }) => {
       <CardHeader title={vendorName ? `Booking Vendor - ${vendorName}` : 'Booking Management'} />
       <Divider />
       <CardContent>
-        {/* Top Controls Row */}
+        {/* Top Controls Row: Search, Booking Type, New Booking */}
         <Box
           sx={{
             display: 'flex',
@@ -740,12 +1029,28 @@ const BookingEdit = ({ vendorId }) => {
             mb: 3
           }}
         >
-          <DebouncedInput
-            value={globalFilter ?? ''}
-            onChange={value => setGlobalFilter(String(value))}
-            placeholder='Search Bookings'
-            sx={{ width: { xs: '100%', md: '300px' } }}
-          />
+          <Box sx={{ display: 'flex', gap: 2, flex: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setGlobalFilter(String(value))}
+              placeholder='Search Bookings'
+              sx={{ width: { xs: '100%', sm: '300px' } }}
+            />
+            {/* Booking Type Dropdown moved here */}
+            <FormControl size='small' sx={{ minWidth: 160 }}>
+              <InputLabel id='booking-type-select-label'>Booking Type</InputLabel>
+              <Select
+                labelId='booking-type-select-label'
+                id='booking-type-select'
+                value={viewType}
+                label='Booking Type'
+                onChange={e => setViewType(e.target.value)}
+              >
+                <MenuItem value='bookings'>Bookings</MenuItem>
+                <MenuItem value='subscription'>Subscription</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
           <Button
             variant='contained'
@@ -761,24 +1066,46 @@ const BookingEdit = ({ vendorId }) => {
           </Button>
         </Box>
 
-        {/* Filters Row */}
+        {/* Secondary Controls Row: Status Tabs (Left) + User/Vendor Toggle (Right) */}
         <Box
-          sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center', mb: 2 }}
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', lg: 'center' },
+            gap: 2,
+            mb: 3,
+            borderBottom: 1,
+            borderColor: 'divider',
+            pb: 2
+          }}
         >
-          {/* Booking Type Dropdown */}
-          <FormControl size='small' sx={{ minWidth: 200 }}>
-            <InputLabel id='booking-type-select-label'>Booking Type</InputLabel>
-            <Select
-              labelId='booking-type-select-label'
-              id='booking-type-select'
-              value={viewType}
-              label='Booking Type'
-              onChange={e => setViewType(e.target.value)}
-            >
-              <MenuItem value='bookings'>Bookings</MenuItem>
-              <MenuItem value='subscription'>Subscription</MenuItem>
-            </Select>
-          </FormControl>
+          {/* Status Tabs */}
+          <Box sx={{ display: 'flex', gap: 0, overflowX: 'auto', maxWidth: { xs: '100%', lg: '65%' } }}>
+            {['pending', 'approved', 'parked', 'completed', 'cancelled', 'all'].map(status => (
+              <Button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                sx={{
+                  textTransform: 'capitalize',
+                  color: statusFilter === status ? '#22c55e' : '#64748b',
+                  fontWeight: statusFilter === status ? 600 : 400,
+                  borderBottom: statusFilter === status ? '2px solid #22c55e' : '2px solid transparent',
+                  borderRadius: 0,
+                  px: 2,
+                  py: 1.5,
+                  minWidth: 'auto',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    color: '#22c55e'
+                  }
+                }}
+              >
+                {status}
+              </Button>
+            ))}
+          </Box>
 
           {/* Booking Source Toggle: User vs Vendor */}
           <Box
@@ -787,7 +1114,8 @@ const BookingEdit = ({ vendorId }) => {
               p: 0.5,
               borderRadius: '12px',
               display: 'inline-flex',
-              gap: 1
+              gap: 1,
+              flexShrink: 0
             }}
           >
             {[
@@ -803,10 +1131,11 @@ const BookingEdit = ({ vendorId }) => {
                   backgroundColor: bookingSourceFilter === type.value ? '#22c55e' : 'transparent',
                   fontWeight: 600,
                   borderRadius: '8px',
-                  px: 3,
+                  px: 2, // slightly reduced padding
                   py: 1,
-                  fontSize: '0.9rem',
+                  fontSize: '0.85rem',
                   boxShadow: bookingSourceFilter === type.value ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : 'none',
+                  whiteSpace: 'nowrap',
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     backgroundColor: bookingSourceFilter === type.value ? '#16a34a' : '#e2e8f0',
