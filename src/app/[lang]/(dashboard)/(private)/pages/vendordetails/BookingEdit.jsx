@@ -26,6 +26,11 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContentText from '@mui/material/DialogContentText'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -172,6 +177,11 @@ const BookingEdit = ({ vendorId }) => {
 
   // Status Filter
   const [statusFilter, setStatusFilter] = useState('pending') // 'pending', 'approved', 'parked', 'completed', 'cancelled', 'all'
+
+  // Delete Dialog States
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [bookingToDelete, setBookingToDelete] = useState(null)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   // Use provided vendorId prop or fallback to session user id
   const effectiveVendorId = vendorId || session?.user?.id
@@ -321,6 +331,71 @@ const BookingEdit = ({ vendorId }) => {
 
       return false
     }
+  }
+
+  // Function to delete a booking
+  const deleteBooking = async bookingId => {
+    try {
+      const response = await fetch(`${API_URL}/vendor/deletebooking/${bookingId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete booking')
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error deleting booking:', error)
+
+      return false
+    }
+  }
+
+  // Handle Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (isBulkDeleting) {
+      const selectedIds = Object.keys(rowSelection)
+
+      try {
+        setLoading(true)
+
+        // Delete each selected booking sequentially
+        // Since there is no bulk API, we loop.
+        for (const idIdx of selectedIds) {
+          const bookingId = filteredData[parseInt(idIdx)]?._id
+
+          if (bookingId) {
+            await deleteBooking(bookingId)
+          }
+        }
+
+        setData(prev => {
+          const idsToDelete = selectedIds.map(idx => filteredData[parseInt(idx)]?._id).filter(id => id)
+
+          return prev.filter(booking => !idsToDelete.includes(booking._id))
+        })
+        setRowSelection({})
+      } catch (error) {
+        console.error('Error in bulk delete:', error)
+      } finally {
+        setLoading(false)
+      }
+    } else if (bookingToDelete) {
+      try {
+        const success = await deleteBooking(bookingToDelete)
+
+        if (success) {
+          setData(prev => prev.filter(booking => booking._id !== bookingToDelete))
+        }
+      } catch (error) {
+        console.error('Error deleting single booking:', error)
+      }
+    }
+
+    setDeleteDialogOpen(false)
+    setBookingToDelete(null)
+    setIsBulkDeleting(false)
   }
 
   // Function to check and update bookings for auto-cancellation
@@ -939,27 +1014,13 @@ const BookingEdit = ({ vendorId }) => {
                   text: 'Delete',
                   icon: 'ri-delete-bin-7-line',
                   menuItemProps: {
-                    onClick: async () => {
-                      try {
-                        const selectedId = row.original._id
+                    onClick: () => {
+                      const selectedId = row.original._id
 
-                        if (!selectedId) return
-                        const isConfirmed = window.confirm('Are you sure you want to delete this booking?')
-
-                        if (!isConfirmed) return
-
-                        const response = await fetch(`${API_URL}/vendor/deletebooking/${selectedId}`, {
-                          method: 'DELETE'
-                        })
-
-                        if (!response.ok) {
-                          throw new Error('Failed to delete booking')
-                        }
-
-                        setData(prev => prev.filter(booking => booking._id !== selectedId))
-                      } catch (error) {
-                        console.error('Error deleting booking:', error)
-                      }
+                      if (!selectedId) return
+                      setBookingToDelete(selectedId)
+                      setIsBulkDeleting(false)
+                      setDeleteDialogOpen(true)
                     }
                   }
                 }
@@ -1052,18 +1113,33 @@ const BookingEdit = ({ vendorId }) => {
             </FormControl>
           </Box>
 
-          <Button
-            variant='contained'
-            component={Link}
-            href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
-            startIcon={<i className='ri-add-line' />}
-            sx={{
-              backgroundColor: '#22c55e',
-              '&:hover': { backgroundColor: '#16a34a' }
-            }}
-          >
-            New Booking
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {Object.keys(rowSelection).length > 0 && (
+              <Button
+                variant='outlined'
+                color='error'
+                startIcon={<i className='ri-delete-bin-line' />}
+                onClick={() => {
+                  setIsBulkDeleting(true)
+                  setDeleteDialogOpen(true)
+                }}
+              >
+                Delete Selected ({Object.keys(rowSelection).length})
+              </Button>
+            )}
+            <Button
+              variant='contained'
+              component={Link}
+              href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
+              startIcon={<i className='ri-add-line' />}
+              sx={{
+                backgroundColor: '#22c55e',
+                '&:hover': { backgroundColor: '#16a34a' }
+              }}
+            >
+              New Booking
+            </Button>
+          </Box>
         </Box>
 
         {/* Secondary Controls Row: Status Tabs (Left) + User/Vendor Toggle (Right) */}
@@ -1213,6 +1289,31 @@ const BookingEdit = ({ vendorId }) => {
           </>
         )}
       </div>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby='delete-dialog-title'
+        aria-describedby='delete-dialog-description'
+      >
+        <DialogTitle id='delete-dialog-title'>
+          {isBulkDeleting ? 'Confirm Bulk Deletion' : 'Confirm Deletion'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id='delete-dialog-description'>
+            {isBulkDeleting
+              ? `Are you sure you want to delete ${Object.keys(rowSelection).length} selected bookings? This action cannot be undone.`
+              : 'Are you sure you want to delete this booking? This action cannot be undone.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color='secondary'>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDelete} color='error' variant='contained' autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }

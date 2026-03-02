@@ -25,6 +25,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
+import DialogContentText from '@mui/material/DialogContentText'
 import IconButton from '@mui/material/IconButton'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -114,6 +115,11 @@ const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
     pageSize: 10
   })
 
+  // Delete Dialog States
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [settlementToDelete, setSettlementToDelete] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
   const fetchSettlementHistory = async () => {
     if (!vendorId || !open) return
 
@@ -152,6 +158,29 @@ const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
   useEffect(() => {
     fetchSettlementHistory()
   }, [vendorId, open])
+
+  const handleDeleteSettlement = async () => {
+    if (!settlementToDelete) return
+
+    setDeleteLoading(true)
+
+    try {
+      const response = await fetch(`${API_URL}/vendor/deletesettlement/${settlementToDelete}`, {
+        method: 'DELETE'
+      })
+
+
+      // Success - remove from local state
+      setSettlementHistory(prev => prev.filter(item => item._id !== settlementToDelete))
+      setDeleteDialogOpen(false)
+      setSettlementToDelete(null)
+    } catch (err) {
+      console.error('Error deleting settlement:', err)
+      alert(err.message || 'Failed to delete settlement record')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   const formatCurrency = value => {
     if (value === null || value === undefined || isNaN(value)) return '₹0.00'
@@ -239,6 +268,24 @@ const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
 
         return <Chip label={currentStatus.label} color={currentStatus.color} variant='outlined' size='small' />
       }
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      renderCell: params => (
+        <IconButton
+          color='error'
+          size='small'
+          onClick={e => {
+            e.stopPropagation()
+            setSettlementToDelete(params.id)
+            setDeleteDialogOpen(true)
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      )
     }
   ]
 
@@ -295,6 +342,35 @@ const VendorSettlementHistoryModal = ({ open, handleClose, vendorId }) => {
           Close
         </Button>
       </DialogActions>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby='delete-settlement-title'
+        aria-describedby='delete-settlement-description'
+      >
+        <DialogTitle id='delete-settlement-title'>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText id='delete-settlement-description'>
+            Are you sure you want to delete this settlement record? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color='secondary'>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteSettlement}
+            color='error'
+            variant='contained'
+            disabled={deleteLoading}
+            startIcon={deleteLoading ? <CircularProgress size={20} color='inherit' /> : <DeleteIcon />}
+            autoFocus
+          >
+            {deleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   )
 }
@@ -776,6 +852,11 @@ const VendorListTable = () => {
   const [historyModalOpen, setHistoryModalOpen] = useState(false)
   const [selectedVendorId, setSelectedVendorId] = useState(null)
 
+  // Delete states for main vendor list
+  const [vendorDeleteDialogOpen, setVendorDeleteDialogOpen] = useState(false)
+  const [vendorToDelete, setVendorToDelete] = useState(null)
+  const [vendorDeleteLoading, setVendorDeleteLoading] = useState(false)
+
   const handleOpenSettlementModal = vendorId => {
     setSelectedVendorId(vendorId)
     setSettlementModalOpen(true)
@@ -849,6 +930,31 @@ const VendorListTable = () => {
     }
   }
 
+  const handleDeleteVendor = async () => {
+    if (!vendorToDelete) return
+
+    try {
+      setVendorDeleteLoading(true)
+
+      const response = await fetch(`${API_URL}/admin/deletevendor/${vendorToDelete.vendorId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete vendor')
+      }
+
+      setVendorDeleteDialogOpen(false)
+      setVendorToDelete(null)
+      fetchVendors()
+    } catch (error) {
+      console.error('Error deleting vendor:', error)
+      alert('Failed to delete vendor. Please try again.')
+    } finally {
+      setVendorDeleteLoading(false)
+    }
+  }
+
   const columns = useMemo(
     () => [
       {
@@ -864,6 +970,7 @@ const VendorListTable = () => {
         header: 'Vendor Name',
         cell: ({ row }) => {
           const vendor = row.original
+
           const imgSrc =
             vendor.image || 'https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/avatars/1.png'
 
@@ -951,30 +1058,6 @@ const VendorListTable = () => {
       columnHelper.accessor('actions', {
         header: 'Actions',
         cell: ({ row }) => {
-          const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-          const [deleteLoading, setDeleteLoading] = useState(false)
-
-          const handleDeleteVendor = async () => {
-            try {
-              setDeleteLoading(true)
-
-              const response = await fetch(`${API_URL}/admin/deletevendor/${row.original.vendorId}`, {
-                method: 'DELETE'
-              })
-
-              if (!response.ok) {
-                throw new Error('Failed to delete vendor')
-              }
-
-              setDeleteDialogOpen(false)
-              fetchVendors()
-            } catch (error) {
-              console.error('Error deleting vendor:', error)
-            } finally {
-              setDeleteLoading(false)
-            }
-          }
-
           return (
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
@@ -1002,34 +1085,13 @@ const VendorListTable = () => {
                 size='small'
                 color='error'
                 startIcon={<DeleteIcon />}
-                onClick={() => setDeleteDialogOpen(true)}
+                onClick={() => {
+                  setVendorToDelete(row.original)
+                  setVendorDeleteDialogOpen(true)
+                }}
               >
                 Delete
               </Button>
-
-              <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>
-                  <Typography>
-                    Are you sure you want to delete vendor <strong>{row.original.vendorName}</strong> (ID:{' '}
-                    {row.original.vendorId})? This action cannot be undone.
-                  </Typography>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={() => setDeleteDialogOpen(false)} color='primary' disabled={deleteLoading}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleDeleteVendor}
-                    color='error'
-                    variant='contained'
-                    disabled={deleteLoading}
-                    startIcon={deleteLoading ? <CircularProgress size={20} color='inherit' /> : <DeleteIcon />}
-                  >
-                    {deleteLoading ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </DialogActions>
-              </Dialog>
             </Box>
           )
         }
@@ -1162,6 +1224,31 @@ const VendorListTable = () => {
         handleClose={handleCloseHistoryModal}
         vendorId={selectedVendorId}
       />
+
+      {/* Vendor Deletion Confirmation Dialog */}
+      <Dialog open={vendorDeleteDialogOpen} onClose={() => setVendorDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete vendor <strong>{vendorToDelete?.vendorName}</strong> (ID:{' '}
+            {vendorToDelete?.vendorId})? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setVendorDeleteDialogOpen(false)} color='primary' disabled={vendorDeleteLoading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteVendor}
+            color='error'
+            variant='contained'
+            disabled={vendorDeleteLoading}
+            startIcon={vendorDeleteLoading ? <CircularProgress size={20} color='inherit' /> : <DeleteIcon />}
+          >
+            {vendorDeleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }

@@ -237,23 +237,23 @@
 //   }, [effectiveVendorId])
 
 //   // Apply global filter
-  // useEffect(() => {
-  //   if (globalFilter) {
-  //     const lowercasedFilter = globalFilter.toLowerCase()
-  //     const filtered = data.filter(item => {
-  //       return (
-  //         (item.vehicleNumber && item.vehicleNumber.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.personName && item.personName.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.mobileNumber && item.mobileNumber.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.vehicleType && item.vehicleType.toLowerCase().includes(lowercasedFilter)) ||
-  //         (item.status && item.status.toLowerCase().includes(lowercasedFilter))
-  //       )
-  //     })
-  //     setFilteredData(filtered)
-  //   } else {
-  //     setFilteredData(data)
-  //   }
-  // }, [globalFilter, data])
+// useEffect(() => {
+//   if (globalFilter) {
+//     const lowercasedFilter = globalFilter.toLowerCase()
+//     const filtered = data.filter(item => {
+//       return (
+//         (item.vehicleNumber && item.vehicleNumber.toLowerCase().includes(lowercasedFilter)) ||
+//         (item.personName && item.personName.toLowerCase().includes(lowercasedFilter)) ||
+//         (item.mobileNumber && item.mobileNumber.toLowerCase().includes(lowercasedFilter)) ||
+//         (item.vehicleType && item.vehicleType.toLowerCase().includes(lowercasedFilter)) ||
+//         (item.status && item.status.toLowerCase().includes(lowercasedFilter))
+//       )
+//     })
+//     setFilteredData(filtered)
+//   } else {
+//     setFilteredData(data)
+//   }
+// }, [globalFilter, data])
 
 //   const columns = useMemo(
 //     () => [
@@ -694,8 +694,6 @@
 
 // export default BookingEdit
 
-
-
 'use client'
 
 // React Imports
@@ -717,6 +715,12 @@ import CardHeader from '@mui/material/CardHeader'
 import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContentText from '@mui/material/DialogContentText'
+import Box from '@mui/material/Box'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -752,7 +756,7 @@ export const stsChipColor = {
   instant: { color: '#ff4d49', text: 'Instant' },
   subscription: { color: '#72e128', text: 'Subscription' },
   schedule: { color: '#fdb528', text: 'Schedule' }
-};
+}
 
 export const statusChipColor = {
   completed: { color: 'success' },
@@ -760,7 +764,7 @@ export const statusChipColor = {
   parked: { color: '#666CFF' },
   cancelled: { color: 'error' },
   approved: { color: 'info' }
-};
+}
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -828,11 +832,7 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
     return () => clearInterval(timer)
   }, [parkedDate, parkedTime])
 
-  return (
-    <Typography sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
-      {elapsedTime}
-    </Typography>
-  )
+  return <Typography sx={{ fontFamily: 'monospace', fontWeight: 500 }}>{elapsedTime}</Typography>
 }
 
 const columnHelper = createColumnHelper()
@@ -848,173 +848,247 @@ const BookingEdit = ({ vendorId }) => {
   const { data: session } = useSession()
   const router = useRouter()
 
+  // Delete Dialog States
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [bookingToDelete, setBookingToDelete] = useState(null)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+
   // Use provided vendorId prop or fallback to session user id
   const effectiveVendorId = vendorId || session?.user?.id
 
   // Function to parse date and time from booking
-  const parseBookingDateTime = (booking) => {
-    if (!booking.bookingDate || !booking.bookingTime) return null;
+  const parseBookingDateTime = booking => {
+    if (!booking.bookingDate || !booking.bookingTime) return null
 
     try {
-      const [day, month, year] = booking.bookingDate.split('-');
-      const [timePart, ampm] = booking.bookingTime.split(' ');
-      let [hours, minutes] = timePart.split(':').map(Number);
+      const [day, month, year] = booking.bookingDate.split('-')
+      const [timePart, ampm] = booking.bookingTime.split(' ')
+      let [hours, minutes] = timePart.split(':').map(Number)
 
       if (ampm && ampm.toUpperCase() === 'PM' && hours !== 12) {
-        hours += 12;
+        hours += 12
       } else if (ampm && ampm.toUpperCase() === 'AM' && hours === 12) {
-        hours = 0;
+        hours = 0
       }
 
-      return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
+      return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`)
     } catch (e) {
-      console.error("Error parsing booking datetime:", e);
-      return null;
+      console.error('Error parsing booking datetime:', e)
+      return null
     }
-  };
+  }
 
   // Function to cancel a booking
-  const cancelBooking = async (bookingId) => {
+  const cancelBooking = async bookingId => {
     try {
       const response = await fetch(`${API_URL}/vendor/cancelbooking/${bookingId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+          'Content-Type': 'application/json'
+        }
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to cancel booking');
+        throw new Error('Failed to cancel booking')
       }
 
-      return true;
+      return true
     } catch (error) {
-      console.error('Error cancelling booking:', error);
-      return false;
+      console.error('Error cancelling booking:', error)
+      return false
     }
-  };
+  }
 
   // Function to check and update bookings for auto-cancellation
   const checkAndUpdateBookings = async () => {
     try {
-      const now = new Date();
-      
+      const now = new Date()
+
       // Create a copy of the current data to avoid direct state mutation
-      const updatedBookings = [...data];
-      let needsUpdate = false;
+      const updatedBookings = [...data]
+      let needsUpdate = false
 
       for (const booking of updatedBookings) {
         try {
           // Skip if not pending or approved
-          const status = booking.status?.toLowerCase();
+          const status = booking.status?.toLowerCase()
           if (status !== 'pending' && status !== 'approved') {
-            continue;
+            continue
           }
 
-          const bookingDateTime = parseBookingDateTime(booking);
-          if (!bookingDateTime) continue;
+          const bookingDateTime = parseBookingDateTime(booking)
+          if (!bookingDateTime) continue
 
           // Check if the booking time has passed by more than 10 minutes
-          const tenMinutesAfterBooking = new Date(bookingDateTime.getTime() + 10 * 60000);
-          
+          const tenMinutesAfterBooking = new Date(bookingDateTime.getTime() + 10 * 60000)
+
           if (now > tenMinutesAfterBooking) {
             // Update locally first for immediate UI feedback
-            booking.status = 'cancelled';
-            needsUpdate = true;
-            
+            booking.status = 'cancelled'
+            needsUpdate = true
+
             // Send cancellation request to server
-            await cancelBooking(booking._id);
-            console.log(`Booking ${booking._id} has been auto-cancelled`);
+            await cancelBooking(booking._id)
+            console.log(`Booking ${booking._id} has been auto-cancelled`)
           }
         } catch (e) {
-          console.error(`Error processing booking ${booking._id}:`, e);
+          console.error(`Error processing booking ${booking._id}:`, e)
         }
       }
 
       if (needsUpdate) {
-        setData(updatedBookings);
-        setFilteredData(updatedBookings);
+        setData(updatedBookings)
+        setFilteredData(updatedBookings)
       }
     } catch (e) {
-      console.error('Error in auto-cancellation check:', e);
+      console.error('Error in auto-cancellation check:', e)
     }
-  };
+  }
 
   const fetchData = async () => {
     if (!effectiveVendorId) {
-      setLoading(false);
-      setError("Vendor ID not available");
-      return;
+      setLoading(false)
+      setError('Vendor ID not available')
+      return
     }
 
     try {
-      setLoading(true);
-      setError(null);
-      console.log(`Fetching bookings from: ${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`);
-      const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`);
+      setLoading(true)
+      setError(null)
+      console.log(`Fetching bookings from: ${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`)
+      const response = await fetch(`${API_URL}/vendor/fetchbookingsbyvendorid/${effectiveVendorId}`)
 
       if (!response.ok) {
-        throw new Error('Failed to fetch bookings');
+        throw new Error('Failed to fetch bookings')
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result && result.bookings) {
         const filteredBookings = result.bookings.filter(booking =>
-          ["pending", "approved", "cancelled", "parked", "completed"]
-            .includes(booking.status?.toLowerCase() || "")
-        );
+          ['pending', 'approved', 'cancelled', 'parked', 'completed'].includes(booking.status?.toLowerCase() || '')
+        )
 
         // Sort bookings by creation date (latest first)
         const sortedBookings = filteredBookings.sort((a, b) => {
           if (a.createdAt && b.createdAt) {
-            return new Date(b.createdAt) - new Date(a.createdAt);
+            return new Date(b.createdAt) - new Date(a.createdAt)
           }
 
           try {
-            const dateA = parseBookingDateTime(a);
-            const dateB = parseBookingDateTime(b);
+            const dateA = parseBookingDateTime(a)
+            const dateB = parseBookingDateTime(b)
 
             if (dateA && dateB) {
-              return dateB - dateA;
+              return dateB - dateA
             }
-            
-            if (a._id && b._id) {
-              return b._id.localeCompare(a._id);
-            }
-            return 0;
-          } catch (e) {
-            return 0;
-          }
-        });
 
-        setData(sortedBookings);
-        setFilteredData(sortedBookings);
-        
+            if (a._id && b._id) {
+              return b._id.localeCompare(a._id)
+            }
+            return 0
+          } catch (e) {
+            return 0
+          }
+        })
+
+        setData(sortedBookings)
+        setFilteredData(sortedBookings)
+
         // After fetching data, check for bookings that need auto-cancellation
-        await checkAndUpdateBookings();
+        await checkAndUpdateBookings()
       } else {
-        setData([]);
-        setFilteredData([]);
+        setData([])
+        setFilteredData([])
       }
     } catch (error) {
-      console.error("Error fetching bookings:", error);
-      setError(error.message);
+      console.error('Error fetching bookings:', error)
+      setError(error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  // Function to delete a booking
+  const deleteBooking = async bookingId => {
+    try {
+      const response = await fetch(`${API_URL}/vendor/deletebooking/${bookingId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete booking')
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error deleting booking:', error)
+
+      return false
+    }
+  }
+
+  // Handle Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (isBulkDeleting) {
+      const selectedIds = Object.keys(rowSelection)
+
+      try {
+        setLoading(true)
+
+        // Delete each selected booking sequentially
+        for (const idIdx of selectedIds) {
+          const bookingId = filteredData[parseInt(idIdx)]?._id
+
+          if (bookingId) {
+            await deleteBooking(bookingId)
+          }
+        }
+
+        setData(prev => {
+          const idsToDelete = selectedIds.map(idx => filteredData[parseInt(idx)]?._id).filter(id => id)
+
+          return prev.filter(booking => !idsToDelete.includes(booking._id))
+        })
+        setFilteredData(prev => {
+          const idsToDelete = selectedIds.map(idx => filteredData[parseInt(idx)]?._id).filter(id => id)
+
+          return prev.filter(booking => !idsToDelete.includes(booking._id))
+        })
+        setRowSelection({})
+      } catch (error) {
+        console.error('Error in bulk delete:', error)
+      } finally {
+        setLoading(false)
+      }
+    } else if (bookingToDelete) {
+      try {
+        const success = await deleteBooking(bookingToDelete)
+
+        if (success) {
+          setData(prev => prev.filter(booking => booking._id !== bookingToDelete))
+          setFilteredData(prev => prev.filter(booking => booking._id !== bookingToDelete))
+        }
+      } catch (error) {
+        console.error('Error deleting single booking:', error)
+      }
+    }
+
+    setDeleteDialogOpen(false)
+    setBookingToDelete(null)
+    setIsBulkDeleting(false)
+  }
 
   useEffect(() => {
-    fetchData();
-    
+    fetchData()
+
     // Set up interval to check for auto-cancellation every minute
     const intervalId = setInterval(() => {
-      checkAndUpdateBookings();
-    }, 60000); // Check every minute
+      checkAndUpdateBookings()
+    }, 60000) // Check every minute
 
-    return () => clearInterval(intervalId);
-  }, [effectiveVendorId]);
+    return () => clearInterval(intervalId)
+  }, [effectiveVendorId])
 
   // Apply global filter
   useEffect(() => {
@@ -1066,7 +1140,7 @@ const BookingEdit = ({ vendorId }) => {
       columnHelper.accessor('bookingDate', {
         header: 'Booking Date & Time',
         cell: ({ row }) => {
-          const formatDateDisplay = (dateStr) => {
+          const formatDateDisplay = dateStr => {
             if (!dateStr) return 'N/A'
 
             try {
@@ -1076,8 +1150,7 @@ const BookingEdit = ({ vendorId }) => {
                   month: 'short',
                   year: 'numeric'
                 })
-              }
-              else if (dateStr.includes('-')) {
+              } else if (dateStr.includes('-')) {
                 const [day, month, year] = dateStr.split('-')
                 return new Date(`${year}-${month}-${day}`).toLocaleDateString('en-US', {
                   day: 'numeric',
@@ -1088,11 +1161,11 @@ const BookingEdit = ({ vendorId }) => {
 
               return dateStr
             } catch (e) {
-              console.error("Date parsing error:", e, dateStr)
+              console.error('Date parsing error:', e, dateStr)
               return dateStr
             }
           }
-          const formatTimeDisplay = (timeStr) => {
+          const formatTimeDisplay = timeStr => {
             if (!timeStr) return ''
             if (timeStr.includes('AM') || timeStr.includes('PM')) {
               return timeStr
@@ -1109,7 +1182,7 @@ const BookingEdit = ({ vendorId }) => {
 
           return (
             <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <i className="ri-calendar-2-line" style={{ fontSize: '16px', color: '#666' }}></i>
+              <i className='ri-calendar-2-line' style={{ fontSize: '16px', color: '#666' }}></i>
               {`${formatDateDisplay(row.original.bookingDate)}, ${formatTimeDisplay(row.original.bookingTime || 'N/A')}`}
             </Typography>
           )
@@ -1206,33 +1279,30 @@ const BookingEdit = ({ vendorId }) => {
       //     return <Typography>--:--:--</Typography>
       //   }
       // }),
-     
-       columnHelper.accessor('payableTime', {
+
+      columnHelper.accessor('payableTime', {
         header: 'Payable Time',
         cell: ({ row }) => {
           // Check booking status
           const status = row.original.status?.toLowerCase()
-          
+
           // Return empty for completed status
           if (status === 'completed') {
             return null
           }
-          
+
           const isParked = status === 'parked'
-          
+
           // Show real-time timer for PARKED status
           if (isParked) {
             return (
-              <div className="flex items-center gap-2">
-                <i className="ri-time-line" style={{ fontSize: '16px', color: '#666CFF' }}></i>
-                <PayableTimeTimer 
-                  parkedDate={row.original.parkedDate}
-                  parkedTime={row.original.parkedTime}
-                />
+              <div className='flex items-center gap-2'>
+                <i className='ri-time-line' style={{ fontSize: '16px', color: '#666CFF' }}></i>
+                <PayableTimeTimer parkedDate={row.original.parkedDate} parkedTime={row.original.parkedTime} />
               </div>
             )
           }
-          
+
           // Default case for other statuses
           return null
         }
@@ -1240,15 +1310,11 @@ const BookingEdit = ({ vendorId }) => {
       columnHelper.accessor('customerName', {
         header: 'Customer',
         cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <CustomAvatar src="/images/avatars/1.png" skin='light' size={34} />
-            <div className="flex flex-col">
-              <Typography className="font-medium">
-                {row.original.personName || 'Unknown'}
-              </Typography>
-              <Typography variant="body2">
-                {row.original.mobileNumber || 'N/A'}
-              </Typography>
+          <div className='flex items-center gap-3'>
+            <CustomAvatar src='/images/avatars/1.png' skin='light' size={34} />
+            <div className='flex flex-col'>
+              <Typography className='font-medium'>{row.original.personName || 'Unknown'}</Typography>
+              <Typography variant='body2'>{row.original.mobileNumber || 'N/A'}</Typography>
             </div>
           </div>
         )
@@ -1269,7 +1335,7 @@ const BookingEdit = ({ vendorId }) => {
                 gap: 1
               }}
             >
-              <i className="ri-circle-fill" style={{ fontSize: '10px', color: chipData.color }}></i>
+              <i className='ri-circle-fill' style={{ fontSize: '10px', color: chipData.color }}></i>
               {chipData.text}
             </Typography>
           )
@@ -1284,12 +1350,16 @@ const BookingEdit = ({ vendorId }) => {
           return (
             <Chip
               label={row.original.status || 'N/A'}
-              variant="tonal"
-              size="small"
-              sx={chipData.color.startsWith('#') ? {
-                backgroundColor: chipData.color,
-                color: 'white'
-              } : {}}
+              variant='tonal'
+              size='small'
+              sx={
+                chipData.color.startsWith('#')
+                  ? {
+                      backgroundColor: chipData.color,
+                      color: 'white'
+                    }
+                  : {}
+              }
               color={!chipData.color.startsWith('#') ? chipData.color : undefined}
             />
           )
@@ -1339,27 +1409,13 @@ const BookingEdit = ({ vendorId }) => {
                   text: 'Delete',
                   icon: 'ri-delete-bin-7-line',
                   menuItemProps: {
-                    onClick: async () => {
-                      try {
-                        const selectedId = row.original._id
-                        if (!selectedId) return
+                    onClick: () => {
+                      const selectedId = row.original._id
 
-                        const isConfirmed = window.confirm("Are you sure you want to delete this booking?")
-                        if (!isConfirmed) return
-
-                        const response = await fetch(`${API_URL}/vendor/deletebooking/${selectedId}`, {
-                          method: 'DELETE'
-                        })
-
-                        if (!response.ok) {
-                          throw new Error('Failed to delete booking')
-                        }
-
-                        setData(prev => prev.filter(booking => booking._id !== selectedId))
-                        setFilteredData(prev => prev.filter(booking => booking._id !== selectedId))
-                      } catch (error) {
-                        console.error('Error deleting booking:', error)
-                      }
+                      if (!selectedId) return
+                      setBookingToDelete(selectedId)
+                      setIsBulkDeleting(false)
+                      setDeleteDialogOpen(true)
                     }
                   }
                 }
@@ -1425,27 +1481,42 @@ const BookingEdit = ({ vendorId }) => {
           placeholder='Search Bookings'
           className='sm:is-auto'
         />
-        <Button
-          variant='contained'
-          component={Link}
-          href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
-          startIcon={<i className='ri-add-line' />}
-          className='max-sm:is-full is-auto'
-        >
-          New Booking
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {Object.keys(rowSelection).length > 0 && (
+            <Button
+              variant='outlined'
+              color='error'
+              startIcon={<i className='ri-delete-bin-line' />}
+              onClick={() => {
+                setIsBulkDeleting(true)
+                setDeleteDialogOpen(true)
+              }}
+            >
+              Delete Selected ({Object.keys(rowSelection).length})
+            </Button>
+          )}
+          <Button
+            variant='contained'
+            component={Link}
+            href={getLocalizedUrl('/pages/wizard-examples/property-listing', locale)}
+            startIcon={<i className='ri-add-line' />}
+            className='max-sm:is-full is-auto'
+          >
+            New Booking
+          </Button>
+        </Box>
       </CardContent>
       <div className='overflow-x-auto'>
         {loading ? (
-          <div className="flex justify-center items-center p-8">
+          <div className='flex justify-center items-center p-8'>
             <CircularProgress />
           </div>
         ) : error ? (
-          <Alert severity="error" className="m-4">
+          <Alert severity='error' className='m-4'>
             {error}
           </Alert>
         ) : table.getFilteredRowModel().rows.length === 0 ? (
-          <Alert severity="info" className="m-4">
+          <Alert severity='info' className='m-4'>
             No bookings found
           </Alert>
         ) : (
@@ -1499,6 +1570,31 @@ const BookingEdit = ({ vendorId }) => {
           </>
         )}
       </div>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby='delete-dialog-title'
+        aria-describedby='delete-dialog-description'
+      >
+        <DialogTitle id='delete-dialog-title'>
+          {isBulkDeleting ? 'Confirm Bulk Deletion' : 'Confirm Deletion'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id='delete-dialog-description'>
+            {isBulkDeleting
+              ? `Are you sure you want to delete ${Object.keys(rowSelection).length} selected bookings? This action cannot be undone.`
+              : 'Are you sure you want to delete this booking? This action cannot be undone.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color='secondary'>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDelete} color='error' variant='contained' autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }
