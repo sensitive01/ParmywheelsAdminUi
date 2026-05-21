@@ -491,6 +491,7 @@ const VendorUpdate = ({ vendorId }) => {
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
   const [parkingEntries, setParkingEntries] = useState([{ type: '', count: '' }])
+  const [vehicleReturnTime, setVehicleReturnTime] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
@@ -599,6 +600,7 @@ const VendorUpdate = ({ vendorId }) => {
           // Set platform fees - using vendorplatformfee for customer handling fee
           setPlatformFeeCustomer(vendorData.customerplatformfee || '')
           setPlatformFeeVendor(vendorData.platformfee || '')
+          setVehicleReturnTime(vendorData.vehicleReturnTime || '')
           setValidityDay(vendorData.subscriptionleft || 0)
           setSubscriptionEndDate(vendorData.subscriptionenddate || null)
 
@@ -683,6 +685,7 @@ const VendorUpdate = ({ vendorId }) => {
     formData.append('longitude', longitude)
     formData.append('platformfee', platformFeeVendor)
     formData.append('customerplatformfee', platformFeeCustomer)
+    formData.append('vehicleReturnTime', vehicleReturnTime)
 
     const formattedContacts = contacts.map(contact => ({
       name: contact.name,
@@ -1022,6 +1025,24 @@ const VendorUpdate = ({ vendorId }) => {
                     {isUpdatingVendorFee ? <CircularProgress size={24} /> : 'Update'}
                   </Button>
                 </Box>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                  <InputLabel id='vehicle-return-time-label'>Vehicle Return Time (Minutes)</InputLabel>
+                  <Select
+                    labelId='vehicle-return-time-label'
+                    value={vehicleReturnTime}
+                    onChange={e => setVehicleReturnTime(e.target.value)}
+                    label='Vehicle Return Time (Minutes)'
+                  >
+                    <MenuItem value=''>None</MenuItem>
+                    <MenuItem value='10'>10 Min</MenuItem>
+                    <MenuItem value='20'>20 Min</MenuItem>
+                    <MenuItem value='30'>30 Min</MenuItem>
+                    <MenuItem value='45'>45 Min</MenuItem>
+                    <MenuItem value='60'>60 Min</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </Grid>
