@@ -5,7 +5,7 @@ import Script from 'next/script'
 class MyDocument extends Document {
   render() {
     return (
-      <Html> 
+      <Html>  
         <Head>
           {/* Add GoMaps CDN Script here */}
           <Script
