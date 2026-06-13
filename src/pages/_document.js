@@ -10,7 +10,7 @@ class MyDocument extends Document {
           {/* Add GoMaps CDN Script here */}
           <Script
             src="https://cdn.gomaps.pro/js/gomaps.js"
-            strategy="beforeInteractive"
+            strategy="beforeInteractive" 
           />
         </Head>
         <body>

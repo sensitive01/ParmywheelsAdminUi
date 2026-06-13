@@ -11,7 +11,7 @@ const AppFullCalendar = styled('div')(({ theme }) => ({
   '& .fc': {
     zIndex: 1,
     '.fc-col-header, .fc-daygrid-body, .fc-scrollgrid-sync-table, .fc-timegrid-body, .fc-timegrid-body table': {
-      width: '100% !important'
+      width: '100% !important' 
     },
 
     // Toolbar

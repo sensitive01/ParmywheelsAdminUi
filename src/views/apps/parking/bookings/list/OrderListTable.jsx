@@ -38,6 +38,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContentText from '@mui/material/DialogContentText'
 import Box from '@mui/material/Box'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 // Icons
 import { Download, PictureAsPdf, GridOn } from '@mui/icons-material'
@@ -264,6 +266,96 @@ const BookingListTable = () => {
     bookingDate: '',
     bookingSource: 'all'
   })
+
+  // Vendor Toggle states
+  const [toggleStates, setToggleStates] = useState({
+    bookEnabled: false,
+    printEnabled: false,
+    exitEnabled: false,
+    vehicleUploadEnabled: false,
+    valetEnabled: false
+  })
+  const [toggleLoading, setToggleLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchToggleStates = async () => {
+      if (!selectedVendor) {
+        setToggleStates({
+          bookEnabled: false,
+          printEnabled: false,
+          exitEnabled: false,
+          vehicleUploadEnabled: false,
+          valetEnabled: false
+        })
+
+        return
+      }
+
+      try {
+        setToggleLoading(true)
+        const response = await fetch(`${API_URL}/vendor/get-toggle-states/${selectedVendor}`)
+
+        if (response.ok) {
+          const result = await response.json()
+
+          setToggleStates({
+            bookEnabled: result.bookEnabled ?? false,
+            printEnabled: result.printEnabled ?? false,
+            exitEnabled: result.exitEnabled ?? false,
+            vehicleUploadEnabled: result.vehicleUploadEnabled ?? false,
+            valetEnabled: result.valetEnabled ?? false
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching toggle states:', error)
+      } finally {
+        setToggleLoading(false)
+      }
+    }
+
+    fetchToggleStates()
+  }, [selectedVendor])
+
+  const handleToggleChange = async (name, value) => {
+    if (!selectedVendor) return
+
+    // Optimistic UI update
+    setToggleStates(prev => ({
+      ...prev,
+      [name]: value
+    }))
+
+    try {
+      const response = await fetch(`${API_URL}/vendor/update-toggle-states/${selectedVendor}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ [name]: value })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update toggle state')
+      }
+
+      const result = await response.json()
+
+      setToggleStates({
+        bookEnabled: result.bookEnabled ?? false,
+        printEnabled: result.printEnabled ?? false,
+        exitEnabled: result.exitEnabled ?? false,
+        vehicleUploadEnabled: result.vehicleUploadEnabled ?? false,
+        valetEnabled: result.valetEnabled ?? false
+      })
+    } catch (error) {
+      console.error('Error updating toggle state:', error)
+      // Revert state on error
+      setToggleStates(prev => ({
+        ...prev,
+        [name]: !value
+      }))
+    }
+  }
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -999,6 +1091,123 @@ const BookingListTable = () => {
             bookingData={selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data}
           />
         </div>
+        {selectedVendor && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'flex-start', md: 'center' },
+              gap: 3,
+              mt: 2,
+              p: 3,
+              borderRadius: 1,
+              backgroundColor: 'action.hover',
+              border: '1px solid',
+              borderColor: 'divider',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <Typography variant='subtitle2' sx={{ fontWeight: 600, minWidth: 150 }}>
+              Vendor Configuration:
+            </Typography>
+            {toggleLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <CircularProgress size={20} />
+                <Typography variant='body2' color='text.secondary'>
+                  Loading settings...
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={toggleStates.bookEnabled}
+                      onChange={e => handleToggleChange('bookEnabled', e.target.checked)}
+                      color='primary'
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <i className='ri-book-open-line text-lg' />
+                      <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                        Book Enabled
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={toggleStates.printEnabled}
+                      onChange={e => handleToggleChange('printEnabled', e.target.checked)}
+                      color='success'
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <i className='ri-printer-line text-lg' />
+                      <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                        Print Enabled
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={toggleStates.exitEnabled}
+                      onChange={e => handleToggleChange('exitEnabled', e.target.checked)}
+                      color='warning'
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <i className='ri-logout-box-r-line text-lg' />
+                      <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                        Exit Enabled
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={toggleStates.vehicleUploadEnabled}
+                      onChange={e => handleToggleChange('vehicleUploadEnabled', e.target.checked)}
+                      color='info'
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <i className='ri-upload-cloud-line text-lg' />
+                      <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                        Vehicle Upload Enabled
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={toggleStates.valetEnabled}
+                      onChange={e => handleToggleChange('valetEnabled', e.target.checked)}
+                      color='secondary'
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <i className='ri-user-star-line text-lg' />
+                      <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                        Valet Enabled
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </Box>
+            )}
+          </Box>
+        )}
       </CardContent>
       <Divider />
       <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
