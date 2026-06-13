@@ -26,7 +26,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const getBookingData = async () => {
   try {
-    const res = await fetch(`${API_URL}/admin/booking-count`)
+    const res = await fetch(`${API_URL}/admin/booking-summary-v2`)
     
     if (!res.ok) {
       throw new Error('Failed to fetch booking data')
@@ -41,7 +41,7 @@ const getBookingData = async () => {
 
 const getUserSummaryData = async () => {
   try {
-    const res = await fetch(`${API_URL}/admin/user-summary`)
+    const res = await fetch(`${API_URL}/admin/user-summary-v2`)
     
     if (!res.ok) {
       throw new Error('Failed to fetch user summary data')
@@ -56,7 +56,7 @@ const getUserSummaryData = async () => {
 
 const getSpaceSummaryData = async () => {
   try {
-    const res = await fetch(`${API_URL}/admin/space-summary`)
+    const res = await fetch(`${API_URL}/admin/vendor-space-summary-v2`)
     
     if (!res.ok) {
       throw new Error('Failed to fetch space summary data')

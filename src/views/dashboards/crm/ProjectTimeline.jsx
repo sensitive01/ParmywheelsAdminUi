@@ -41,7 +41,7 @@ const KycTimeline = () => {
     const fetchKycData = async () => {
       try {
         // Fetch summary data
-        const summaryResponse = await fetch(`${API_URL}/admin/kyc-summary`)
+        const summaryResponse = await fetch(`${API_URL}/admin/kyc-summary-v2`)
 
         if (!summaryResponse.ok) throw new Error('Failed to fetch summary data')
         const summaryData = await summaryResponse.json()

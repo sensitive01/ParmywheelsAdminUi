@@ -40,7 +40,7 @@ const BookingSummaryChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}/admin/transaction-summary`)
+        const response = await fetch(`${API_URL}/admin/transaction-summary-v2`)
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
