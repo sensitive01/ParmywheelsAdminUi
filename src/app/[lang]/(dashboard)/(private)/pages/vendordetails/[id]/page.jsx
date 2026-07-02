@@ -1034,13 +1034,14 @@ const VendorUpdate = ({ vendorId }) => {
                     value={vehicleReturnTime}
                     onChange={e => setVehicleReturnTime(e.target.value)}
                     label='Vehicle Return Time (Minutes)'
+                    MenuProps={{ PaperProps: { style: { maxHeight: 250 } } }}
                   >
                     <MenuItem value=''>None</MenuItem>
-                    <MenuItem value='10'>10 Min</MenuItem>
-                    <MenuItem value='20'>20 Min</MenuItem>
-                    <MenuItem value='30'>30 Min</MenuItem>
-                    <MenuItem value='45'>45 Min</MenuItem>
-                    <MenuItem value='60'>60 Min</MenuItem>
+                    {Array.from({ length: 12 }, (_, i) => (i + 1) * 5).map(min => (
+                      <MenuItem key={min} value={min.toString()}>
+                        {min} Min
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
