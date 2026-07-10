@@ -3,6 +3,7 @@
 
 // React Imports
 import { useRef, useState } from 'react'
+import axios from 'axios'
 
 // Next Imports
 import { useParams, useRouter } from 'next/navigation'
@@ -71,6 +72,15 @@ const UserDropdown = () => {
 
   const handleUserLogout = async () => {
     try {
+      if (session?.user?.id) {
+        try {
+          await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {
+            adminId: session.user.id
+          });
+        } catch (apiError) {
+          console.error("Failed to log logout event on backend", apiError);
+        }
+      }
       // Sign out from the app
       await signOut({ callbackUrl: process.env.NEXT_PUBLIC_APP_URL })
     } catch (error) {

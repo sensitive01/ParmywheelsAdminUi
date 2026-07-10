@@ -72,6 +72,7 @@ export const authOptions = {
       credentials: {
         mobile: { label: "Mobile", type: "text" },
         password: { label: "Password", type: "password" },
+        userAgent: { type: "text" },
       },
       async authorize(credentials) {
         try {

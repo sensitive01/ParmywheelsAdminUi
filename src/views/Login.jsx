@@ -38,11 +38,13 @@ const Login = () => {
       const result = await signIn('credentials', {
         redirect: false,
         mobile,
-        password
+        password,
+        userAgent: navigator.userAgent
       })
 
       if (result?.error) {
-        throw new Error(result.error)
+        setError('Invalid mobile number or password. Please try again.')
+        return
       }
 
       // Redirect to dashboard on success

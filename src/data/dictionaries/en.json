@@ -115,6 +115,7 @@
         "Premiumplans": "Premium Plans",
         "KYCVerification": "KYC Verification",
         "bankDetailsVerification": "Bank Details Verification",
-        "ListVendors": "List Vendors"
+        "ListVendors": "List Vendors",
+        "authLogs": "Audit Logs"
     }
 }
