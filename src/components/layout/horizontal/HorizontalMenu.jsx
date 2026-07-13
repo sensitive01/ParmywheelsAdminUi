@@ -76,6 +76,8 @@ const HorizontalMenu = ({ dictionary }) => {
         </MenuItem>
         <SubMenu label={dictionary['navigation'].vendor}>
           <MenuItem href={`/${locale}/apps/parking/vendors/list`}>{dictionary['navigation'].ListVendors}</MenuItem>
+          <MenuItem href={`/${locale}/apps/employees/list`}>Employees</MenuItem>
+          <MenuItem href={`/${locale}/apps/leads/list`}>Leads</MenuItem>
           <MenuItem href={`/${locale}/pages/kyconboarding`}>{dictionary['navigation'].KYCVerification}</MenuItem>
           <MenuItem href={`/${locale}/pages/vendor-bank-verification`}>
             {dictionary['navigation'].bankDetailsVerification}
@@ -84,6 +86,7 @@ const HorizontalMenu = ({ dictionary }) => {
         <SubMenu label={dictionary['navigation'].orders}>
           {/* <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].list}</MenuItem> */}
           <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].orders}</MenuItem>
+          <MenuItem href={`/${locale}/apps/parking/valet-drivers/list`}>Valet Drivers</MenuItem>
           <MenuItem href={`/${locale}/pages/faq`}>{dictionary['navigation'].faq}</MenuItem>
           <MenuItem href={`/${locale}/pages/settlement`}>{dictionary['navigation'].settlement}</MenuItem>
           {/* <MenuItem href={`/${locale}/pages/wizard-examples/property-listing`}>

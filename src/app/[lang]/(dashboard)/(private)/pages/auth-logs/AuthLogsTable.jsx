@@ -169,7 +169,7 @@ const AuthLogsTable = () => {
       renderCell: (params) => new Date(params.value).toLocaleString()
     },
     { field: 'name', headerName: 'User', width: 150 },
-    { field: 'email', headerName: 'Mobile', width: 200 },
+    { field: 'email', headerName: 'Email / Mobile', width: 200 },
     { 
       field: 'userType', 
       headerName: 'User Type', 
