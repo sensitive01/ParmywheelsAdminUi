@@ -503,6 +503,7 @@ const VendorUpdate = ({ vendorId }) => {
 
   const [platformFeeCustomer, setPlatformFeeCustomer] = useState('')
   const [platformFeeVendor, setPlatformFeeVendor] = useState('')
+  const [customerPaymentEnabled, setCustomerPaymentEnabled] = useState(true)
   const [isUpdatingVendorFee, setIsUpdatingVendorFee] = useState(false)
   const [validityDay, setValidityDay] = useState(0)
   const [isUpdateValidity, setIsUpdateValidity] = useState(false)
@@ -600,6 +601,7 @@ const VendorUpdate = ({ vendorId }) => {
           // Set platform fees - using vendorplatformfee for customer handling fee
           setPlatformFeeCustomer(vendorData.customerplatformfee || '')
           setPlatformFeeVendor(vendorData.platformfee || '')
+          setCustomerPaymentEnabled(vendorData.customerPaymentEnabled ?? true)
           setVehicleReturnTime(vendorData.vehicleReturnTime || '')
           setValidityDay(vendorData.subscriptionleft || 0)
           setSubscriptionEndDate(vendorData.subscriptionenddate || null)
@@ -685,6 +687,7 @@ const VendorUpdate = ({ vendorId }) => {
     formData.append('longitude', longitude)
     formData.append('platformfee', platformFeeVendor)
     formData.append('customerplatformfee', platformFeeCustomer)
+    formData.append('customerPaymentEnabled', customerPaymentEnabled)
     formData.append('vehicleReturnTime', vehicleReturnTime)
 
     const formattedContacts = contacts.map(contact => ({
@@ -1042,6 +1045,20 @@ const VendorUpdate = ({ vendorId }) => {
                         {min} Min
                       </MenuItem>
                     ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                  <InputLabel id='customer-payment-enabled-label'>Customer Payments Enabled</InputLabel>
+                  <Select
+                    labelId='customer-payment-enabled-label'
+                    value={customerPaymentEnabled ? 'true' : 'false'}
+                    onChange={e => setCustomerPaymentEnabled(e.target.value === 'true')}
+                    label='Customer Payments Enabled'
+                  >
+                    <MenuItem value='true'>Yes</MenuItem>
+                    <MenuItem value='false'>No</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
