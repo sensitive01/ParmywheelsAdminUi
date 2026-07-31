@@ -41,9 +41,9 @@ const StackedBarChart = () => {
     dataLabels: { enabled: false },
     stroke: {
       width: 5,
-      colors: ['var(--mui-palette-background-paper)']
+      colors: [theme.palette.mode === 'dark' ? '#282a42' : '#ffffff']
     },
-    colors: ['var(--mui-palette-text-primary)', 'var(--mui-palette-error-main)'],
+    colors: [theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541', '#FF4C51'],
     plotOptions: {
       bar: {
         borderRadius: 7,

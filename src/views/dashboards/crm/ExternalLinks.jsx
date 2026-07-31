@@ -74,10 +74,10 @@ const ExternalLinks = () => {
       categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     },
     yaxis: { show: false },
-    colors: ['var(--mui-palette-primary-main)', 'var(--mui-palette-secondary-main)'],
+    colors: ['#8C57FF', '#8A8D93'],
     grid: {
       strokeDashArray: 10,
-      borderColor: 'var(--mui-palette-divider)',
+      borderColor: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.12)' : 'rgba(58, 53, 65, 0.12)',
       padding: {
         top: -25,
         left: -4,
@@ -91,7 +91,7 @@ const ExternalLinks = () => {
       width: 6,
       curve: 'smooth',
       lineCap: 'round',
-      colors: ['var(--mui-palette-background-paper)']
+      colors: [theme.palette.mode === 'dark' ? '#282a42' : '#ffffff']
     },
     states: {
       hover: {

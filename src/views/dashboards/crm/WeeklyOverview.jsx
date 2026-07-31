@@ -67,10 +67,10 @@ const VendorStatusChart = () => {
                   total: {
                     show: true,
                     label: 'Total Vendors',
-                    color: theme.palette.text.primary,
+                    color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541',
                     formatter: () => newSeries.reduce((a, b) => a + b, 0)
                   },
-                  value: { color: theme.palette.text.primary }
+                  value: { color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541' }
                 }
               }
             }

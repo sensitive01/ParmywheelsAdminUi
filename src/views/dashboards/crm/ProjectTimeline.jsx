@@ -135,8 +135,8 @@ const KycTimeline = () => {
       },
     },
     colors: [
-      'var(--mui-palette-success-main)',
-      'var(--mui-palette-error-main)'
+      '#56CA00',
+      '#FF4C51'
     ],
     dataLabels: {
       enabled: false
@@ -169,7 +169,7 @@ const KycTimeline = () => {
     },
     grid: {
       strokeDashArray: 6,
-      borderColor: 'var(--mui-palette-divider)',
+      borderColor: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.12)' : 'rgba(58, 53, 65, 0.12)',
     },
     responsive: [{
       breakpoint: 600,

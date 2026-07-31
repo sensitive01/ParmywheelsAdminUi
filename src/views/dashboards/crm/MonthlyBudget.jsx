@@ -60,7 +60,7 @@ const SpaceStatusStats = () => {
       toolbar: { show: false }
     },
     labels: ['Approved Spaces', 'Pending Spaces'],
-    colors: ['var(--mui-palette-success-main)', 'var(--mui-palette-warning-main)'],
+    colors: ['#56CA00', '#FFB400'],
     responsive: [{
       breakpoint: theme.breakpoints.values.md,
       options: {
@@ -77,7 +77,7 @@ const SpaceStatusStats = () => {
       offsetY: 0,
       height: 230,
       labels: {
-        colors: theme.palette.text.primary
+        colors: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541'
       }
     },
     plotOptions: {
@@ -89,11 +89,11 @@ const SpaceStatusStats = () => {
             total: {
               show: true,
               label: 'Total Spaces',
-              color: theme.palette.text.primary,
+              color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541',
               formatter: () => stats.totalApproved + stats.totalPending
             },
             value: {
-              color: theme.palette.text.primary,
+              color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541',
               formatter: (value) => value
             }
           }

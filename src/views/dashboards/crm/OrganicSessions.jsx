@@ -155,10 +155,10 @@ const BookingSummaryChart = () => {
       }
     },
     colors: [
-      theme.palette.success.main,
-      theme.palette.warning.main,
-      theme.palette.info.main,
-      theme.palette.error.main
+      '#56CA00',
+      '#FFB400',
+      '#16B1FF',
+      '#FF4C51'
     ],
     grid: {
       padding: {
@@ -175,7 +175,7 @@ const BookingSummaryChart = () => {
         vertical: 6
       },
       labels: {
-        colors: theme.palette.text.secondary
+        colors: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.68)' : 'rgba(58, 53, 65, 0.68)'
       },
       markers: {
         offsetY: 1,
@@ -202,7 +202,7 @@ const BookingSummaryChart = () => {
       }
     },
     dataLabels: { enabled: false },
-    stroke: { width: 4, lineCap: 'round', colors: [theme.palette.background.paper] },
+    stroke: { width: 4, lineCap: 'round', colors: [theme.palette.mode === 'dark' ? '#282a42' : '#ffffff'] },
     labels: ['Total Bookings', 'Months Tracked', 'Total Amount (₹)', 'This Month (₹)'],
     states: {
       hover: {
@@ -224,20 +224,20 @@ const BookingSummaryChart = () => {
             name: {
               offsetY: 25,
               fontSize: '0.875rem',
-              color: theme.palette.text.secondary
+              color: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.68)' : 'rgba(58, 53, 65, 0.68)'
             },
             value: {
               offsetY: -15,
               fontWeight: 500,
               fontSize: '1.5rem',
               formatter: (value) => `${Math.round(value)}%`,
-              color: theme.palette.text.primary
+              color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541'
             },
             total: {
               show: true,
               label: 'Transaction Summary',
               fontSize: '0.875rem',
-              color: theme.palette.text.secondary,
+              color: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.68)' : 'rgba(58, 53, 65, 0.68)',
               formatter: () => {
                 return 'Click segments\nfor details'
               }

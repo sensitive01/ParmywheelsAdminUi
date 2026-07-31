@@ -44,7 +44,7 @@ const DonutChart = () => {
   // Chart options
   const options = {
     legend: { show: false },
-    stroke: { width: 5, colors: ['var(--mui-palette-background-paper)'] },
+    stroke: { width: 5, colors: [theme.palette.mode === 'dark' ? '#282a42' : '#ffffff'] },
     grid: {
       padding: {
         top: 10,
@@ -53,7 +53,7 @@ const DonutChart = () => {
         bottom: 13
       }
     },
-    colors: ['var(--mui-palette-primary-main)', 'var(--mui-palette-error-main)'],
+    colors: ['#8C57FF', '#FF4C51'],
     labels: ['Active Transactions', 'Zero Transactions'],
     tooltip: {
       y: { formatter: val => `${val}` }
@@ -80,8 +80,7 @@ const DonutChart = () => {
               label: 'Total Vendors',
               show: true,
               fontWeight: 600,
-              fontSize: '1rem',
-              color: 'var(--mui-palette-text-secondary)',
+              color: theme.palette.mode === 'dark' ? 'rgba(231, 227, 252, 0.68)' : 'rgba(58, 53, 65, 0.68)',
               formatter: () => data ? (data.activeCount + data.zeroCount).toString() : '0'
             },
             value: {
@@ -89,7 +88,7 @@ const DonutChart = () => {
               fontWeight: 600,
               fontSize: '0.9375rem',
               formatter: val => `${val}`,
-              color: 'var(--mui-palette-text-primary)'
+              color: theme.palette.mode === 'dark' ? '#E7E3FC' : '#3A3541'
             }
           }
         }
