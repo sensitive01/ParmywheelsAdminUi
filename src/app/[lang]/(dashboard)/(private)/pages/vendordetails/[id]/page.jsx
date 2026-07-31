@@ -1165,4 +1165,3 @@ const VendorSettingsPage = () => {
 }
 
 export default VendorSettingsPage
-export default VendorSettingsPage
