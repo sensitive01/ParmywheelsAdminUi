@@ -127,18 +127,22 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e)}>
                 <MenuList>
                   <Divider className='mlb-1' />
-                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/account-settings`)}>
+                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, ['Marketing', 'Employee', 'employee'].includes(session?.user?.role) ? `/apps/marketing/account-settings` : `/pages/account-settings`)}>
                     <i className='ri-user-settings-line' />
                     <Typography color='text.primary'>Account Settings</Typography>
                   </MenuItem>
-                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/notifications`)}>
-                    <i className='ri-notification-3-line' />
-                    <Typography color='text.primary'>Notifications</Typography>
-                  </MenuItem>
-                  <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/search`)}>
-                    <i className='ri-search-line' />
-                    <Typography color='text.primary'>Search</Typography>
-                  </MenuItem>
+                  {!['Marketing', 'Employee', 'employee'].includes(session?.user?.role) && (
+                    <>
+                      <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/notifications`)}>
+                        <i className='ri-notification-3-line' />
+                        <Typography color='text.primary'>Notifications</Typography>
+                      </MenuItem>
+                      <MenuItem className='gap-3 pli-4' onClick={e => handleDropdownClose(e, `/pages/search`)}>
+                        <i className='ri-search-line' />
+                        <Typography color='text.primary'>Search</Typography>
+                      </MenuItem>
+                    </>
+                  )}
                    <div className='flex items-center plb-1.5 pli-4'>
                     <Button
                       fullWidth

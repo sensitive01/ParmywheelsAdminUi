@@ -31,11 +31,13 @@ const EmployeeListTable = () => {
   const [open, setOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({
     userName: '',
     userMobile: '',
     userEmail: '',
     userPassword: '',
+    employeeId: '',
     designation: '',
     dob: '',
     gender: '',
@@ -67,11 +69,13 @@ const EmployeeListTable = () => {
   const handleOpen = () => {
     setEditMode(false)
     setSelectedId(null)
+    setErrors({})
     setFormData({
       userName: '',
       userMobile: '',
       userEmail: '',
       userPassword: '',
+      employeeId: '',
       designation: '',
       dob: '',
       gender: '',
@@ -85,11 +89,13 @@ const EmployeeListTable = () => {
   const handleEdit = (emp) => {
     setEditMode(true)
     setSelectedId(emp._id)
+    setErrors({})
     setFormData({
       userName: emp.userName || '',
       userMobile: emp.userMobile || '',
       userEmail: emp.userEmail || '',
       userPassword: '', // Don't show password on edit, only if they want to change
+      employeeId: emp.employeeId || '',
       designation: emp.designation || '',
       dob: emp.dob || '',
       gender: emp.gender || '',
@@ -106,6 +112,21 @@ const EmployeeListTable = () => {
   }
 
   const handleSave = async () => {
+    const newErrors = {}
+    if (!formData.userMobile || !/^\d{10}$/.test(formData.userMobile)) {
+      newErrors.userMobile = 'Enter a valid 10-digit mobile number'
+    }
+    if (!formData.userEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
+      newErrors.userEmail = 'Enter a valid email address'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    
+    setErrors({})
+
     try {
       let res;
       if (editMode) {
@@ -170,6 +191,7 @@ const EmployeeListTable = () => {
               <tr>
                 <th>S.No</th>
                 <th>Name</th>
+                <th>Employee ID</th>
                 <th>Phone</th>
                 <th>Designation</th>
                 <th>Status</th>
@@ -186,6 +208,7 @@ const EmployeeListTable = () => {
                   <tr key={emp._id}>
                     <td>{index + 1}</td>
                     <td>{emp.userName}</td>
+                    <td>{emp.employeeId || '-'}</td>
                     <td>{emp.userMobile}</td>
                     <td>{emp.designation || '-'}</td>
                     <td>
@@ -213,7 +236,17 @@ const EmployeeListTable = () => {
         <DialogTitle>{editMode ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={4} className='pt-2'>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
+              <TextField 
+                fullWidth 
+                label='Employee ID' 
+                value={formData.employeeId}
+                onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+              />
+            </Grid>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 label='Name' 
@@ -221,23 +254,36 @@ const EmployeeListTable = () => {
                 onChange={(e) => setFormData({...formData, userName: e.target.value})}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 label='Mobile Number' 
                 value={formData.userMobile}
-                onChange={(e) => setFormData({...formData, userMobile: e.target.value})}
+                onChange={(e) => {
+                  setFormData({...formData, userMobile: e.target.value})
+                  if (errors.userMobile) setErrors({...errors, userMobile: ''})
+                }}
+                error={!!errors.userMobile}
+                helperText={errors.userMobile}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 label='Email' 
                 value={formData.userEmail}
-                onChange={(e) => setFormData({...formData, userEmail: e.target.value})}
+                onChange={(e) => {
+                  setFormData({...formData, userEmail: e.target.value})
+                  if (errors.userEmail) setErrors({...errors, userEmail: ''})
+                }}
+                error={!!errors.userEmail}
+                helperText={errors.userEmail}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 label={editMode ? 'New Password (Leave empty to keep)' : 'Password'} 
@@ -259,16 +305,21 @@ const EmployeeListTable = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
+                select
                 fullWidth 
-                label='Designation (e.g., Marketing)' 
+                label='Designation' 
                 value={formData.designation}
                 onChange={(e) => setFormData({...formData, designation: e.target.value})}
-              />
+              >
+                <MenuItem value='Marketing'>Marketing</MenuItem>
+              </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 select
                 fullWidth 
@@ -281,7 +332,8 @@ const EmployeeListTable = () => {
                 <MenuItem value='Other'>Other</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 type="date"
@@ -291,7 +343,8 @@ const EmployeeListTable = () => {
                 onChange={(e) => setFormData({...formData, dob: e.target.value})}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 type="date"
@@ -301,7 +354,8 @@ const EmployeeListTable = () => {
                 onChange={(e) => setFormData({...formData, joiningDate: e.target.value})}
               />
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 fullWidth 
                 type="number"
@@ -311,7 +365,7 @@ const EmployeeListTable = () => {
               />
             </Grid>
             {editMode && (
-              <Grid item xs={12} size={{xs: 12}}>
+              <Grid size={{xs: 12}}>
                 <TextField 
                   select
                   fullWidth 
@@ -332,7 +386,7 @@ const EmployeeListTable = () => {
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default EmployeeListTable

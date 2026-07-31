@@ -1,5 +1,5 @@
 // Next Imports
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
@@ -7,6 +7,7 @@ import Chip from '@mui/material/Chip'
 
 // Third-party Imports
 import PerfectScrollbar from 'react-perfect-scrollbar'
+import { useSession } from 'next-auth/react'
 
 // Component Imports
 import { Menu, SubMenu, MenuItem, MenuSection } from '@menu/vertical-menu'
@@ -33,6 +34,17 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
   const params = useParams()
+  const pathname = usePathname()
+  const { data: session, status } = useSession()
+  
+  let userRole = session?.user?.role;
+  if (status === 'loading') {
+    if (pathname?.includes('/marketing')) userRole = 'Marketing';
+    else if (pathname?.includes('/employee')) userRole = 'Employee';
+    else userRole = 'Admin';
+  } else {
+    userRole = userRole || 'Admin';
+  }
 
   // Vars
   const { isBreakpointReached, transitionDuration } = verticalNavOptions
@@ -62,6 +74,20 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
         renderExpandedMenuItemIcon={{ icon: <i className='ri-circle-fill' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
+        {['Marketing', 'Employee', 'employee'].includes(userRole) ? (
+          <MenuSection label={userRole === 'Marketing' ? 'Marketing' : 'Employee'}>
+            <MenuItem href={`/${locale}/apps/marketing/attendance`} icon={<i className='ri-camera-line' />}>
+              Attendance
+            </MenuItem>
+            <MenuItem href={`/${locale}/apps/marketing/leaves`} icon={<i className='ri-calendar-event-line' />}>
+              Leaves
+            </MenuItem>
+            <MenuItem href={`/${locale}/apps/marketing/leads`} icon={<i className='ri-contacts-book-2-line' />}>
+              Leads
+            </MenuItem>
+          </MenuSection>
+        ) : (
+          <>
         <SubMenu
           label={dictionary['navigation'].dashboards}
           icon={<i className='ri-home-smile-line' />}
@@ -97,6 +123,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
               <MenuItem href={`/${locale}/apps/parking/vendors/list`}>{dictionary['navigation'].list}</MenuItem>
               <MenuItem href={`/${locale}/apps/parking/valet-drivers/list`}>Valet Drivers</MenuItem>
               <MenuItem href={`/${locale}/apps/employees/list`}>Employees</MenuItem>
+              <MenuItem href={`/${locale}/apps/marketing/attendance`}>Attendance</MenuItem>
               <MenuItem href={`/${locale}/apps/leads/list`}>Leads</MenuItem>
               <MenuItem href={`/${locale}/apps/ecommerce/products/add`}>{dictionary['navigation'].add}</MenuItem>
               <MenuItem href={`/${locale}/apps/ecommerce/products/category`}>
@@ -374,6 +401,8 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <MenuItem disabled>{dictionary['navigation'].disabledMenu}</MenuItem>
           </SubMenu>
         </MenuSection>
+        </>
+        )}
       </Menu>
       {/* <Menu
           popoutMenuOffset={{ mainAxis: 17 }}
@@ -385,7 +414,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           <GenerateVerticalMenu menuData={menuData(dictionary, params)} />
         </Menu> */}
     </ScrollWrapper>
-  )
+  );
 }
 
 export default VerticalMenu

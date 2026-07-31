@@ -1,5 +1,5 @@
 // MUI Imports
-import Grid from '@mui/material/Grid'
+import Grid from '@mui/material/Grid2'
 
 // Components Imports
 import Award from '@views/dashboards/crm/Award'
@@ -21,13 +21,16 @@ import { getServerMode } from '@core/utils/serverHelpers'
 
 // Data Imports
 import { getUserData } from '@/app/server/actions'
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/libs/auth'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const getBookingData = async () => {
   try {
     const res = await fetch(`${API_URL}/admin/booking-summary-v2`)
-    
+
     if (!res.ok) {
       throw new Error('Failed to fetch booking data')
     }
@@ -42,7 +45,7 @@ const getBookingData = async () => {
 const getUserSummaryData = async () => {
   try {
     const res = await fetch(`${API_URL}/admin/user-summary-v2`)
-    
+
     if (!res.ok) {
       throw new Error('Failed to fetch user summary data')
     }
@@ -57,7 +60,7 @@ const getUserSummaryData = async () => {
 const getSpaceSummaryData = async () => {
   try {
     const res = await fetch(`${API_URL}/admin/vendor-space-summary-v2`)
-    
+
     if (!res.ok) {
       throw new Error('Failed to fetch space summary data')
     }
@@ -70,6 +73,11 @@ const getSpaceSummaryData = async () => {
 }
 
 const DashboardCRM = async () => {
+  const session = await getServerSession(authOptions)
+  if (['Marketing', 'Employee', 'employee'].includes(session?.user?.role)) {
+    redirect('/apps/marketing/attendance')
+  }
+
   // Fetch all data in parallel
   const [data, bookingData, userSummaryData, spaceSummaryData, serverMode] = await Promise.all([
     getUserData(),
@@ -81,10 +89,10 @@ const DashboardCRM = async () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <Award />
       </Grid>
-      <Grid item xs={12} sm={3} md={2}>
+      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <CardStatVertical
           stats={bookingData.count.toString()}
           title='Total Bookings'
@@ -96,7 +104,7 @@ const DashboardCRM = async () => {
           chipColor='secondary'
         />
       </Grid>
-      <Grid item xs={12} sm={3} md={2}>
+      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <CardStatVertical
           stats={userSummaryData.count.toString()}
           title='Total Customers'
@@ -108,7 +116,7 @@ const DashboardCRM = async () => {
           chipColor='secondary'
         />
       </Grid>
-      <Grid item xs={12} sm={3} md={2}>
+      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <CardStatVertical
           stats={spaceSummaryData.count.toString()}
           title='Total MySpaces'
@@ -120,22 +128,22 @@ const DashboardCRM = async () => {
           chipColor='secondary'
         />
       </Grid>
-      <Grid item xs={12} sm={3} md={2}>
+      <Grid size={{ xs: 12, sm: 3, md: 2 }}>
         <DonutChart />
       </Grid>
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <OrganicSessions />
       </Grid>
-      <Grid item xs={12} md={8}>
+      <Grid size={{ xs: 12, md: 8 }}>
         <ProjectTimeline />
       </Grid>
-      <Grid item xs={12} sm={6} md={4}>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
         <WeeklyOverview />
       </Grid>
       {/* <Grid item xs={12} sm={6} md={4}>
         <SocialNetworkVisits />
       </Grid> */}
-      <Grid item xs={12} sm={6} md={4}>
+      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
         <MonthlyBudget />
       </Grid>
       {/* <Grid item xs={12} sm={6} md={4}>

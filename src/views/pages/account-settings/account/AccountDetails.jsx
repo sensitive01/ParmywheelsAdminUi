@@ -349,25 +349,30 @@ const VendorRegistration = () => {
       
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_URL}/admin/fetchadmin/${session.user.id}`, {
+        const isEmployee = ['employee', 'Employee', 'Marketing'].includes(session?.user?.role);
+        const endpoint = isEmployee 
+          ? `${API_URL}/admin/employee/${session.user.id}`
+          : `${API_URL}/admin/fetchadmin/${session.user.id}`;
+          
+        const response = await fetch(endpoint, {
           headers: {
             ...(session?.accessToken && { 'Authorization': `Bearer ${session.accessToken}` })
           }
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch vendor data');
+          throw new Error('Failed to fetch user data');
         }
 
         const data = await response.json();
         setVendorData(data);
-        setAdminName(data.adminName || '');
+        setAdminName(data.adminName || data.userName || '');
         setAddress(data.address || '');
         setLandMark(data.landMark || '');
         setContacts(data.contacts?.length > 0 ? data.contacts : [{ name: '', mobile: '' }]);
       } catch (error) {
-        console.error('Error fetching vendor data:', error);
-        setError('Failed to load vendor data');
+        console.error('Error fetching user data:', error);
+        setError('Failed to load user data');
       } finally {
         setIsLoading(false);
       }
@@ -410,35 +415,44 @@ const VendorRegistration = () => {
         throw new Error('User not authenticated');
       }
 
-      // Validate inputs
-      if (!adminName.trim()) throw new Error('Admin name is required');
-      if (!address.trim()) throw new Error('Address is required');
+      const isEmployee = ['employee', 'Employee', 'Marketing'].includes(session?.user?.role);
+      if (!adminName.trim()) throw new Error(isEmployee ? 'Name is required' : 'Admin name is required');
       
-      const preparedContacts = contacts.map(contact => {
-        if (!contact.name.trim() || !contact.mobile.trim()) {
-          throw new Error('All contact fields are required');
-        }
-        if (!/^\d{10}$/.test(contact.mobile)) {
-          throw new Error('Contact numbers must be 10 digits');
-        }
-        return {
-          name: contact.name.trim(),
-          mobile: contact.mobile.trim()
-        };
-      });
+      let preparedContacts = [];
+      if (!isEmployee) {
+        if (!address.trim()) throw new Error('Address is required');
+        
+        preparedContacts = contacts.map(contact => {
+          if (!contact.name.trim() || !contact.mobile.trim()) {
+            throw new Error('All contact fields are required');
+          }
+          if (!/^\d{10}$/.test(contact.mobile)) {
+            throw new Error('Contact numbers must be 10 digits');
+          }
+          return {
+            name: contact.name.trim(),
+            mobile: contact.mobile.trim()
+          };
+        });
+      }
 
-      const response = await fetch(`${API_URL}/admin/update-vendor/${session.user.id}`, {
+      const endpoint = isEmployee ? `${API_URL}/admin/employee/${session.user.id}` : `${API_URL}/admin/update-vendor/${session.user.id}`;
+      const payload = isEmployee ? {
+        userName: adminName.trim()
+      } : {
+        adminName: adminName.trim(),
+        contacts: preparedContacts,
+        address: address.trim(),
+        landMark: landMark.trim()
+      };
+
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
           ...(session?.accessToken && { 'Authorization': `Bearer ${session.accessToken}` })
         },
-        body: JSON.stringify({
-          adminName: adminName.trim(),
-          contacts: preparedContacts,
-          address: address.trim(),
-          landMark: landMark.trim()
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -470,8 +484,10 @@ const VendorRegistration = () => {
     }
   };
 
+  const isEmployee = ['employee', 'Employee', 'Marketing'].includes(session?.user?.role);
+
   if (isLoading && !vendorData) {
-    return <Typography>Loading vendor data...</Typography>;
+    return <Typography>Loading data...</Typography>;
   }
 
   if (error && !vendorData) {
@@ -482,7 +498,7 @@ const VendorRegistration = () => {
     <Card component="form" onSubmit={handleSubmit}>
       <CardContent>
         <Typography variant="h4" align="center" gutterBottom>
-          Update Admin Details
+          {isEmployee ? 'Update Profile' : 'Update Admin Details'}
         </Typography>
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -491,14 +507,14 @@ const VendorRegistration = () => {
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Admin Name"
+              label={isEmployee ? "Name" : "Admin Name"}
               value={adminName}
               onChange={(e) => setAdminName(e.target.value)}
               required
             />
           </Grid>
 
-          {contacts.map((contact, index) => (
+          {!isEmployee && contacts.map((contact, index) => (
             <Grid item xs={12} key={index}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={6}>
@@ -535,27 +551,31 @@ const VendorRegistration = () => {
             </Grid>
           ))}
 
-          <Grid item xs={12}>
-            <Button 
-              onClick={handleAddContact} 
-              startIcon={<AddIcon />}
-              type="button"
-            >
-              Add Contact
-            </Button>
-          </Grid>
+          {!isEmployee && (
+            <Grid item xs={12}>
+              <Button 
+                onClick={handleAddContact} 
+                startIcon={<AddIcon />}
+                type="button"
+              >
+                Add Contact
+              </Button>
+            </Grid>
+          )}
 
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              multiline
-              rows={3}
-              required
-            />
-          </Grid>
+          {!isEmployee && (
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                multiline
+                rows={3}
+                required
+              />
+            </Grid>
+          )}
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
@@ -563,7 +583,7 @@ const VendorRegistration = () => {
               type="submit"
               disabled={isLoading}
             >
-              {isLoading ? 'Saving...' : 'Update Admin'}
+              {isLoading ? 'Saving...' : 'Update Details'}
             </Button>
           </Grid>
         </Grid>

@@ -18,8 +18,11 @@ import DialogActions from '@mui/material/DialogActions'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import AddLineIcon from '@mui/icons-material/Add'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import tableStyles from '@core/styles/table.module.css'
 import classnames from 'classnames'
+import { DataGrid } from '@mui/x-data-grid'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -166,6 +169,24 @@ const LeavesTable = () => {
     }
   }
 
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/leave/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      if (res.ok) {
+        fetchLeaves()
+      } else {
+        const errorData = await res.json()
+        alert(`Error: ${errorData.message}`)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Approved': return 'success';
@@ -186,79 +207,120 @@ const LeavesTable = () => {
         }
       />
       <Divider />
-      <div className='overflow-x-auto'>
-        {loading ? (
-          <div className='p-4'>
-            <Typography>Loading records...</Typography>
-          </div>
-        ) : (
-          <table className={tableStyles.table}>
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th>Employee Name</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Date / Duration</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className='text-center'>No records found.</td>
-                </tr>
-              ) : (
-                data.map((record, index) => (
-                  <tr key={record._id}>
-                    <td>{index + 1}</td>
-                    <td>
-                      <div className='font-medium'>{record.employeeId?.userName || 'Unknown'}</div>
-                      <div className='text-xs text-gray-500'>{record.employeeId?.designation || ''}</div>
-                    </td>
-                    <td>
-                      <Chip label={record.category || 'Leave'} color={record.category === 'Permission' ? 'info' : 'secondary'} size='small' />
-                    </td>
-                    <td>{record.category === 'Permission' ? record.permissionType : record.type}</td>
-                    <td className='text-sm'>
-                      {record.category === 'Permission' ? (
-                        <>
-                          <div>{record.permissionDate ? new Date(record.permissionDate).toLocaleDateString() : '-'}</div>
-                          <div className='text-xs text-gray-500'>{record.startTime} to {record.endTime}</div>
-                        </>
-                      ) : (
-                        <div>{record.fromDate ? new Date(record.fromDate).toLocaleDateString() : '-'} to {record.toDate ? new Date(record.toDate).toLocaleDateString() : '-'}</div>
-                      )}
-                    </td>
-                    <td className='text-sm text-gray-600 max-w-[200px] truncate'>{record.reason}</td>
-                    <td>
-                      <Chip label={record.status} color={getStatusColor(record.status)} size='small' />
-                    </td>
-                    <td>
-                      <div className='flex items-center'>
-                        <IconButton onClick={() => handleEdit(record)} color='primary'>
-                          <EditOutlinedIcon />
+      <div className='w-full'>
+          <DataGrid
+            sx={{
+              '& .MuiDataGrid-cell': {
+                display: 'flex',
+                alignItems: 'center',
+              },
+            }}
+            autoHeight
+            rows={data.map((r, i) => ({ ...r, id: r._id, sno: i + 1 }))}
+            columns={[
+              { field: 'sno', headerName: 'S.No', width: 70 },
+              {
+                field: 'employeeName',
+                headerName: 'Employee Name',
+                flex: 1,
+                minWidth: 150,
+                renderCell: (params) => (
+                  <div className="py-2">
+                    <div className='font-medium leading-tight'>{params.row.employeeId?.userName || 'Unknown'}</div>
+                    <div className='text-xs text-gray-500 mt-1'>{params.row.employeeId?.designation || ''}</div>
+                  </div>
+                )
+              },
+              {
+                field: 'category',
+                headerName: 'Category',
+                width: 120,
+                renderCell: (params) => (
+                  <Chip label={params.row.category || 'Leave'} color={params.row.category === 'Permission' ? 'info' : 'secondary'} size='small' />
+                )
+              },
+              {
+                field: 'type',
+                headerName: 'Type',
+                width: 150,
+                renderCell: (params) => params.row.category === 'Permission' ? params.row.permissionType : params.row.type
+              },
+              {
+                field: 'dateDuration',
+                headerName: 'Date / Duration',
+                width: 220,
+                renderCell: (params) => (
+                  <div className="text-sm py-2">
+                    {params.row.category === 'Permission' ? (
+                      <>
+                        <div className='leading-tight'>{params.row.permissionDate ? new Date(params.row.permissionDate).toLocaleDateString() : '-'}</div>
+                        <div className='text-xs text-gray-500 mt-1'>{params.row.startTime} to {params.row.endTime}</div>
+                      </>
+                    ) : (
+                      <div>{params.row.fromDate ? new Date(params.row.fromDate).toLocaleDateString() : '-'} to {params.row.toDate ? new Date(params.row.toDate).toLocaleDateString() : '-'}</div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                field: 'reason',
+                headerName: 'Reason',
+                width: 200,
+                renderCell: (params) => <div className='text-sm text-gray-600 truncate py-2' title={params.row.reason}>{params.row.reason}</div>
+              },
+              {
+                field: 'status',
+                headerName: 'Status',
+                width: 120,
+                renderCell: (params) => (
+                  <Chip label={params.row.status} color={getStatusColor(params.row.status)} size='small' />
+                )
+              },
+              {
+                field: 'actions',
+                headerName: 'Actions',
+                width: 160,
+                sortable: false,
+                renderCell: (params) => (
+                  <div className='flex items-center h-full gap-1'>
+                    {params.row.status === 'Pending' && (
+                      <>
+                        <IconButton onClick={() => handleUpdateStatus(params.row._id, 'Approved')} color='success' title="Approve" size="small">
+                          <CheckCircleOutlineIcon fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => handleDelete(record._id)} color='error'>
-                          <DeleteOutlineIcon />
+                        <IconButton onClick={() => handleUpdateStatus(params.row._id, 'Rejected')} color='warning' title="Reject" size="small">
+                          <HighlightOffIcon fontSize="small" />
                         </IconButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
+                      </>
+                    )}
+                    <IconButton onClick={() => handleEdit(params.row)} color='primary' title="Edit" size="small">
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(params.row._id)} color='error' title="Delete" size="small">
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </div>
+                )
+              }
+            ]}
+            pageSizeOptions={[10, 25, 50]}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10 }
+              }
+            }}
+            getRowHeight={() => 'auto'}
+            getEstimatedRowHeight={() => 70}
+            disableRowSelectionOnClick
+            loading={loading}
+          />
       </div>
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth='sm'>
         <DialogTitle>{editMode ? 'Edit Request' : 'New Request'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={4} className='pt-2'>
-            <Grid item xs={12} size={{xs: 12}}>
+            <Grid size={{xs: 12}} size={12}>
               <TextField 
                 select
                 fullWidth 
@@ -272,7 +334,12 @@ const LeavesTable = () => {
                 ))}
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+            <Grid
+              size={{xs: 12, sm: 6}}
+              size={{
+                xs: 12,
+                sm: 6
+              }}>
               <TextField 
                 select
                 fullWidth 
@@ -287,7 +354,12 @@ const LeavesTable = () => {
 
             {formData.category === 'Leave' ? (
               <>
-                <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+                <Grid
+                  size={{xs: 12, sm: 6}}
+                  size={{
+                    xs: 12,
+                    sm: 6
+                  }}>
                   <TextField 
                     select
                     fullWidth 
@@ -302,7 +374,12 @@ const LeavesTable = () => {
                     <MenuItem value='Other'>Other</MenuItem>
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+                <Grid
+                  size={{xs: 12, sm: 6}}
+                  size={{
+                    xs: 12,
+                    sm: 6
+                  }}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -312,7 +389,12 @@ const LeavesTable = () => {
                     onChange={(e) => setFormData({...formData, fromDate: e.target.value})}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+                <Grid
+                  size={{xs: 12, sm: 6}}
+                  size={{
+                    xs: 12,
+                    sm: 6
+                  }}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -325,7 +407,12 @@ const LeavesTable = () => {
               </>
             ) : (
               <>
-                <Grid item xs={12} sm={6} size={{xs: 12, sm: 6}}>
+                <Grid
+                  size={{xs: 12, sm: 6}}
+                  size={{
+                    xs: 12,
+                    sm: 6
+                  }}>
                   <TextField 
                     select
                     fullWidth 
@@ -339,7 +426,12 @@ const LeavesTable = () => {
                     <MenuItem value='Other'>Other</MenuItem>
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={4} size={{xs: 12, sm: 4}}>
+                <Grid
+                  size={{xs: 12, sm: 4}}
+                  size={{
+                    xs: 12,
+                    sm: 4
+                  }}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -349,7 +441,12 @@ const LeavesTable = () => {
                     onChange={(e) => setFormData({...formData, permissionDate: e.target.value})}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4} size={{xs: 12, sm: 4}}>
+                <Grid
+                  size={{xs: 12, sm: 4}}
+                  size={{
+                    xs: 12,
+                    sm: 4
+                  }}>
                   <TextField 
                     fullWidth 
                     type="time"
@@ -359,7 +456,12 @@ const LeavesTable = () => {
                     onChange={(e) => setFormData({...formData, startTime: e.target.value})}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4} size={{xs: 12, sm: 4}}>
+                <Grid
+                  size={{xs: 12, sm: 4}}
+                  size={{
+                    xs: 12,
+                    sm: 4
+                  }}>
                   <TextField 
                     fullWidth 
                     type="time"
@@ -372,7 +474,7 @@ const LeavesTable = () => {
               </>
             )}
 
-            <Grid item xs={12} size={{xs: 12}}>
+            <Grid size={{xs: 12}} size={12}>
               <TextField 
                 fullWidth 
                 multiline
@@ -383,7 +485,7 @@ const LeavesTable = () => {
               />
             </Grid>
             {editMode && (
-              <Grid item xs={12} size={{xs: 12}}>
+              <Grid size={{xs: 12}} size={12}>
                 <TextField 
                   select
                   fullWidth 
@@ -405,7 +507,7 @@ const LeavesTable = () => {
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default LeavesTable

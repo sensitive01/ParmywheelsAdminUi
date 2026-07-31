@@ -1,5 +1,6 @@
 // Next Imports
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
@@ -40,6 +41,17 @@ const HorizontalMenu = ({ dictionary }) => {
   const verticalNavOptions = useVerticalNav()
   const theme = useTheme()
   const params = useParams()
+  const pathname = usePathname()
+  const { data: session, status } = useSession()
+  
+  let userRole = session?.user?.role;
+  if (status === 'loading') {
+    if (pathname?.includes('/marketing')) userRole = 'Marketing';
+    else if (pathname?.includes('/employee')) userRole = 'Employee';
+    else userRole = 'Admin';
+  } else {
+    userRole = userRole || 'Admin';
+  }
 
   // Vars
   const { transitionDuration } = verticalNavOptions
@@ -71,7 +83,21 @@ const HorizontalMenu = ({ dictionary }) => {
           renderExpandedMenuItemIcon: { icon: <i className='ri-circle-fill' /> }
         }}
       >
-        <MenuItem href={`/${locale}/dashboards/crm`} icon={<i className='ri-home-smile-line' />}>
+        {userRole === 'Marketing' ? (
+          <>
+            <MenuItem href={`/${locale}/apps/marketing/attendance`} icon={<i className='ri-camera-line' />}>
+              Attendance
+            </MenuItem>
+            <MenuItem href={`/${locale}/apps/marketing/leaves`} icon={<i className='ri-calendar-event-line' />}>
+              Leaves
+            </MenuItem>
+            <MenuItem href={`/${locale}/apps/marketing/leads`} icon={<i className='ri-contacts-book-2-line' />}>
+              Leads
+            </MenuItem>
+          </>
+        ) : (
+          <>
+            <MenuItem href={`/${locale}/dashboards/crm`} icon={<i className='ri-home-smile-line' />}>
           {dictionary['navigation'].dashboards}
         </MenuItem>
         <SubMenu label={dictionary['navigation'].vendor}>
@@ -110,6 +136,8 @@ const HorizontalMenu = ({ dictionary }) => {
         <MenuItem href={`/${locale}/pages/auth-logs`} icon={<i className='ri-shield-keyhole-line' />}>
           {dictionary['navigation'].authLogs}
         </MenuItem>
+        </>
+        )}
 
         {/* <SubMenu label={dictionary['navigation'].pages} icon={<i className='ri-file-list-2-line' />}>
           <MenuItem href={`/${locale}/pages/account-settings`} icon={<i className='ri-user-settings-line' />}>

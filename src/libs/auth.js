@@ -98,6 +98,7 @@ export const authOptions = {
             address: data.address,
             image: data.image,
             parkingEntries: data.parkingEntries,
+            role: data.role || "Admin",
           };
         } catch (error) {
           console.error("Login error:", error);
@@ -111,11 +112,13 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token = { ...token, ...user };
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       session.user = token;
+      session.user.role = token.role;
       return session;
     },
   },

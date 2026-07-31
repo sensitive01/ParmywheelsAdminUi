@@ -47,8 +47,15 @@ const Login = () => {
         return
       }
 
-      // Redirect to dashboard on success
-      router.push('/dashboards/crm')
+      // Fetch the updated session to determine role
+      const { getSession } = await import('next-auth/react')
+      const session = await getSession()
+
+      if (['Marketing', 'Employee', 'employee'].includes(session?.user?.role)) {
+        router.push('/apps/marketing/attendance')
+      } else {
+        router.push('/dashboards/crm')
+      }
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.')
       console.error('Login error:', error)
@@ -154,7 +161,7 @@ const Login = () => {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Login
