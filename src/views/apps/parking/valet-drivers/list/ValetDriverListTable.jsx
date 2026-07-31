@@ -207,7 +207,7 @@ const ValetDriverListTable = () => {
                   <tr key={driver._id} className='border-b hover:bg-gray-50'>
                     <td className='p-3'>{index + 1}</td>
                     <td className='p-3'>{driver.firstName} {driver.lastName}</td>
-                    <td className='p-3'>{driver.phone}</td>
+                    <td className='p-3'>{driver.phone || '-'}</td>
                     <td className='p-3'>{driver.email || '-'}</td>
                     <td className='p-3'>{driver.vendorId ? (driver.vendorId.vendorName || driver.vendorId.companyName || driver.vendorId.email) : 'Unknown'}</td>
                     <td className='p-3'>

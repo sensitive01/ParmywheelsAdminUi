@@ -61,7 +61,7 @@ const PlanCreationForm = () => {
     validity: '',
     amount: '',
     features: [''],
-    status: 'disable',
+    status: 'enable',
     image: null,
     subscriptionGivenTo: [] // New field for storing selected IDs
   })
@@ -533,13 +533,15 @@ const PlanCreationForm = () => {
             </Box>
           ))}
 
-          <FormControl component='fieldset' sx={{ mb: 2, width: '100%', mt: 2 }}>
-            <FormLabel component='legend'>Plan Status</FormLabel>
-            <RadioGroup row name='status' value={planDetails.status} onChange={handleInputChange}>
-              <FormControlLabel value='enable' control={<Radio />} label='Enable' />
-              <FormControlLabel value='disable' control={<Radio />} label='Disable' />
-            </RadioGroup>
-          </FormControl>
+          {isEditMode && (
+            <FormControl component='fieldset' sx={{ mb: 2, width: '100%', mt: 2 }}>
+              <FormLabel component='legend'>Plan Status</FormLabel>
+              <RadioGroup row name='status' value={planDetails.status} onChange={handleInputChange}>
+                <FormControlLabel value='enable' control={<Radio />} label='Enable' />
+                <FormControlLabel value='disable' control={<Radio />} label='Disable' />
+              </RadioGroup>
+            </FormControl>
+          )}
 
           {imagePreview && (
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>

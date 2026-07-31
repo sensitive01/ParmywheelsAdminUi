@@ -715,22 +715,22 @@ const BookingListTable = () => {
             </thead>
             <tbody>
               ${dataToExport
-                .map((booking, index) => {
-                  let duration = ''
+        .map((booking, index) => {
+          let duration = ''
 
-                  if (booking.status?.toLowerCase() === 'completed') {
-                    duration = calculateTotalDuration(
-                      booking.parkedDate,
-                      booking.parkedTime,
-                      booking.exitvehicledate,
-                      booking.exitvehicletime
-                    )
-                  }
+          if (booking.status?.toLowerCase() === 'completed') {
+            duration = calculateTotalDuration(
+              booking.parkedDate,
+              booking.parkedTime,
+              booking.exitvehicledate,
+              booking.exitvehicletime
+            )
+          }
 
-                  // Find vendor name
-                  const vendor = vendors.find(v => v._id === booking.vendorId) || {}
+          // Find vendor name
+          const vendor = vendors.find(v => v._id === booking.vendorId) || {}
 
-                  return `
+          return `
                   <tr>
                     <td>${index + 1}</td>
                     <td>${vendor.vendorName || booking.vendorName || 'N/A'}</td>
@@ -750,8 +750,8 @@ const BookingListTable = () => {
                     <td>${booking.status || 'N/A'}</td>
                   </tr>
                 `
-                })
-                .join('')}
+        })
+        .join('')}
             </tbody>
           </table>
 
