@@ -1107,7 +1107,7 @@ function TabPanel(props) {
   )
 }
 
-const VendorSettingsPage = () => {
+export default function VendorSettingsPage() {
   const params = useParams()
   const vendorId = params.id
   const [activeTab, setActiveTab] = useState(0)
@@ -1163,5 +1163,3 @@ const VendorSettingsPage = () => {
     </Container>
   )
 }
-
-export default VendorSettingsPage
