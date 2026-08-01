@@ -41,7 +41,8 @@ const LeavesView = () => {
     endTime: '',
     reason: '',
     category: 'Leave',
-    type: 'Casual'
+    type: 'Casual',
+    permissionType: 'Late Coming'
   })
 
   useEffect(() => {
@@ -92,7 +93,8 @@ const LeavesView = () => {
           endTime: '',
           reason: '',
           category: 'Leave',
-          type: 'Casual'
+          type: 'Casual',
+          permissionType: 'Late Coming'
         })
         setOpen(false)
         fetchMyLeaves()
@@ -225,6 +227,23 @@ const LeavesView = () => {
                 <MenuItem value="Sick">Sick</MenuItem>
                 <MenuItem value="Casual">Casual</MenuItem>
                 <MenuItem value="Emergency">Emergency</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </TextField>
+            )}
+
+            {formData.category === 'Permission' && (
+              <TextField
+                select
+                label="Type"
+                name="permissionType"
+                value={formData.permissionType}
+                onChange={handleChange}
+                fullWidth
+                required
+              >
+                <MenuItem value="Late Coming">Late Coming</MenuItem>
+                <MenuItem value="Early Going">Early Going</MenuItem>
+                <MenuItem value="Personal Work">Personal Work</MenuItem>
                 <MenuItem value="Other">Other</MenuItem>
               </TextField>
             )}
