@@ -141,6 +141,7 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
   const [tabValue, setTabValue] = useState(0)
   const router = useRouter()
   const { lang: locale } = useParams()
+  const { data: session } = useSession()
   const [amenities, setAmenities] = useState([])
   const [amenitiesLoading, setAmenitiesLoading] = useState(false)
   const [parkingServices, setParkingServies] = useState([])
@@ -1318,9 +1319,11 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
       fullWidth
     >
       <DialogActions>
-        <Button variant='contained' color='primary' onClick={handleEditProfile} sx={{ mr: 2 }}>
-          Edit Profile
-        </Button>
+        {session?.user?.role !== 'Marketing' && (
+          <Button variant='contained' color='primary' onClick={handleEditProfile} sx={{ mr: 2 }}>
+            Edit Profile
+          </Button>
+        )}
         {/* <Button onClick={handleClose} color="primary">Close</Button> */}
       </DialogActions>
       <DialogTitle>
@@ -1876,15 +1879,17 @@ const VendorListTable = () => {
                 View
               </Button>
 
-              <Button
-                variant='outlined'
-                size='small'
-                color='error'
-                startIcon={<DeleteIcon />}
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                Delete
-              </Button>
+              {session?.user?.role !== 'Marketing' && (
+                <Button
+                  variant='outlined'
+                  size='small'
+                  color='error'
+                  startIcon={<DeleteIcon />}
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  Delete
+                </Button>
+              )}
 
               {/* Delete Confirmation Dialog */}
               <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
@@ -1915,7 +1920,7 @@ const VendorListTable = () => {
         }
       })
     ],
-    [data, filteredData, vendorLoading, vendorStatusMap]
+    [data, filteredData, vendorLoading, vendorStatusMap, session]
   )
 
   const filteredVendorList = useMemo(() => {

@@ -55,7 +55,8 @@ const LeadListTable = () => {
   })
   const [logData, setLogData] = useState({
     status: '',
-    notes: ''
+    notes: '',
+    followUpDateTime: ''
   })
 
   useEffect(() => {
@@ -137,7 +138,7 @@ const LeadListTable = () => {
   }
 
   const handleOpenLog = () => {
-    setLogData({ status: '', notes: formData.newFollowUpNotes })
+    setLogData({ status: '', notes: formData.newFollowUpNotes, followUpDateTime: '' })
     setLogOpen(true)
   }
 
@@ -155,7 +156,10 @@ const LeadListTable = () => {
         newFollowUp: {
           status: logData.status,
           notes: logData.notes,
-          doneBy: session?.user?.name || 'Admin'
+          doneBy: session?.user?.name || 'Admin',
+          ...( (logData.status === 'Follow Up' || logData.status === 'Callback') && logData.followUpDateTime 
+                ? { followUpDateTime: logData.followUpDateTime } 
+                : {})
         }
       }
       const res = await fetch(`${API_URL}/admin/lead/${selectedId}`, {
@@ -598,6 +602,18 @@ const LeadListTable = () => {
                 onChange={(e) => setLogData({...logData, notes: e.target.value})}
               />
             </Grid>
+            {(logData.status === 'Follow Up' || logData.status === 'Callback') && (
+              <Grid item xs={12} size={{xs: 12}}>
+                <TextField 
+                  fullWidth 
+                  type='datetime-local'
+                  label='Scheduled Date & Time' 
+                  InputLabelProps={{ shrink: true }}
+                  value={logData.followUpDateTime}
+                  onChange={(e) => setLogData({...logData, followUpDateTime: e.target.value})}
+                />
+              </Grid>
+            )}
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -631,6 +647,15 @@ const LeadListTable = () => {
                 <Typography variant='caption' color='text.secondary' className='block mb-1'>Remark</Typography>
                 <Typography variant='body2' className='whitespace-pre-wrap bg-gray-50 p-3 rounded border border-gray-100'>{selectedLog.notes || '-'}</Typography>
               </div>
+              {selectedLog.followUpDateTime && (
+                <>
+                  <Divider />
+                  <div>
+                    <Typography variant='caption' color='text.secondary' className='block mb-1'>Scheduled Date & Time</Typography>
+                    <Typography variant='body1' className='font-medium text-[#3eb37f]'>{new Date(selectedLog.followUpDateTime).toLocaleString('sv-SE').replace('T', ' ')}</Typography>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
