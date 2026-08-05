@@ -26,7 +26,7 @@ import { useSession } from 'next-auth/react'
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const LeadListTable = () => {
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const isMarketing = session?.user?.role === 'Marketing'
 
   const [data, setData] = useState([])
@@ -60,13 +60,20 @@ const LeadListTable = () => {
   })
 
   useEffect(() => {
-    fetchLeads()
-  }, [])
+    if (sessionStatus === 'authenticated') {
+      fetchLeads()
+    }
+  }, [sessionStatus])
 
   const fetchLeads = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/admin/leads`)
+      let url = `${API_URL}/admin/leads`
+      const userId = session?.user?.id || session?.user?._id;
+      if (isMarketing && userId) {
+        url += `?employeeId=${userId}&role=Marketing`
+      }
+      const res = await fetch(url)
       if (res.ok) {
         const json = await res.json()
         setData(json.data || [])
@@ -191,7 +198,8 @@ const LeadListTable = () => {
         leadDate: formData.leadDate,
         address: formData.address,
         leadStatus: formData.leadStatus,
-        status: formData.status
+        status: formData.status,
+        createdBy: session?.user?.id || session?.user?._id || ''
       }
 
       if (editMode && formData.newFollowUpNotes.trim() !== '') {

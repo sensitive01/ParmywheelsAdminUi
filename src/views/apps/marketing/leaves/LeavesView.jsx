@@ -16,6 +16,8 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import AddLineIcon from '@mui/icons-material/Add'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -198,7 +200,12 @@ const LeavesView = () => {
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth='sm'>
-        <DialogTitle>Apply for Leave</DialogTitle>
+        <DialogTitle className="flex justify-between items-center">
+          Apply for Leave
+          <IconButton onClick={() => setOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <form onSubmit={submitLeave} className="flex flex-col gap-4 pt-4">
             <TextField

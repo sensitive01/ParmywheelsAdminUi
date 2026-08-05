@@ -243,6 +243,8 @@ const BookingListTable = () => {
   const [filteredData, setFilteredData] = useState([])
   const [vendors, setVendors] = useState([])
   const [selectedVendor, setSelectedVendor] = useState('')
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [totalCount, setTotalCount] = useState(0)
   const { lang: locale } = useParams()
   const { data: session } = useSession()
   const router = useRouter()
@@ -375,12 +377,29 @@ const BookingListTable = () => {
         console.error('Error fetching vendors:', error)
       }
     }
+    fetchVendors()
+  }, [])
 
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch(`${API_URL}/vendor/bookings`)
+
+        const params = new URLSearchParams({
+          page: pagination.pageIndex + 1,
+          limit: pagination.pageSize
+        })
+
+        if (selectedVendor) params.append('vendorId', selectedVendor)
+        if (filters.vehicleType) params.append('vehicleType', filters.vehicleType)
+        if (filters.sts) params.append('sts', filters.sts)
+        if (filters.status) params.append('status', filters.status)
+        if (filters.bookingDate) params.append('bookingDate', filters.bookingDate)
+        if (filters.bookingSource && filters.bookingSource !== 'all') params.append('bookingSource', filters.bookingSource)
+        if (globalFilter) params.append('search', globalFilter)
+
+        const response = await fetch(`${API_URL}/vendor/bookings?${params.toString()}`)
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`)
@@ -390,16 +409,15 @@ const BookingListTable = () => {
 
         console.log('Fetched bookings:', result)
 
-        if (result && Array.isArray(result)) {
-          const sortedData = result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-          setData(sortedData)
-          setFilteredData(sortedData)
-        } else if (result && result.bookings && Array.isArray(result.bookings)) {
-          const sortedData = result.bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-          setData(sortedData)
-          setFilteredData(sortedData)
+        if (result && result.bookings && Array.isArray(result.bookings)) {
+          setData(result.bookings)
+          setFilteredData(result.bookings)
+          setTotalCount(result.totalCount || 0)
+        } else if (result && Array.isArray(result)) {
+          // Fallback if backend not updated
+          setData(result)
+          setFilteredData(result)
+          setTotalCount(result.length)
         } else {
           throw new Error('Unexpected response format')
         }
@@ -411,9 +429,8 @@ const BookingListTable = () => {
       }
     }
 
-    fetchVendors()
     fetchData()
-  }, [])
+  }, [pagination.pageIndex, pagination.pageSize, filters, selectedVendor, globalFilter])
 
   // Function to delete a booking
   const deleteBooking = async bookingId => {
@@ -479,58 +496,7 @@ const BookingListTable = () => {
     setIsBulkDeleting(false)
   }
 
-  // Apply filters whenever data, selectedVendor, or filters change
-  useEffect(() => {
-    const applyFilters = () => {
-      let filteredResults = [...data]
-
-      // First filter by vendor if selected
-      if (selectedVendor) {
-        filteredResults = filteredResults.filter(booking => booking.vendorId === selectedVendor)
-      }
-
-      // Then apply other filters
-      if (filters.vehicleType) {
-        filteredResults = filteredResults.filter(booking => booking.vehicleType === filters.vehicleType)
-      }
-
-      if (filters.sts) {
-        filteredResults = filteredResults.filter(booking => booking.sts === filters.sts)
-      }
-
-      if (filters.status) {
-        filteredResults = filteredResults.filter(
-          booking => booking.status?.toLowerCase() === filters.status.toLowerCase()
-        )
-      }
-
-      if (filters.bookingDate) {
-        const filterDateStr = filters.bookingDate // YYYY-MM-DD from input
-
-        filteredResults = filteredResults.filter(booking => {
-          const bookingDate = booking.bookingDate // DD-MM-YYYY from data
-
-          if (!bookingDate) return false
-
-          // Format filterDateStr to DD-MM-YYYY
-          const [year, month, day] = filterDateStr.split('-')
-          const formattedFilterDate = `${day}-${month}-${year}`
-
-          return bookingDate === formattedFilterDate
-        })
-      }
-
-      if (filters.bookingSource === 'user') {
-        filteredResults = filteredResults.filter(booking => booking.userId)
-      } else if (filters.bookingSource === 'vendor') {
-        filteredResults = filteredResults.filter(booking => !booking.userId)
-      }
-
-      setFilteredData(filteredResults.length > 0 ? filteredResults : [])
-    }
-
-    applyFilters()
-  }, [data, selectedVendor, filters])
+  // Apply filters logic removed as it's now handled by the backend
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({
@@ -1038,13 +1004,13 @@ const BookingListTable = () => {
     },
     state: {
       rowSelection,
-      globalFilter
+      globalFilter,
+      pagination
     },
-    initialState: {
-      pagination: {
-        pageSize: 10
-      }
-    },
+    manualPagination: true,
+    pageCount: Math.ceil(totalCount / pagination.pageSize),
+    onPaginationChange: setPagination,
+    manualFiltering: true,
     enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
@@ -1338,7 +1304,7 @@ const BookingListTable = () => {
               rowsPerPageOptions={[10, 25, 50, 100]}
               component='div'
               className='border-bs'
-              count={table.getFilteredRowModel().rows.length}
+              count={totalCount}
               rowsPerPage={table.getState().pagination.pageSize}
               page={table.getState().pagination.pageIndex}
               SelectProps={{

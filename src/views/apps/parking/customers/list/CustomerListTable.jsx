@@ -62,6 +62,8 @@ import ListItemText from '@mui/material/ListItemText'
 
 import { statusChipColor } from '../details/customer-right/overview/OrderListTable'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 const CustomerListTable = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -148,36 +150,27 @@ const CustomerListTable = () => {
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 15 })
+  const [totalCount, setTotalCount] = useState(0)
+
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [paginationModel])
 
-  useEffect(() => {
-    const result = users.filter(
-      user =>
-        user.userName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.userEmail?.toLowerCase().includes(search.toLowerCase()) ||
-        user.userMobile?.includes(search) ||
-        user.role?.toLowerCase().includes(search.toLowerCase()) ||
-        user.status?.toLowerCase().includes(search.toLowerCase()) ||
-        user.walletstatus?.toLowerCase().includes(search.toLowerCase()) ||
-        user.vehicleNo?.toLowerCase().includes(search.toLowerCase())
-    )
-
-    setFilteredUsers(result)
-  }, [search, users])
-
-  const fetchUsers = () => {
+  const fetchUsers = (overrideSearch) => {
+    const searchTerm = overrideSearch !== undefined ? overrideSearch : search
     setLoading(true)
     axios
-      .get('https://api.parkmywheels.com/admin/allusers')
+      .get(`${API_URL}/admin/allusers?page=${paginationModel.page + 1}&limit=${paginationModel.pageSize}&search=${searchTerm}`)
       .then(response => {
         setUsers(response.data.users)
-        setFilteredUsers(response.data.users)
+        setTotalCount(response.data.totalCount || 0)
         setLoading(false)
       })
       .catch(error => {
         console.error('Error fetching users:', error)
+        setUsers([])
+        setTotalCount(0)
         setLoading(false)
       })
   }
@@ -633,18 +626,18 @@ const CustomerListTable = () => {
   }
 
   const handleSearch = () => {
-    const filtered = users.filter(
-      user =>
-        user.userName?.toLowerCase().includes(search.toLowerCase()) ||
-        user.userEmail?.toLowerCase().includes(search.toLowerCase()) ||
-        user.userMobile?.includes(search) ||
-        user.role?.toLowerCase().includes(search.toLowerCase()) ||
-        user.status?.toLowerCase().includes(search.toLowerCase()) ||
-        user.walletstatus?.toLowerCase().includes(search.toLowerCase()) ||
-        user.vehicleNo?.toLowerCase().includes(search.toLowerCase())
-    )
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    if (paginationModel.page === 0) {
+      fetchUsers()
+    }
+  }
 
-    setFilteredUsers(filtered)
+  const handleClearSearch = () => {
+    setSearch('')
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    if (paginationModel.page === 0) {
+      fetchUsers('')
+    }
   }
 
   const handleView = user => {
@@ -1649,7 +1642,7 @@ const CustomerListTable = () => {
     }
   ]
 
-  const rows = filteredUsers.map((user, index) => ({ id: index + 1, ...user }))
+  const rows = users.map((user, index) => ({ id: user._id || index + 1, ...user }))
 
   return (
     <Card>
@@ -1702,15 +1695,21 @@ const CustomerListTable = () => {
           <Button variant='contained' onClick={handleSearch}>
             Search
           </Button>
+          {search && (
+            <Button variant='outlined' color='secondary' onClick={handleClearSearch}>
+              Clear
+            </Button>
+          )}
         </div>
         <div style={{ height: 1000, width: '100%' }}>
           <DataGrid
             rows={rows}
             columns={columns}
             pageSizeOptions={[15, 25, 50]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 15 } }
-            }}
+            paginationMode='server'
+            rowCount={totalCount}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
             loading={loading}
           />
         </div>
