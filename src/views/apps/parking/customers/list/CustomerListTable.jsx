@@ -1647,11 +1647,11 @@ const CustomerListTable = () => {
   return (
     <Card>
       <CardContent>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <Typography variant='h3' gutterBottom>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '10px' }}>
+          <Typography variant='h3' gutterBottom sx={{ mb: { xs: 2, sm: 0 } }}>
             Customer List
           </Typography>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <Button
               variant='contained'
               startIcon={<Download />}
@@ -1684,7 +1684,7 @@ const CustomerListTable = () => {
             </Button>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
           <TextField
             label='Search'
             variant='outlined'

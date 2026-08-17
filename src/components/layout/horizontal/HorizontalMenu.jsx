@@ -104,7 +104,7 @@ const HorizontalMenu = ({ dictionary }) => {
             <MenuItem href={`/${locale}/dashboards/crm`} icon={<i className='ri-home-smile-line' />}>
           {dictionary['navigation'].dashboards}
         </MenuItem>
-        <SubMenu label={dictionary['navigation'].vendor}>
+        <SubMenu label={dictionary['navigation'].vendor} icon={<i className='ri-store-3-line' />}>
           <MenuItem href={`/${locale}/apps/parking/vendors/list`}>{dictionary['navigation'].ListVendors}</MenuItem>
           <MenuItem href={`/${locale}/apps/employees/list`}>Employees</MenuItem>
           <MenuItem href={`/${locale}/apps/leads/list`}>Leads</MenuItem>
@@ -113,7 +113,7 @@ const HorizontalMenu = ({ dictionary }) => {
             {dictionary['navigation'].bankDetailsVerification}
           </MenuItem>
         </SubMenu>
-        <SubMenu label={dictionary['navigation'].orders}>
+        <SubMenu label={dictionary['navigation'].orders} icon={<i className='ri-file-list-3-line' />}>
           {/* <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].list}</MenuItem> */}
           <MenuItem href={`/${locale}/apps/parking/bookings/list`}>{dictionary['navigation'].orders}</MenuItem>
           <MenuItem href={`/${locale}/apps/parking/valet-drivers/list`}>Valet Drivers</MenuItem>
@@ -123,14 +123,14 @@ const HorizontalMenu = ({ dictionary }) => {
             {dictionary['navigation'].propertyListing}
           </MenuItem> */}
         </SubMenu>
-        <SubMenu label={dictionary['navigation'].customers}>
+        <SubMenu label={dictionary['navigation'].customers} icon={<i className='ri-group-line' />}>
           <MenuItem href={`/${locale}/apps/parking/customers/list`}>{dictionary['navigation'].customers}</MenuItem>
           <MenuItem href={`/${locale}/pages/myspace`}>{dictionary['navigation'].myspace}</MenuItem>
           <MenuItem href={`/${locale}/pages/customer-handling-fee`}>
             {dictionary['navigation'].customerHandlingFee}
           </MenuItem>
         </SubMenu>
-        <SubMenu label={dictionary['navigation'].otherservices}>
+        <SubMenu label={dictionary['navigation'].otherservices} icon={<i className='ri-more-line' />}>
           <MenuItem href={`/${locale}/pages/corporate-solutionstable`}>{dictionary['navigation'].calendar}</MenuItem>
           <MenuItem href={`/${locale}/pages/Commercial-table`}>{dictionary['navigation'].kanban}</MenuItem>
         </SubMenu>

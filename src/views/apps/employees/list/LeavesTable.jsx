@@ -201,10 +201,25 @@ const LeavesTable = () => {
       <CardHeader 
         title='Leave & Permission Requests' 
         action={
-          <Button variant='contained' onClick={handleOpen} startIcon={<AddLineIcon />}>
+          <Button 
+            variant='contained' 
+            onClick={handleOpen} 
+            startIcon={<AddLineIcon />}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
             Add Request
           </Button>
         }
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: { xs: 2, sm: 0 },
+          '& .MuiCardHeader-action': {
+            m: 0,
+            width: { xs: '100%', sm: 'auto' }
+          }
+        }}
       />
       <Divider />
       <div className='w-full'>
@@ -320,7 +335,7 @@ const LeavesTable = () => {
         <DialogTitle>{editMode ? 'Edit Request' : 'New Request'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={4} className='pt-2'>
-            <Grid size={{xs: 12}} size={12}>
+            <Grid size={{xs: 12}}>
               <TextField 
                 select
                 fullWidth 
@@ -335,11 +350,7 @@ const LeavesTable = () => {
               </TextField>
             </Grid>
             <Grid
-              size={{xs: 12, sm: 6}}
-              size={{
-                xs: 12,
-                sm: 6
-              }}>
+              size={{xs: 12, sm: 6}}>
               <TextField 
                 select
                 fullWidth 
@@ -355,11 +366,7 @@ const LeavesTable = () => {
             {formData.category === 'Leave' ? (
               <>
                 <Grid
-                  size={{xs: 12, sm: 6}}
-                  size={{
-                    xs: 12,
-                    sm: 6
-                  }}>
+                  size={{xs: 12, sm: 6}}>
                   <TextField 
                     select
                     fullWidth 
@@ -375,11 +382,7 @@ const LeavesTable = () => {
                   </TextField>
                 </Grid>
                 <Grid
-                  size={{xs: 12, sm: 6}}
-                  size={{
-                    xs: 12,
-                    sm: 6
-                  }}>
+                  size={{xs: 12, sm: 6}}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -390,11 +393,7 @@ const LeavesTable = () => {
                   />
                 </Grid>
                 <Grid
-                  size={{xs: 12, sm: 6}}
-                  size={{
-                    xs: 12,
-                    sm: 6
-                  }}>
+                  size={{xs: 12, sm: 6}}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -408,11 +407,7 @@ const LeavesTable = () => {
             ) : (
               <>
                 <Grid
-                  size={{xs: 12, sm: 6}}
-                  size={{
-                    xs: 12,
-                    sm: 6
-                  }}>
+                  size={{xs: 12, sm: 6}}>
                   <TextField 
                     select
                     fullWidth 
@@ -427,11 +422,7 @@ const LeavesTable = () => {
                   </TextField>
                 </Grid>
                 <Grid
-                  size={{xs: 12, sm: 4}}
-                  size={{
-                    xs: 12,
-                    sm: 4
-                  }}>
+                  size={{xs: 12, sm: 4}}>
                   <TextField 
                     fullWidth 
                     type="date"
@@ -442,11 +433,7 @@ const LeavesTable = () => {
                   />
                 </Grid>
                 <Grid
-                  size={{xs: 12, sm: 4}}
-                  size={{
-                    xs: 12,
-                    sm: 4
-                  }}>
+                  size={{xs: 12, sm: 4}}>
                   <TextField 
                     fullWidth 
                     type="time"
@@ -457,11 +444,7 @@ const LeavesTable = () => {
                   />
                 </Grid>
                 <Grid
-                  size={{xs: 12, sm: 4}}
-                  size={{
-                    xs: 12,
-                    sm: 4
-                  }}>
+                  size={{xs: 12, sm: 4}}>
                   <TextField 
                     fullWidth 
                     type="time"
@@ -474,7 +457,7 @@ const LeavesTable = () => {
               </>
             )}
 
-            <Grid size={{xs: 12}} size={12}>
+            <Grid size={{xs: 12}}>
               <TextField 
                 fullWidth 
                 multiline
@@ -485,7 +468,7 @@ const LeavesTable = () => {
               />
             </Grid>
             {editMode && (
-              <Grid size={{xs: 12}} size={12}>
+              <Grid size={{xs: 12}}>
                 <TextField 
                   select
                   fullWidth 

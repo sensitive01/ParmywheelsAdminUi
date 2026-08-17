@@ -189,7 +189,7 @@ const AttendanceTable = () => {
         <Typography variant="h4" className="text-center font-bold">Attendance Records</Typography>
         
         {/* Filters Section */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-end gap-4">
           <TextField
             size="small"
             placeholder="Search records..."
@@ -205,7 +205,7 @@ const AttendanceTable = () => {
             className="w-full md:w-64"
           />
 
-          <div className="flex items-end gap-3 flex-1 justify-center">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 flex-1 justify-center">
             <TextField
               size="small"
               type="date"
@@ -213,6 +213,7 @@ const AttendanceTable = () => {
               InputLabelProps={{ shrink: true }}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              className="w-full sm:w-auto"
             />
             <TextField
               size="small"
@@ -221,18 +222,19 @@ const AttendanceTable = () => {
               InputLabelProps={{ shrink: true }}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              className="w-full sm:w-auto"
             />
-            <Button variant="contained" color="primary" onClick={handleApplyFilter} style={{ height: '40px' }}>
+            <Button variant="contained" color="primary" onClick={handleApplyFilter} style={{ height: '40px' }} className="w-full sm:w-auto">
               Apply Filter
             </Button>
             {isFilterApplied && (
-              <Button variant="outlined" color="secondary" onClick={handleClearFilter} style={{ height: '40px' }}>
+              <Button variant="outlined" color="secondary" onClick={handleClearFilter} style={{ height: '40px' }} className="w-full sm:w-auto">
                 Clear Filter
               </Button>
             )}
           </div>
 
-          <Button variant="contained" color="primary" onClick={handleOpen} startIcon={<AddLineIcon />}>
+          <Button variant="contained" color="primary" onClick={handleOpen} startIcon={<AddLineIcon />} className="w-full md:w-auto">
             Add Attendance
           </Button>
         </div>

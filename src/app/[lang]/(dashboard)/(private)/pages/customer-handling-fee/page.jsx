@@ -273,6 +273,15 @@ const CustomerHandlingFee = () => {
                 Add New Fee
               </Button>
             }
+            sx={{
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              '& .MuiCardHeader-action': {
+                m: { xs: 0, sm: 'auto' },
+                alignSelf: { xs: 'flex-start', sm: 'auto' }
+              }
+            }}
           />
           <CardContent>
             <TableContainer component={Paper}>

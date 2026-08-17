@@ -174,10 +174,25 @@ const EmployeeListTable = () => {
       <CardHeader 
         title='Employee Directory' 
         action={
-          <Button variant='contained' onClick={handleOpen} startIcon={<AddLineIcon />}>
+          <Button 
+            variant='contained' 
+            onClick={handleOpen} 
+            startIcon={<AddLineIcon />}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
             Add Employee
           </Button>
         }
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: { xs: 2, sm: 0 },
+          '& .MuiCardHeader-action': {
+            m: 0,
+            width: { xs: '100%', sm: 'auto' }
+          }
+        }}
       />
       <Divider />
       <div className='overflow-x-auto'>
