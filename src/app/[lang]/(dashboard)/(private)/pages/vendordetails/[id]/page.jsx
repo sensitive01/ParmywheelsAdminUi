@@ -506,6 +506,7 @@ const VendorUpdate = ({ vendorId }) => {
   const [customerPaymentEnabled, setCustomerPaymentEnabled] = useState(true)
   const [isUpdatingVendorFee, setIsUpdatingVendorFee] = useState(false)
   const [validityDay, setValidityDay] = useState(0)
+  const [previousValidityDay, setPreviousValidityDay] = useState(0)
   const [isUpdateValidity, setIsUpdateValidity] = useState(false)
   const [subscriptionEndDate, setSubscriptionEndDate] = useState(null)
 
@@ -553,12 +554,53 @@ const VendorUpdate = ({ vendorId }) => {
           message: response.data.message,
           severity: 'success'
         })
+
+        if (response.data?.vendor) {
+          setValidityDay(response.data.vendor.subscriptionleft ?? 0)
+          setSubscriptionEndDate(response.data.vendor.subscriptionenddate ?? null)
+          setPreviousValidityDay(response.data.vendor.previoussubscriptionleft ?? 0)
+        }
       }
     } catch (err) {
       console.error('Error updating validity date :', err)
       setSnackbar({
         open: true,
         message: 'Failed to update vendor validity date',
+        severity: 'error'
+      })
+    } finally {
+      setIsUpdateValidity(false)
+    }
+  }
+
+  const handleRestoreValidity = async () => {
+    if (!previousValidityDay || previousValidityDay <= 0) return
+
+    try {
+      setIsUpdateValidity(true)
+
+      const response = await axios.put(`${API_URL}/vendor/updatevaliditydays/${vendorId}`, {
+        day: previousValidityDay
+      })
+
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: response.data.message || `Restored ${previousValidityDay} days successfully!`,
+          severity: 'success'
+        })
+
+        if (response.data?.vendor) {
+          setValidityDay(response.data.vendor.subscriptionleft ?? previousValidityDay)
+          setSubscriptionEndDate(response.data.vendor.subscriptionenddate ?? null)
+          setPreviousValidityDay(response.data.vendor.previoussubscriptionleft ?? 0)
+        }
+      }
+    } catch (err) {
+      console.error('Error restoring validity date :', err)
+      setSnackbar({
+        open: true,
+        message: 'Failed to restore vendor validity date',
         severity: 'error'
       })
     } finally {
@@ -605,6 +647,7 @@ const VendorUpdate = ({ vendorId }) => {
           setVehicleReturnTime(vendorData.vehicleReturnTime || '')
           setValidityDay(vendorData.subscriptionleft || 0)
           setSubscriptionEndDate(vendorData.subscriptionenddate || null)
+          setPreviousValidityDay(vendorData.previoussubscriptionleft || 0)
 
           if (Array.isArray(vendorData.contacts) && vendorData.contacts.length > 0) {
             setContacts(
@@ -958,11 +1001,11 @@ const VendorUpdate = ({ vendorId }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <TextField
                     fullWidth
-                    label='Current Validity'
+                    label='Current Validity (Days)'
                     value={validityDay}
                     onChange={e => setValidityDay(e.target.value)}
                     type='number'
-                    inputProps={{ min: 0, max: 100, step: 0.1 }}
+                    inputProps={{ min: 0, max: 10000, step: 1 }}
                     placeholder='Enter the day'
                   />
                   <Button
@@ -991,6 +1034,40 @@ const VendorUpdate = ({ vendorId }) => {
                         ? `Expired on: ${new Date(subscriptionEndDate).toDateString()}`
                         : `Valid until: ${new Date(subscriptionEndDate).toDateString()}`}
                     </Typography>
+                  </Box>
+                )}
+                {Number(validityDay) === 0 && previousValidityDay > 0 && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      bgcolor: 'warning.light',
+                      borderRadius: 1,
+                      border: '1px dashed',
+                      borderColor: 'warning.main'
+                    }}
+                  >
+                    <Box>
+                      <Typography variant='subtitle2' sx={{ fontWeight: 'bold', color: 'warning.dark' }}>
+                        ⏸️ Subscription Paused
+                      </Typography>
+                      <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                        Previously had <strong>{previousValidityDay} days</strong> left
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant='contained'
+                      color='success'
+                      size='small'
+                      onClick={handleRestoreValidity}
+                      disabled={isUpdateValidity}
+                      startIcon={<AvTimerIcon />}
+                    >
+                      Restore {previousValidityDay} Days
+                    </Button>
                   </Box>
                 )}
               </Grid>

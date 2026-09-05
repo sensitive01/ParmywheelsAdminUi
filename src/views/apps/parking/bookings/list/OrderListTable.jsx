@@ -31,7 +31,6 @@ import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
-import Autocomplete from '@mui/material/Autocomplete'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -63,6 +62,7 @@ import {
 
 // Component Imports
 import TableFilters from '../../vendors/list/TableFilters'
+import BulkExitDialog from './BulkExitDialog'
 import CustomAvatar from '@core/components/mui/Avatar'
 import OptionMenu from '@core/components/option-menu'
 
@@ -130,9 +130,9 @@ const PayableTimeTimer = ({ parkedDate, parkedTime }) => {
     const [timePart, ampm] = parkedTime.split(' ')
     let [hours, minutes] = timePart.split(':')
 
-    if (ampm && ampm.toUpperCase() === 'PM' && hours !== '12') {
-      hours = parseInt(hours) + 12
-    } else if (ampm && ampm.toUpperCase() === 'AM' && hours === '12') {
+    if (ampm && ampm.toUpperCase() === 'PM' && parseInt(hours, 10) !== 12) {
+      hours = parseInt(hours, 10) + 12
+    } else if (ampm && ampm.toUpperCase() === 'AM' && parseInt(hours, 10) === 12) {
       hours = '00'
     }
 
@@ -176,9 +176,9 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
     let [startHours, startMinutes] = startTimePart.split(':').map(Number)
 
     // Convert to 24-hour format
-    if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== '12') {
+    if (startAmpm && startAmpm.toUpperCase() === 'PM' && startHours !== 12) {
       startHours += 12
-    } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === '12') {
+    } else if (startAmpm && startAmpm.toUpperCase() === 'AM' && startHours === 12) {
       startHours = 0
     }
 
@@ -188,9 +188,9 @@ const calculateTotalDuration = (parkedDate, parkedTime, exitDate, exitTime) => {
     let [endHours, endMinutes] = endTimePart.split(':').map(Number)
 
     // Convert to 24-hour format
-    if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== '12') {
+    if (endAmpm && endAmpm.toUpperCase() === 'PM' && endHours !== 12) {
       endHours += 12
-    } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === '12') {
+    } else if (endAmpm && endAmpm.toUpperCase() === 'AM' && endHours === 12) {
       endHours = 0
     }
 
@@ -256,6 +256,13 @@ const BookingListTable = () => {
   const [bookingToDelete, setBookingToDelete] = useState(null)
   const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
+  // Bulk Exit Dialog States
+  const [bulkExitDialogOpen, setBulkExitDialogOpen] = useState(false)
+  const [bulkExitLoading, setBulkExitLoading] = useState(false)
+  const [bulkExitError, setBulkExitError] = useState('')
+  const [selectAllFiltered, setSelectAllFiltered] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
   // Download menu state
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
@@ -266,6 +273,8 @@ const BookingListTable = () => {
     sts: '',
     status: '',
     bookingDate: '',
+    bookingFromDate: '',
+    bookingToDate: '',
     bookingSource: 'all'
   })
 
@@ -396,6 +405,8 @@ const BookingListTable = () => {
         if (filters.sts) params.append('sts', filters.sts)
         if (filters.status) params.append('status', filters.status)
         if (filters.bookingDate) params.append('bookingDate', filters.bookingDate)
+        if (filters.bookingFromDate) params.append('bookingFromDate', filters.bookingFromDate)
+        if (filters.bookingToDate) params.append('bookingToDate', filters.bookingToDate)
         if (filters.bookingSource && filters.bookingSource !== 'all') params.append('bookingSource', filters.bookingSource)
         if (globalFilter) params.append('search', globalFilter)
 
@@ -430,7 +441,7 @@ const BookingListTable = () => {
     }
 
     fetchData()
-  }, [pagination.pageIndex, pagination.pageSize, filters, selectedVendor, globalFilter])
+  }, [pagination.pageIndex, pagination.pageSize, filters, selectedVendor, globalFilter, refreshKey])
 
   // Function to delete a booking
   const deleteBooking = async bookingId => {
@@ -503,6 +514,8 @@ const BookingListTable = () => {
       ...prev,
       [name]: value
     }))
+    setRowSelection({})
+    setSelectAllFiltered(false)
   }
 
   const handleVendorChange = value => {
@@ -514,8 +527,91 @@ const BookingListTable = () => {
       sts: '',
       status: '',
       bookingDate: '',
+      bookingFromDate: '',
+      bookingToDate: '',
       bookingSource: 'all'
     })
+    setRowSelection({})
+    setSelectAllFiltered(false)
+  }
+
+  const selectedRowIndices = Object.keys(rowSelection)
+  const selectedParkedBookings = selectedRowIndices
+    .map(idx => filteredData[parseInt(idx)])
+    .filter(b => b && b.status?.toLowerCase() === 'parked')
+
+  const isParkedFiltered = filters.status?.toLowerCase() === 'parked'
+  const exitTargetCount = selectAllFiltered
+    ? (isParkedFiltered ? totalCount : selectedParkedBookings.length)
+    : selectedParkedBookings.length
+  const canExitAll = exitTargetCount > 0
+
+  const handleToggleSelectAll = () => {
+    if (selectAllFiltered || selectedRowIndices.length > 0) {
+      setSelectAllFiltered(false)
+      setRowSelection({})
+    } else {
+      const newSelection = {}
+      filteredData.forEach((_, idx) => {
+        newSelection[idx] = true
+      })
+      setRowSelection(newSelection)
+      if (totalCount > filteredData.length) {
+        setSelectAllFiltered(true)
+      }
+    }
+  }
+
+  const handleConfirmBulkExit = async () => {
+    try {
+      setBulkExitLoading(true)
+      setBulkExitError('')
+
+      let payload = {}
+
+      if (selectAllFiltered) {
+        payload = {
+          selectAllFiltered: true,
+          filters: {
+            vendorId: selectedVendor,
+            vehicleType: filters.vehicleType,
+            sts: filters.sts,
+            status: filters.status || 'PARKED',
+            bookingFromDate: filters.bookingFromDate,
+            bookingToDate: filters.bookingToDate,
+            bookingSource: filters.bookingSource,
+            search: globalFilter
+          }
+        }
+      } else {
+        const bookingIds = selectedParkedBookings.map(b => b._id).filter(Boolean)
+        payload = { bookingIds }
+      }
+
+      const response = await fetch(`${API_URL}/vendor/bookings/bulk-exit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || result.error || 'Failed to bulk exit vehicles')
+      }
+
+      setBulkExitDialogOpen(false)
+      setRowSelection({})
+      setSelectAllFiltered(false)
+      setRefreshKey(prev => prev + 1)
+    } catch (err) {
+      console.error('Bulk exit failed:', err)
+      setBulkExitError(err.message || 'Error exiting vehicles')
+    } finally {
+      setBulkExitLoading(false)
+    }
   }
 
   // Download menu handlers
@@ -746,19 +842,25 @@ const BookingListTable = () => {
       {
         id: 'select',
         header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
+          <div onClick={e => e.stopPropagation()}>
+            <Checkbox
+              checked={table.getIsAllRowsSelected()}
+              indeterminate={table.getIsSomeRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
         ),
         cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
+          <div onClick={e => e.stopPropagation()}>
+            <Checkbox
+              checked={row.getIsSelected()}
+              disabled={!row.getCanSelect()}
+              indeterminate={row.getIsSomeSelected()}
+              onChange={row.getToggleSelectedHandler()}
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
         )
       },
       {
@@ -1037,26 +1139,13 @@ const BookingListTable = () => {
         <Tab label='Vendor Bookings' value='vendor' />
       </Tabs>
       <CardContent className='flex flex-col gap-4'>
-        <div className='flex flex-col sm:flex-row gap-4'>
-          <Autocomplete
-            fullWidth
-            size='small'
-            id='vendor-autocomplete'
-            options={vendors}
-            getOptionLabel={option => option.vendorName || ''}
-            value={vendors.find(v => v._id === selectedVendor) || null}
-            onChange={(event, newValue) => {
-              handleVendorChange(newValue ? newValue._id : '')
-            }}
-            sx={{ maxWidth: 550, minWidth: 200 }}
-            renderInput={params => <TextField {...params} label='Vendor' placeholder='Select Vendor' />}
-          />
-          <TableFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            bookingData={selectedVendor ? data.filter(booking => booking.vendorId === selectedVendor) : data}
-          />
-        </div>
+        <TableFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          vendors={vendors}
+          selectedVendor={selectedVendor}
+          onVendorChange={handleVendorChange}
+        />
         {selectedVendor && (
           <Box
             sx={{
@@ -1185,6 +1274,35 @@ const BookingListTable = () => {
         />
 
         <div className='flex gap-2 items-center'>
+          {filteredData.length > 0 && (
+            <Button
+              variant={selectAllFiltered || (Object.keys(rowSelection).length === filteredData.length && filteredData.length > 0) ? 'contained' : 'outlined'}
+              color='secondary'
+              startIcon={<i className={selectAllFiltered || Object.keys(rowSelection).length > 0 ? 'ri-checkbox-line' : 'ri-checkbox-blank-line'} />}
+              onClick={handleToggleSelectAll}
+            >
+              {selectAllFiltered
+                ? `All ${totalCount} Selected`
+                : Object.keys(rowSelection).length > 0
+                ? `${Object.keys(rowSelection).length} Selected`
+                : 'Select All'}
+            </Button>
+          )}
+
+          {canExitAll && (
+            <Button
+              variant='contained'
+              color='warning'
+              startIcon={<i className='ri-logout-box-r-line' />}
+              onClick={() => {
+                setBulkExitError('')
+                setBulkExitDialogOpen(true)
+              }}
+            >
+              Exit All ({exitTargetCount})
+            </Button>
+          )}
+
           {Object.keys(rowSelection).length > 0 && (
             <Button
               variant='outlined'
@@ -1282,7 +1400,10 @@ const BookingListTable = () => {
                         <tr
                           key={row.id}
                           className={classnames({ selected: row.getIsSelected() })}
-                          onClick={() => {
+                          onClick={e => {
+                            if (e.target.closest('input[type="checkbox"]') || e.target.closest('button') || e.target.closest('.MuiCheckbox-root')) {
+                              return
+                            }
                             const selectedId = row.original._id
 
                             if (selectedId) {
@@ -1292,7 +1413,16 @@ const BookingListTable = () => {
                           style={{ cursor: 'pointer' }}
                         >
                           {row.getVisibleCells().map(cell => (
-                            <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                            <td
+                              key={cell.id}
+                              onClick={e => {
+                                if (cell.column.id === 'select' || cell.column.id === 'action') {
+                                  e.stopPropagation()
+                                }
+                              }}
+                            >
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
                           ))}
                         </tr>
                       )
@@ -1343,6 +1473,15 @@ const BookingListTable = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <BulkExitDialog
+        open={bulkExitDialogOpen}
+        onClose={() => setBulkExitDialogOpen(false)}
+        selectedCount={exitTargetCount}
+        onConfirm={handleConfirmBulkExit}
+        loading={bulkExitLoading}
+        error={bulkExitError}
+      />
     </Card>
   )
 }
