@@ -37,7 +37,7 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
   return (
     <Grid container spacing={3} alignItems='center'>
       {/* 1. Vendor */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid item xs={12} sm={6} md={3}>
         <Autocomplete
           fullWidth
           size='small'
@@ -55,7 +55,7 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
       </Grid>
 
       {/* 2. Vehicle Type */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid item xs={12} sm={6} md={3}>
         <FormControl fullWidth size='small'>
           <InputLabel id='vehicle-type-select'>Vehicle Type</InputLabel>
           <Select
@@ -75,7 +75,7 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
       </Grid>
 
       {/* 3. Booking Type */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid item xs={12} sm={6} md={3}>
         <FormControl fullWidth size='small'>
           <InputLabel id='sts-select'>Booking Type</InputLabel>
           <Select
@@ -95,7 +95,7 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
       </Grid>
 
       {/* 4. Status */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid item xs={12} sm={6} md={3}>
         <FormControl fullWidth size='small'>
           <InputLabel id='status-select'>Status</InputLabel>
           <Select
@@ -115,7 +115,7 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
       </Grid>
 
       {/* 5. Booking From Date */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      <Grid item xs={12} sm={6} md={3}>
         <TextField
           fullWidth
           size='small'
@@ -127,8 +127,22 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
         />
       </Grid>
 
-      {/* 6. Booking To Date */}
-      <Grid item xs={12} sm={6} md={4} lg={2}>
+      {/* 6. Booking From Time */}
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          size='small'
+          label='Booking From Time'
+          type='time'
+          value={filters.bookingFromTime || ''}
+          onChange={e => onFilterChange('bookingFromTime', e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ step: 300 }}
+        />
+      </Grid>
+
+      {/* 7. Booking To Date */}
+      <Grid item xs={12} sm={6} md={3}>
         <TextField
           fullWidth
           size='small'
@@ -137,6 +151,20 @@ const TableFilters = ({ filters, onFilterChange, vendors = [], selectedVendor = 
           value={filters.bookingToDate || ''}
           onChange={e => onFilterChange('bookingToDate', e.target.value)}
           InputLabelProps={{ shrink: true }}
+        />
+      </Grid>
+
+      {/* 8. Booking To Time */}
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          size='small'
+          label='Booking To Time'
+          type='time'
+          value={filters.bookingToTime || ''}
+          onChange={e => onFilterChange('bookingToTime', e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ step: 300 }}
         />
       </Grid>
     </Grid>

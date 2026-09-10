@@ -29,6 +29,8 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
+import LinearProgress from '@mui/material/LinearProgress'
+import Backdrop from '@mui/material/Backdrop'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Dialog from '@mui/material/Dialog'
@@ -275,6 +277,8 @@ const BookingListTable = () => {
     bookingDate: '',
     bookingFromDate: '',
     bookingToDate: '',
+    bookingFromTime: '',
+    bookingToTime: '',
     bookingSource: 'all'
   })
 
@@ -407,6 +411,8 @@ const BookingListTable = () => {
         if (filters.bookingDate) params.append('bookingDate', filters.bookingDate)
         if (filters.bookingFromDate) params.append('bookingFromDate', filters.bookingFromDate)
         if (filters.bookingToDate) params.append('bookingToDate', filters.bookingToDate)
+        if (filters.bookingFromTime) params.append('bookingFromTime', filters.bookingFromTime)
+        if (filters.bookingToTime) params.append('bookingToTime', filters.bookingToTime)
         if (filters.bookingSource && filters.bookingSource !== 'all') params.append('bookingSource', filters.bookingSource)
         if (globalFilter) params.append('search', globalFilter)
 
@@ -514,6 +520,7 @@ const BookingListTable = () => {
       ...prev,
       [name]: value
     }))
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
     setRowSelection({})
     setSelectAllFiltered(false)
   }
@@ -529,8 +536,11 @@ const BookingListTable = () => {
       bookingDate: '',
       bookingFromDate: '',
       bookingToDate: '',
+      bookingFromTime: '',
+      bookingToTime: '',
       bookingSource: 'all'
     })
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
     setRowSelection({})
     setSelectAllFiltered(false)
   }
@@ -579,6 +589,8 @@ const BookingListTable = () => {
             status: filters.status || 'PARKED',
             bookingFromDate: filters.bookingFromDate,
             bookingToDate: filters.bookingToDate,
+            bookingFromTime: filters.bookingFromTime,
+            bookingToTime: filters.bookingToTime,
             bookingSource: filters.bookingSource,
             search: globalFilter
           }
@@ -1127,7 +1139,19 @@ const BookingListTable = () => {
   })
 
   return (
-    <Card>
+    <Card sx={{ position: 'relative' }}>
+      {loading && (
+        <LinearProgress
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            height: 3
+          }}
+        />
+      )}
       <CardHeader title='All Bookings Details' />
       <Tabs
         value={filters.bookingSource}
@@ -1293,13 +1317,14 @@ const BookingListTable = () => {
             <Button
               variant='contained'
               color='warning'
-              startIcon={<i className='ri-logout-box-r-line' />}
+              disabled={bulkExitLoading || loading}
+              startIcon={bulkExitLoading ? <CircularProgress size={16} color='inherit' /> : <i className='ri-logout-box-r-line' />}
               onClick={() => {
                 setBulkExitError('')
                 setBulkExitDialogOpen(true)
               }}
             >
-              Exit All ({exitTargetCount})
+              {bulkExitLoading ? 'Exiting...' : `Exit All (${exitTargetCount})`}
             </Button>
           )}
 
@@ -1347,8 +1372,11 @@ const BookingListTable = () => {
       </CardContent>
       <div className='overflow-x-auto'>
         {loading ? (
-          <div className='flex justify-center items-center p-8'>
-            <CircularProgress />
+          <div className='flex flex-col justify-center items-center p-12 gap-3'>
+            <CircularProgress size={44} />
+            <Typography variant='body2' color='text.secondary'>
+              Loading bookings... Please wait
+            </Typography>
           </div>
         ) : error ? (
           <Alert severity='error' className='m-4'>
@@ -1431,7 +1459,7 @@ const BookingListTable = () => {
               )}
             </table>
             <TablePagination
-              rowsPerPageOptions={[10, 25, 50, 100]}
+              rowsPerPageOptions={[10, 25, 50, 100, 500]}
               component='div'
               className='border-bs'
               count={totalCount}
@@ -1482,6 +1510,27 @@ const BookingListTable = () => {
         loading={bulkExitLoading}
         error={bulkExitError}
       />
+
+      {/* Loading Backdrop for Bulk Exit */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: theme => theme.zIndex.modal + 10,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
+        }}
+        open={bulkExitLoading && !bulkExitDialogOpen}
+      >
+        <CircularProgress color='inherit' size={50} />
+        <Typography variant='h6' color='inherit'>
+          Exiting Vehicles...
+        </Typography>
+        <Typography variant='body2' color='inherit' sx={{ opacity: 0.85 }}>
+          Processing bulk exit. Please wait...
+        </Typography>
+      </Backdrop>
     </Card>
   )
 }
