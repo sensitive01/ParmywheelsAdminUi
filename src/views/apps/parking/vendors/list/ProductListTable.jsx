@@ -44,9 +44,15 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Alert from '@mui/material/Alert'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import DeleteIcon from '@mui/icons-material/Delete'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import FormHelperText from '@mui/material/FormHelperText'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -68,6 +74,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import CloseIcon from '@mui/icons-material/Close'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
+import SaveIcon from '@mui/icons-material/Save'
 import ChatIcon from '@mui/icons-material/Chat'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import InfoIcon from '@mui/icons-material/Info'
@@ -88,7 +95,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-
 import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 
 // Status color mapping for vendor status
@@ -132,7 +138,7 @@ const formatTime = time => {
 }
 
 // Vendor Detail Modal Component
-const VendorDetailModal = ({ open, handleClose, vendorId }) => {
+const VendorDetailModal = ({ open, handleClose, vendorId, onVendorUpdated }) => {
   const [vendorData, setVendorData] = useState(null)
   const [businessHours, setBusinessHours] = useState([])
   const [loading, setLoading] = useState(false)
@@ -142,6 +148,52 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
   const router = useRouter()
   const { lang: locale } = useParams()
   const { data: session } = useSession()
+  const [maxBikeAmount, setMaxBikeAmount] = useState('')
+  const [maxCarAmount, setMaxCarAmount] = useState('')
+  const [maxOthersAmount, setMaxOthersAmount] = useState('')
+  const [maxCarBaseAmount, setMaxCarBaseAmount] = useState('')
+  const [maxCarValetOption, setMaxCarValetOption] = useState('without_valet')
+  const [valetEnabled, setValetEnabled] = useState(false)
+  const [valetCharge, setValetCharge] = useState('0')
+  const [savingMaxAmounts, setSavingMaxAmounts] = useState(false)
+  const [maxAmountMsg, setMaxAmountMsg] = useState({ text: '', severity: 'success' })
+
+  const handleCarAmountChange = e => {
+    const val = e.target.value
+    setMaxCarAmount(val)
+    const valet = parseFloat(valetCharge) || 0
+    const numVal = parseFloat(val) || 0
+    if (maxCarValetOption === 'with_valet') {
+      setMaxCarBaseAmount(String(Math.max(0, numVal - valet)))
+    } else {
+      setMaxCarBaseAmount(val)
+    }
+  }
+
+  const handleValetOptionChange = e => {
+    const option = e.target.value
+    setMaxCarValetOption(option)
+    const valet = parseFloat(valetCharge) || 0
+    const base = parseFloat(maxCarBaseAmount) || parseFloat(maxCarAmount) || 0
+
+    if (option === 'with_valet') {
+      setMaxCarBaseAmount(String(base))
+      setMaxCarAmount(String(base + valet))
+    } else {
+      setMaxCarAmount(String(base))
+    }
+  }
+
+  const handleValetChargeChange = e => {
+    const val = e.target.value
+    setValetCharge(val)
+    if (maxCarValetOption === 'with_valet') {
+      const base = parseFloat(maxCarBaseAmount) || 0
+      const valet = parseFloat(val) || 0
+      setMaxCarAmount(String(base + valet))
+    }
+  }
+
   const [amenities, setAmenities] = useState([])
   const [amenitiesLoading, setAmenitiesLoading] = useState(false)
   const [parkingServices, setParkingServies] = useState([])
@@ -164,6 +216,52 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
   const [bookingsLoading, setBookingsLoading] = useState(false)
   const [charges, setCharges] = useState({})
   const [chargesLoading, setChargesLoading] = useState(false)
+
+  const handleSaveMaxLimits = async () => {
+    try {
+      setSavingMaxAmounts(true)
+      setMaxAmountMsg({ text: '', severity: 'success' })
+      const targetId = vendorData?._id || vendorId
+
+      const formData = new FormData()
+      formData.append('maxBikeAmount', maxBikeAmount || '0')
+      formData.append('maxCarAmount', maxCarAmount || '0')
+      formData.append('maxOthersAmount', maxOthersAmount || '0')
+      formData.append('maxCarBaseAmount', maxCarBaseAmount || '0')
+      formData.append('maxCarValetOption', maxCarValetOption || 'without_valet')
+      formData.append('valetCharge', valetCharge || '0')
+      formData.append('valetEnabled', valetEnabled ? 'true' : 'false')
+
+      const response = await fetch(`${API_URL}/admin/updatevendors/${targetId}`, {
+        method: 'PUT',
+        body: formData
+      })
+
+      if (response.ok) {
+        setMaxAmountMsg({ text: 'Pricing limits & valet charges saved successfully!', severity: 'success' })
+        setVendorData(prev => ({
+          ...prev,
+          maxBikeAmount: maxBikeAmount || '0',
+          maxCarAmount: maxCarAmount || '0',
+          maxOthersAmount: maxOthersAmount || '0',
+          maxCarBaseAmount: maxCarBaseAmount || '0',
+          maxCarValetOption: maxCarValetOption || 'without_valet',
+          valetCharge: valetCharge || '0',
+          valetEnabled: !!valetEnabled
+        }))  
+        if (typeof onVendorUpdated === 'function') {
+          onVendorUpdated()
+        }
+      } else { 
+        throw new Error('Failed to save')
+      }
+    } catch (err) {
+      console.error('Failed to save max amounts:', err)
+      setMaxAmountMsg({ text: 'Failed to save max limits. Please try again.', severity: 'error' })
+    } finally {
+      setSavingMaxAmounts(false)
+    }
+  }
 
   // Day name mapping - Changed from object to array for better ordering
   const dayNames = [
@@ -197,6 +295,14 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
         const data = await response.json()
 
         setVendorData(data.data)
+        setMaxBikeAmount(data.data?.maxBikeAmount || '')
+        setMaxCarAmount(data.data?.maxCarAmount || '')
+        setMaxOthersAmount(data.data?.maxOthersAmount || '')
+        setMaxCarBaseAmount(data.data?.maxCarBaseAmount || data.data?.maxCarAmount || '')
+        setMaxCarValetOption(data.data?.maxCarValetOption || 'without_valet')
+        setValetEnabled(data.data?.valetEnabled ?? false)
+        setValetCharge(data.data?.valetCharge || '0')
+        setMaxAmountMsg({ text: '', severity: 'success' })
       } catch (err) {
         console.error('Failed to fetch vendor details:', err)
         setError(err.message || 'Failed to fetch vendor details')
@@ -553,36 +659,227 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     )
   }
 
+  // Render editable Maximum Parking Fee Limits Section
+  const renderMaxLimitsSection = () => {
+    return (
+      <Paper sx={{ p: 2.5, mt: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+          <MonetizationOnIcon color='primary' />
+          <Typography variant='subtitle1' fontWeight='bold'>
+            Maximum Instant Parking Charge Limits (₹)
+          </Typography>
+        </Box>
+        <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+          Applicable strictly to Instant Parking (hourly / drive-in). Vehicles will never be billed more than these maximum amounts. Fixed passes (12hr, 24hr, full-day) and subscriptions are not affected by these limits. Set to 0 or leave empty for no limit.
+        </Typography>
+
+        {maxAmountMsg.text && (
+          <Alert
+            severity={maxAmountMsg.severity}
+            sx={{ mb: 2 }}
+            onClose={() => setMaxAmountMsg({ text: '', severity: 'success' })}
+          >
+            {maxAmountMsg.text}
+          </Alert>
+        )}
+
+        <Grid container spacing={2.5}>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              size='small'
+              label='Max Bike Amount (₹)'
+              value={maxBikeAmount}
+              onChange={e => setMaxBikeAmount(e.target.value)}
+              type='number'
+              inputProps={{ min: 0, step: 1 }}
+              placeholder='0 for no limit'
+              helperText='Ceiling price for bikes'
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              size='small'
+              label='Max Car Amount (₹)'
+              value={maxCarAmount}
+              onChange={handleCarAmountChange}
+              type='number'
+              inputProps={{ min: 0, step: 1 }}
+              placeholder='0 for no limit'
+              helperText={
+                maxCarValetOption === 'with_valet'
+                  ? `Effective limit: ₹${maxCarAmount || 0} (Base ₹${maxCarBaseAmount || 0} + Valet ₹${valetCharge || 0})`
+                  : 'Ceiling price for cars (without valet)'
+              }
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              size='small'
+              label='Max Others Amount (₹)'
+              value={maxOthersAmount}
+              onChange={e => setMaxOthersAmount(e.target.value)}
+              type='number'
+              inputProps={{ min: 0, step: 1 }}
+              placeholder='0 for no limit'
+              helperText='Ceiling price for others'
+            />
+          </Grid>
+        </Grid>
+
+        <Box
+          sx={{
+            mt: 2.5,
+            p: 2,
+            borderRadius: 1.5,
+            bgcolor: 'action.hover',
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            justifyContent: 'space-between',
+            gap: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <i className='ri-car-line' style={{ fontSize: '1.25rem' }} />
+            </Box>
+            <Box>
+              <Typography variant='body2' fontWeight={600}>
+                Car Valet Charge Option (Applicable Only to Cars)
+              </Typography>
+              <Typography variant='caption' color='text.secondary'>
+                {maxCarValetOption === 'with_valet'
+                  ? `Max limit includes ₹${valetCharge || 0} valet: Base ₹${maxCarBaseAmount || 0} + Valet ₹${valetCharge || 0} = ₹${maxCarAmount || 0}`
+                  : `Valet charge excluded from car ceiling (Max: ₹${maxCarAmount || 0})`}
+              </Typography>
+            </Box>
+          </Box>
+
+          <FormControl size='small' sx={{ minWidth: { xs: '100%', sm: 260 } }}>
+            <InputLabel id='car-valet-select-label'>Valet Option</InputLabel>
+            <Select
+              labelId='car-valet-select-label'
+              id='car-valet-select'
+              value={maxCarValetOption}
+              label='Valet Option'
+              onChange={handleValetOptionChange}
+            >
+              <MenuItem value='without_valet'>Without Valet Charge</MenuItem>
+              <MenuItem value='with_valet'>
+                With Valet Charge {parseFloat(valetCharge) > 0 ? `(+₹${valetCharge})` : ''}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Divider sx={{ my: 2.5 }} />
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+          <i className='ri-car-washing-line' style={{ fontSize: '1.2rem', color: '#7c3aed' }} />
+          <Typography variant='subtitle1' fontWeight='bold'>
+            Valet Service & Charges
+          </Typography>
+        </Box>
+        <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+          Enable or disable valet service for this vendor and set the fixed valet fee. This replicates in real-time with the Mobile App and Vendor Portal.
+        </Typography>
+
+        <Grid container spacing={2} alignItems='center'>
+          <Grid item xs={12} sm={4}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={valetEnabled}
+                  onChange={e => setValetEnabled(e.target.checked)}
+                  color='primary'
+                />
+              }
+              label={
+                <Typography variant='body2' fontWeight='medium'>
+                  Valet Service: <strong>{valetEnabled ? 'Enabled' : 'Disabled'}</strong>
+                </Typography>
+              }
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              size='small'
+              label='Valet Charges (₹)'
+              value={valetCharge}
+              onChange={handleValetChargeChange}
+              type='number'
+              inputProps={{ min: 0, step: 1 }}
+              placeholder='0'
+              disabled={!valetEnabled}
+              helperText='Fixed valet fee added on parking'
+            />
+          </Grid>
+          <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant='contained'
+              color='primary'
+              size='medium'
+              onClick={handleSaveMaxLimits}
+              disabled={savingMaxAmounts}
+              startIcon={savingMaxAmounts ? <CircularProgress size={18} color='inherit' /> : <SaveIcon />}
+            >
+              {savingMaxAmounts ? 'Saving...' : 'Save Pricing & Valet'}
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+    )
+  }
+
   // Render parking information
   const renderParking = () => {
-    if (!vendorData?.parkingEntries || vendorData.parkingEntries.length === 0) {
-      return <Typography>No parking information available</Typography>
-    }
-
     return (
       <Box sx={{ mt: 2 }}>
-        <Paper sx={{ p: 2, bgcolor: '#f9f9f9' }}>
-          <Typography variant='subtitle1' fontWeight='bold'>
-            Parking Capacity
-          </Typography>
-          <Box sx={{ mt: 1 }}>
-            {vendorData.parkingEntries.map((entry, index) => (
-              <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <i
-                  className={entry.type?.toLowerCase() === 'bike' ? 'ri-motorbike-fill' : 'ri-car-fill'}
-                  style={{
-                    fontSize: '18px',
-                    color: entry.type?.toLowerCase() === 'bike' ? '#72e128' : '#ff4d49',
-                    marginRight: '8px'
-                  }}
-                />
-                <Typography variant='body1'>
-                  {entry.type}: <strong>{entry.count}</strong>
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Paper>
+        {vendorData?.parkingEntries && vendorData.parkingEntries.length > 0 && (
+          <Paper sx={{ p: 2, bgcolor: '#f9f9f9', mb: 2 }}>
+            <Typography variant='subtitle1' fontWeight='bold'>
+              Parking Capacity
+            </Typography>
+            <Box sx={{ mt: 1 }}>
+              {vendorData.parkingEntries.map((entry, index) => (
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <i
+                    className={entry.type?.toLowerCase() === 'bike' ? 'ri-motorbike-fill' : 'ri-car-fill'}
+                    style={{
+                      fontSize: '18px',
+                      color: entry.type?.toLowerCase() === 'bike' ? '#72e128' : '#ff4d49',
+                      marginRight: '8px'
+                    }}
+                  />
+                  <Typography variant='body1'>
+                    {entry.type}: <strong>{entry.count}</strong>
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Paper>
+        )}
+
+        {/* Editable Maximum Parking Limits Section */}
+        {renderMaxLimitsSection()}
       </Box>
     )
   }
@@ -1172,12 +1469,19 @@ const VendorDetailModal = ({ open, handleClose, vendorId }) => {
     }
 
     if (Object.keys(charges).length === 0) {
-      return <Alert severity='info'>No parking charges found for this vendor</Alert>
+      return (
+        <Box sx={{ p: 2 }}>
+          {renderMaxLimitsSection()}
+          <Alert severity='info' sx={{ mt: 2 }}>No parking charges found for this vendor</Alert>
+        </Box>
+      )
     }
 
     return (
       <Box sx={{ p: 2 }}>
-        <Typography variant='h6' gutterBottom>
+        {renderMaxLimitsSection()}
+
+        <Typography variant='h6' gutterBottom sx={{ mt: 3 }}>
           Parking Charges
         </Typography>
 
@@ -2253,7 +2557,12 @@ const VendorListTable = () => {
       />
 
       {/* Vendor Detail Modal */}
-      <VendorDetailModal open={modalOpen} handleClose={handleCloseModal} vendorId={selectedVendorId} />
+      <VendorDetailModal
+        open={modalOpen}
+        handleClose={handleCloseModal}
+        vendorId={selectedVendorId}
+        onVendorUpdated={fetchVendors}
+      />
     </Card>
   )
 }
