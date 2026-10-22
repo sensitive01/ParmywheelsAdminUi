@@ -514,6 +514,8 @@ const VendorUpdate = ({ vendorId }) => {
   const [previousValidityDay, setPreviousValidityDay] = useState(0)
   const [isUpdateValidity, setIsUpdateValidity] = useState(false)
   const [subscriptionEndDate, setSubscriptionEndDate] = useState(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState('inactive')
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [maxBikeAmount, setMaxBikeAmount] = useState('')
   const [maxCarAmount, setMaxCarAmount] = useState('')
   const [maxOthersAmount, setMaxOthersAmount] = useState('')
@@ -607,6 +609,7 @@ const VendorUpdate = ({ vendorId }) => {
           setValidityDay(response.data.vendor.subscriptionleft ?? 0)
           setSubscriptionEndDate(response.data.vendor.subscriptionenddate ?? null)
           setPreviousValidityDay(response.data.vendor.previoussubscriptionleft ?? 0)
+          setSubscriptionStatus(response.data.vendor.subscription === 'true' ? 'active' : 'inactive')
         }
       }
     } catch (err) {
@@ -618,6 +621,40 @@ const VendorUpdate = ({ vendorId }) => {
       })
     } finally {
       setIsUpdateValidity(false)
+    }
+  }
+
+  const updateSubscriptionStatus = async () => {
+    try {
+      setIsUpdatingStatus(true)
+
+      const response = await axios.put(`${API_URL}/vendor/updatesubscriptionstatus/${vendorId}`, {
+        status: subscriptionStatus
+      })
+
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: response.data.message || 'Subscription status updated successfully!',
+          severity: 'success'
+        })
+
+        if (response.data?.vendor) {
+          setValidityDay(response.data.vendor.subscriptionleft ?? 0)
+          setSubscriptionEndDate(response.data.vendor.subscriptionenddate ?? null)
+          setPreviousValidityDay(response.data.vendor.previoussubscriptionleft ?? 0)
+          setSubscriptionStatus(response.data.vendor.subscription === 'true' ? 'active' : 'inactive')
+        }
+      }
+    } catch (err) {
+      console.error('Error updating subscription status:', err)
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || 'Failed to update subscription status',
+        severity: 'error'
+      })
+    } finally {
+      setIsUpdatingStatus(false)
     }
   }
 
@@ -642,6 +679,7 @@ const VendorUpdate = ({ vendorId }) => {
           setValidityDay(response.data.vendor.subscriptionleft ?? previousValidityDay)
           setSubscriptionEndDate(response.data.vendor.subscriptionenddate ?? null)
           setPreviousValidityDay(response.data.vendor.previoussubscriptionleft ?? 0)
+          setSubscriptionStatus(response.data.vendor.subscription === 'true' ? 'active' : 'inactive')
         }
       }
     } catch (err) {
@@ -696,6 +734,7 @@ const VendorUpdate = ({ vendorId }) => {
           setValidityDay(vendorData.subscriptionleft || 0)
           setSubscriptionEndDate(vendorData.subscriptionenddate || null)
           setPreviousValidityDay(vendorData.previoussubscriptionleft || 0)
+          setSubscriptionStatus(vendorData.subscription === 'true' || vendorData.subscription === true ? 'active' : 'inactive')
           setMaxBikeAmount(vendorData.maxBikeAmount || '')
           setMaxCarAmount(vendorData.maxCarAmount || '')
           setMaxOthersAmount(vendorData.maxOthersAmount || '')
@@ -1132,6 +1171,53 @@ const VendorUpdate = ({ vendorId }) => {
                     </Button>
                   </Box>
                 )}
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <FormControl fullWidth>
+                    <InputLabel id='subscription-status-label'>Subscription Status</InputLabel>
+                    <Select
+                      labelId='subscription-status-label'
+                      value={subscriptionStatus}
+                      onChange={e => setSubscriptionStatus(e.target.value)}
+                      label='Subscription Status'
+                    >
+                      <MenuItem value='active'>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'success.main' }} />
+                          <Typography sx={{ fontWeight: 600, color: 'success.dark' }}>Active</Typography>
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value='inactive'>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'error.main' }} />
+                          <Typography sx={{ fontWeight: 600, color: 'error.dark' }}>Inactive</Typography>
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant='contained'
+                    onClick={updateSubscriptionStatus}
+                    disabled={isUpdatingStatus}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {isUpdatingStatus ? <CircularProgress size={24} /> : 'Update'}
+                  </Button>
+                </Box>
+                <Box sx={{ mt: 1 }}>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: subscriptionStatus === 'active' ? 'success.main' : 'error.main',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    {subscriptionStatus === 'active' ? '● Subscription is currently Active' : '● Subscription is currently Inactive'}
+                  </Typography>
+                </Box>
               </Grid>
             </Grid>
 
